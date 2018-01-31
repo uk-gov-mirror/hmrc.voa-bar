@@ -111,4 +111,17 @@ class LegacyConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with Mockito
     }
   }
 
+  "The generateHeaderCarrier method " must {
+
+    "include some basic authorization in the header" in {
+      val httpMock = getHttpMock(200)
+      val connector = new LegacyConnector(httpMock, configuration, environment)
+      val hc = connector.generateHeader(goodLogin)
+
+      hc.authorization.isDefined mustBe true
+      println(hc.authorization.get)
+      hc.authorization.get.toString.startsWith("Authorization(Basic") mustBe true
+    }
+  }
+
 }

@@ -39,9 +39,13 @@ class LegacyConnector @Inject()(val http: HttpClient,
 
   override protected def runModeConfiguration: Configuration = configuration
 
-  def validate(loginDetails: LoginDetails)(implicit ec: ExecutionContext): Future[Try[Int]] = {
+  def generateHeader(loginDetails: LoginDetails)(implicit ec: ExecutionContext): HeaderCarrier = {
     val encodedAuthHeader = Base64.encodeBase64String(s"${loginDetails.username}:${loginDetails.password}".getBytes("UTF-8"))
-    implicit val authHc = HeaderCarrier(authorization = Some(Authorization(s"Basic $encodedAuthHeader")))
+    HeaderCarrier(authorization = Some(Authorization(s"Basic $encodedAuthHeader")))
+  }
+
+  def validate(loginDetails: LoginDetails)(implicit ec: ExecutionContext): Future[Try[Int]] = {
+    implicit val authHc = generateHeader(loginDetails)
 
     http.GET("https://batransandbareports.voa.gov.uk/ebars_dmz_pres_ApplicationWeb/Welcome.do").map { response =>
       response.status match {
