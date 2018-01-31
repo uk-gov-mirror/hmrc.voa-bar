@@ -42,6 +42,8 @@ import scala.util.{Failure, Success}
 import scala.concurrent.ExecutionContext.Implicits.global
 import play.api.test.Helpers._
 
+import org.apache.commons.codec.binary.Base64
+
 class LegacyConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar {
 
   def injector: Injector = app.injector
@@ -107,6 +109,23 @@ class LegacyConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with Mockito
         val connector = new LegacyConnector(httpMock, configuration, environment)
         val result = await(connector.validate(goodLogin))
         assert(result.isFailure)
+      }
+    }
+  }
+
+  "The generateHeaderCarrier method " must {
+
+    "include some basic authorization in the header" in {
+      val httpMock = getHttpMock(200)
+      val connector = new LegacyConnector(httpMock, configuration, environment)
+      val hc = connector.generateHeader(goodLogin)
+
+      val encodedAuthHeader = Base64.encodeBase64String(s"${goodLogin.username}:${goodLogin.password}".getBytes("UTF-8"))
+
+      hc.authorization match {
+        case Some(s) => hc.authorization.isDefined mustBe true
+          s.toString.equals(s"Authorization(Basic ${encodedAuthHeader})") mustBe true
+        case _ => assert(false)
       }
     }
   }

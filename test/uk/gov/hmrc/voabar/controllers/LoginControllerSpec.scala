@@ -28,7 +28,7 @@ import play.api.test.Helpers.{status, _}
 import play.api.test._
 
 import scala.concurrent.Future
-import scala.util.Success
+import scala.util.{Failure, Success}
 import scala.concurrent.ExecutionContext
 
 class LoginControllerSpec extends PlaySpec with MockitoSugar {
@@ -40,6 +40,10 @@ class LoginControllerSpec extends PlaySpec with MockitoSugar {
 
   val mockLegacyConnector = mock[LegacyConnector]
   when (mockLegacyConnector.validate(any[LoginDetails])(any[ExecutionContext])) thenReturn Future.successful(Success(200))
+
+  val mockLegacyConnectorFailed = mock[LegacyConnector]
+  when (mockLegacyConnectorFailed.validate(any[LoginDetails])(any[ExecutionContext])) thenReturn
+    Future.successful(Failure(new RuntimeException("Received exception from upstream service")))
 
   val goodJson = """{"username": "ba0121", "password":"xxxdyyy"}"""
   val wrongJson = """{"usernaem": "ba0121", "passwodr":"xxxdyyy"}"""
@@ -74,5 +78,14 @@ class LoginControllerSpec extends PlaySpec with MockitoSugar {
     val result = controller.verifyLogin(Some(Json.parse(wrongJson)))
 
     result.isLeft mustBe true
+  }
+
+  "return a Failure when the backend service call fails" in {
+    val controller = new LoginController(mockLegacyConnectorFailed)
+
+    intercept[Exception] {
+      val result = controller.login()(fakeRequestWithJson(goodJson))
+      status(result) mustBe INTERNAL_SERVER_ERROR
+    }
   }
 }
