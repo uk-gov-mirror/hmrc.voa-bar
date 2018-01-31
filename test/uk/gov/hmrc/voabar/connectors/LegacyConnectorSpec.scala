@@ -118,9 +118,11 @@ class LegacyConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with Mockito
       val connector = new LegacyConnector(httpMock, configuration, environment)
       val hc = connector.generateHeader(goodLogin)
 
-      hc.authorization.isDefined mustBe true
-      println(hc.authorization.get)
-      hc.authorization.get.toString.startsWith("Authorization(Basic") mustBe true
+      hc.authorization match {
+        case Some(s) => hc.authorization.isDefined mustBe true
+          s.toString.startsWith("Authorization(Basic") mustBe true
+        case _ => assert(false)
+      }
     }
   }
 
