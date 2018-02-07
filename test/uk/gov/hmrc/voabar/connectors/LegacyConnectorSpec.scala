@@ -41,15 +41,21 @@ import scala.concurrent.Future
 import scala.util.{Failure, Success}
 import scala.concurrent.ExecutionContext.Implicits.global
 import play.api.test.Helpers._
-
 import org.apache.commons.codec.binary.Base64
+import uk.gov.hmrc.crypto.{ApplicationCryptoDI, PlainText}
 
 class LegacyConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar {
 
   def injector: Injector = app.injector
   val configuration = injector.instanceOf[Configuration]
   val environment = injector.instanceOf[Environment]
-  val goodLogin = LoginDetails("ba0121", "wibble")
+  val crypto = new ApplicationCryptoDI(configuration).JsonCrypto
+
+  val username = "ba0121"
+  val password = "wibble"
+  val encryptedPassword = crypto.encrypt(PlainText(password)).value
+
+  val goodLogin = LoginDetails(username, encryptedPassword)
 
   def getHttpMock(returnedStatus: Int): HttpClient = {
     val httpMock = mock[HttpClient]
@@ -57,6 +63,15 @@ class LegacyConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with Mockito
       any[HeaderCarrier], any())) thenReturn Future.successful(HttpResponse(returnedStatus, None))
     when(httpMock.GET(anyString)(any[HttpReads[Any]], any[HeaderCarrier], any())) thenReturn Future.successful(HttpResponse(returnedStatus, None))
     httpMock
+  }
+
+  "decryptPassword" must {
+    "Decrypt the  encrypted password and return it in plain text" in {
+      val httpMock = getHttpMock(200)
+      val connector = new LegacyConnector(httpMock, configuration, environment)
+      val decryptedPassword = connector.decryptPassword(encryptedPassword)
+      decryptedPassword mustBe password
+    }
   }
 
   "LegacyConnector " must {
@@ -120,7 +135,7 @@ class LegacyConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with Mockito
       val connector = new LegacyConnector(httpMock, configuration, environment)
       val hc = connector.generateHeader(goodLogin)
 
-      val encodedAuthHeader = Base64.encodeBase64String(s"${goodLogin.username}:${goodLogin.password}".getBytes("UTF-8"))
+      val encodedAuthHeader = Base64.encodeBase64String(s"${goodLogin.username}:${password}".getBytes("UTF-8"))
 
       hc.authorization match {
         case Some(s) => hc.authorization.isDefined mustBe true
