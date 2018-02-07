@@ -21,11 +21,13 @@ import javax.inject.{Inject, Singleton}
 import org.apache.commons.codec.binary.Base64
 import play.api.Mode.Mode
 import play.api.{Configuration, Environment, Logger}
+import uk.gov.hmrc.crypto.{ApplicationCrypto, Crypted}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.http.logging._
 import uk.gov.hmrc.voabar.models.LoginDetails
+
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 import scala.concurrent.ExecutionContext
@@ -39,8 +41,14 @@ class LegacyConnector @Inject()(val http: HttpClient,
 
   override protected def runModeConfiguration: Configuration = configuration
 
+  lazy val crypto = ApplicationCrypto.JsonCrypto
+
+  def decryptPassword(password: String) : String = crypto.decrypt(Crypted(password)).value
+
+
   def generateHeader(loginDetails: LoginDetails)(implicit ec: ExecutionContext): HeaderCarrier = {
-    val encodedAuthHeader = Base64.encodeBase64String(s"${loginDetails.username}:${loginDetails.password}".getBytes("UTF-8"))
+    val decryptedPassword = decryptPassword(loginDetails.password)
+    val encodedAuthHeader = Base64.encodeBase64String(s"${loginDetails.username}:${decryptedPassword}".getBytes("UTF-8"))
     HeaderCarrier(authorization = Some(Authorization(s"Basic $encodedAuthHeader")))
   }
 
