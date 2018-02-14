@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.voabar.models
 
+import play.api.i18n.Messages
 import play.api.libs.json.Json
 import uk.gov.hmrc.voabar.utils.Initialize
 
@@ -24,22 +25,18 @@ case class Email(to: Seq[String], templateId: String, parameters: Map[String, St
 object Email {
   implicit val writer = Json.writes[Email]
 
-  def apply(baRefNumber: String, fileName: String, dateSubmitted: String, errorList: String): Email = {
+  def apply(baRefNumber: String, fileName: String, dateSubmitted: String, errorList: String, init: Initialize): Email = {
 
     val parameters = Map(
-      "firstName" -> ctc.contact.firstName,
-      "lastName" -> ctc.contact.lastName,
-      "email" -> ctc.contact.email,
-      "contactNumber" -> ctc.contact.contactNumber,
-      "propertyAddress" -> formattedPropertyAddress(ctc.propertyAddress, ", "),
-      "enquiryCategoryMsg" -> ctc.enquiryCategoryMsg,
-      "subEnquiryCategoryMsg" -> ctc.subEnquiryCategoryMsg,
-      "message" -> ctc.message
+      "baRefNumber" -> s"BA : $baRefNumber",
+      "fileName" -> s"File name : $fileName",
+      "dateSubmitted" -> s"Date Submitted : $dateSubmitted",
+      "errorList" -> s"Errors : $errorList"
     )
 
-    val emailAddress = if (ctc.isCouncilTaxEnquiry) init.councilTaxEmail else init.businessRatesEmail
+    val emailAddress = init.voaEmail
 
-    Email(Seq(emailAddress), "voa_confirmation_message_alert", parameters)
+    Email(Seq(emailAddress), "bars_alert", parameters)
   }
 }
 
