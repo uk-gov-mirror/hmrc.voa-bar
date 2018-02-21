@@ -56,7 +56,7 @@ class Input extends LSInput {
 
   override def getCertifiedText: Boolean = certifiedText
 
-  override def setCharacterStream(characterStream: Reader) = this.reader = reader
+  override def setCharacterStream(characterStream: Reader) = this.reader = characterStream
 
   override def setStringData(stringData: String) = this.stringData = stringData
 }
