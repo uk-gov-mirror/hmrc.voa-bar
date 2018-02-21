@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BAreports xmlns="http://www.govtalk.gov.uk/LG/Valuebill" xmlns:apd="http://www.govtalk.gov.uk/people/AddressAndPersonalDetails" xmlns:bs7666="http://www.govtalk.gov.uk/people/bs7666" xmlns:core="http://www.govtalk.gov.uk/core" xmlns:pdt="http://www.govtalk.gov.uk/people/PersonDescriptives" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.govtalk.gov.uk/LG/Valuebill ValuebillBAtoVOA-v4-0.xsd" SchemaId="VbBAtoVOA" SchemaVersion="4-0">
+    <BAreportHeader>
+        <BillingAuthority>Invalid Council</BillingAuthority>
+        <BillingAuthorityIdentityCode>7777</BillingAuthorityIdentityCode>
+        <ProcessDate>2017-08-30</ProcessDate>
+        <EntryDateTime>2017-08-30T23:00:22</EntryDateTime>
+    </BAreportHeader>
+    <BApropertyReport>
+        <DateSent>2017-08-30</DateSent>
+        <TransactionIdentityBA>22121746115111</TransactionIdentityBA>
+        <BAidentityNumber>7777</BAidentityNumber>
+        <BAreportNumber>211907</BAreportNumber>
+        <TypeOfTax>
+            <CtaxReasonForReport>
+                <ReasonForReportCode>CR03</ReasonForReportCode>
+                <ReasonForReportDescription>New</ReasonForReportDescription>
+            </CtaxReasonForReport>
+        </TypeOfTax>
+        <ProposedEntries>
+            <AssessmentProperties>
+                <PropertyIdentity>
+                    <bs7666:UniquePropertyReferenceNumber>121102276285</bs7666:UniquePropertyReferenceNumber>
+                    <TextAddress>
+                        <AddressLine>7 INVALID COURT</AddressLine>
+                        <AddressLine>AREA</AddressLine>
+                        <AddressLine>TOWN</AddressLine>
+                        <Postcode>ZZ11 Z11</Postcode>
+                    </TextAddress>
+                    <BAreference>22121746115111</BAreference>
+                </PropertyIdentity>
+                <OccupierContact>
+                    <OccupierName>
+                        <pdt:PersonNameTitle>MR</pdt:PersonNameTitle>
+                        <pdt:PersonGivenName>FIRST</pdt:PersonGivenName>
+                        <pdt:PersonFamilyName>LAST</pdt:PersonFamilyName>
+                        <pdt:PersonRequestedName>MR FIRST LAST</pdt:PersonRequestedName>
+                    </OccupierName>
+                </OccupierContact>
+            </AssessmentProperties>
+        </ProposedEntries>
+        <IndicatedDateOfChange>2017-05-01</IndicatedDateOfChange>
+    </BApropertyReport>
+
+    <BApropertyReport>
+        <DateSent>2017-08-30</DateSent>
+        <TransactionIdentityBA>22143188129121</TransactionIdentityBA>
+        <BAidentityNumber>7777</BAidentityNumber>
+        <BAreportNumber>234721</BAreportNumber>
+        <TypeOfTax>
+            <CtaxReasonForReport>
+                <ReasonForReportCode>CR03</ReasonForReportCode>
+                <ReasonForReportDescription>New</ReasonForReportDescription>
+            </CtaxReasonForReport>
+        </TypeOfTax>
+        <ProposedEntries>
+            <AssessmentProperties>
+                <PropertyIdentity>
+                    <bs7666:UniquePropertyReferenceNumber>245632317327</bs7666:UniquePropertyReferenceNumber>
+                    <TextAddress>
+                        <AddressLine>20 SOME LINE</AddressLine>
+                        <AddressLine>SOME ADDRESS</AddressLine>
+                        <AddressLine>SOME OTHER LINE</AddressLine>
+                        <AddressLine>TOWN</AddressLine>
+                        <Postcode>ZZ15 1ZZ</Postcode>
+                    </TextAddress>
+                    <BAreference>99153188329345</BAreference>
+                </PropertyIdentity>
+                <OccupierContact>
+                    <OccupierName>
+                        <pdt:PersonNameTitle>MRS</pdt:PersonNameTitle>
+                        <pdt:PersonGivenName>FIRST</pdt:PersonGivenName>
+                        <pdt:PersonFamilyName>SURNAME</pdt:PersonFamilyName>
+                        <pdt:PersonRequestedName>MRS FIRST SURNAME</pdt:PersonRequestedName>
+                    </OccupierName>
+                </OccupierContact>
+            </AssessmentProperties>
+        </ProposedEntries>
+        <IndicatedDateOfChange>2017-08-25</IndicatedDateOfChange>
+        <Remarks>Some Remarks</Remarks>
+    </BApropertyReport>
+
+    <BApropertyReport>
+        <DateSent>2017-08-30</DateSent>
+        <TransactionIdentityBA>22367894525102</TransactionIdentityBA>
+        <BAidentityNumber>7777</BAidentityNumber>
+        <BAreportNumber>432432</BAreportNumber>
+        <TypeOfTax>
+            <CtaxReasonForReport>
+                <ReasonForReportCode>CR03</ReasonForReportCode>
+                <ReasonForReportDescription>New</ReasonForReportDescription>
+            </CtaxReasonForReport>
+        </TypeOfTax>
+        <ProposedEntries>
+            <AssessmentProperties>
+                <PropertyIdentity>
+                    <bs7666:UniquePropertyReferenceNumber>211653178913</bs7666:UniquePropertyReferenceNumber>
+                    <TextAddress>
+                        <AddressLine>33 SOME ROAD</AddressLine>
+                        <AddressLine>SOME AREA</AddressLine>
+                        <AddressLine>SOME TOWN</AddressLine>
+                        <Postcode>BB11 1BB</Postcode>
+                    </TextAddress>
+                    <BAreference>33163591133111</BAreference>
+                </PropertyIdentity>
+                <OccupierContact>
+                    <OccupierName>
+                        <pdt:PersonNameTitle>MR</pdt:PersonNameTitle>
+                        <pdt:PersonGivenName>FIRST</pdt:PersonGivenName>
+                        <pdt:PersonGivenName>OTHER</pdt:PersonGivenName>
+                        <pdt:PersonGivenName>OTHER</pdt:PersonGivenName>
+                        <pdt:PersonFamilyName>FAMILY</pdt:PersonFamilyName>
+                        <pdt:PersonRequestedName>MR FIRST OTHER OTHER FAMILY</pdt:PersonRequestedName>
+                    </OccupierName>
+                </OccupierContact>
+            </AssessmentProperties>
+        </ProposedEntries>
+        <IndicatedDateOfChange>2017-06-08</IndicatedDateOfChange>
+    </BApropertyReport>
+
+    <BApropertyReport>
+        <DateSent>2017-08-30</DateSent>
+        <TransactionIdentityBA>67218812372178</TransactionIdentityBA>
+        <BAidentityNumber>7777</BAidentityNumber>
+        <BAreportNumber>211345</BAreportNumber>
+        <TypeOfTax>
+            <CtaxReasonForReport>
+                <ReasonForReportCode>CR03</ReasonForReportCode>
+                <ReasonForReportDescription>New</ReasonForReportDescription>
+            </CtaxReasonForReport>
+        </TypeOfTax>
+        <ProposedEntries>
+            <AssessmentProperties>
+                <PropertyIdentity>
+                    <bs7666:UniquePropertyReferenceNumber>623456789012</bs7666:UniquePropertyReferenceNumber>
+                    <TextAddress>
+                        <AddressLine>28 LINE</AddressLine>
+                        <AddressLine>NEW LINE</AddressLine>
+                        <AddressLine>ANOTHER LINE</AddressLine>
+                        <AddressLine>TOWN</AddressLine>
+                        <Postcode>CC11 1CC</Postcode>
+                    </TextAddress>
+                    <BAreference>33116456167123</BAreference>
+                </PropertyIdentity>
+                <OccupierContact>
+                    <OccupierName>
+                        <pdt:PersonNameTitle>MR</pdt:PersonNameTitle>
+                        <pdt:PersonGivenName>GIVEN</pdt:PersonGivenName>
+                        <pdt:PersonFamilyName>SURNAME</pdt:PersonFamilyName>
+                        <pdt:PersonRequestedName>MR GIVEN SURNAME</pdt:PersonRequestedName>
+                    </OccupierName>
+                </OccupierContact>
+            </AssessmentProperties>
+        </ProposedEntries>
+        <IndicatedDateOfChange>2017-07-27</IndicatedDateOfChange>
+        <Remarks>Some remarks</Remarks>
+    </BApropertyReport>
+
+    <BApropertyReport>
+        <DateSent>2017-08-30</DateSent>
+        <TransactionIdentityBA>28174311122119</TransactionIdentityBA>
+        <BAidentityNumber>7777</BAidentityNumber>
+        <BAreportNumber>122111</BAreportNumber>
+        <TypeOfTax>
+            <CtaxReasonForReport>
+                <ReasonForReportCode>CR03</ReasonForReportCode>
+                <ReasonForReportDescription>New</ReasonForReportDescription>
+            </CtaxReasonForReport>
+        </TypeOfTax>
+        <ProposedEntries>
+            <AssessmentProperties>
+                <PropertyIdentity>
+                    <bs7666:UniquePropertyReferenceNumber>267812358901</bs7666:UniquePropertyReferenceNumber>
+                    <TextAddress>
+                        <AddressLine>1 LINE</AddressLine>
+                        <AddressLine>2 LINE</AddressLine>
+                        <AddressLine>3 LINE</AddressLine>
+                        <AddressLine>AREA</AddressLine>
+                        <Postcode>XX11 1XX</Postcode>
+                    </TextAddress>
+                    <BAreference>8137918816789</BAreference>
+                </PropertyIdentity>
+                <OccupierContact>
+                    <OccupierName>
+                        <pdt:PersonNameTitle>MR</pdt:PersonNameTitle>
+                        <pdt:PersonGivenName>SOME</pdt:PersonGivenName>
+                        <pdt:PersonFamilyName>FAMILY</pdt:PersonFamilyName>
+                        <pdt:PersonRequestedName>MR SOME FAMILY</pdt:PersonRequestedName>
+                    </OccupierName>
+                    <ContactAddress>
+                        <apd:Line>2 LINE</apd:Line>
+                        <apd:Line>5 PARK</apd:Line>
+                        <apd:Line>TOWN</apd:Line>
+                        <apd:Line>AREA</apd:Line>
+                        <apd:PostCode>XX33 3XX</apd:PostCode>
+                    </ContactAddress>
+                </OccupierContact>
+            </AssessmentProperties>
+        </ProposedEntries>
+        <IndicatedDateOfChange>2017-08-28</IndicatedDateOfChange>
+        <Remarks>Remarks</Remarks>
+    </BApropertyReport>
+
+    <BAreportTrailer>
+        <RecordCount>8</RecordCount>
+        <EntryDateTime>2017-08-30T23:01:43</EntryDateTime>
+        <TotalNNDRreportCount>0</TotalNNDRreportCount>
+        <TotalCtaxReportCount>8</TotalCtaxReportCount>
+    </BAreportTrailer>
+</BAreports>
