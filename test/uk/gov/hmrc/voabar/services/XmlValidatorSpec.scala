@@ -22,34 +22,34 @@ import org.scalatest.WordSpec
 
 class XmlValidatorSpec extends WordSpec {
 
-  val validator =new XmlValidator
+  val validator = new XmlValidator
 
   "A valid xml file" should {
     "validate successfully" in {
       val errors = validator.validate(IOUtils.toString(getClass.getResource("/xml/CTValid1.xml")))
-      errors.error should have size 0
+      errors should have size 0
     }
   }
 
   "An invalid xml file" should {
     "not validate successfully" in {
       val errors = validator.validate(IOUtils.toString(getClass.getResource("/xml//CTInvalid1.xml")))
-      errors.error should have size 4
+      errors should have size 4
     }
   }
 
   "A valid CT xml file" should {
     "validate successfully" in {
       val errors = validator.validate(IOUtils.toString(getClass.getResource("/xml/CTValid2.xml")))
-      errors.error should have size 0
+      errors should have size 0
     }
   }
 
   "An invalid CT xml file" should {
     "not validate successfully and contain a CouncilTaxBand related error" in {
       val errors = validator.validate(IOUtils.toString(getClass.getResource("/xml/CTInvalid2.xml")))
-      errors.error should have size 18
-      assert(errors.error.toString.contains("CouncilTaxBand"))
+      errors should have size 18
+      assert(errors.toString.contains("CouncilTaxBand"))
     }
   }
 

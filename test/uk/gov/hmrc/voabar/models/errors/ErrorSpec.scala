@@ -18,7 +18,7 @@ package uk.gov.hmrc.voabar.models.errors
 
 import org.scalatestplus.play.PlaySpec
 
-class ValidationErrorsSpec extends PlaySpec {
+class ErrorSpec extends PlaySpec {
 
   val code = "code1"
   val errorValue = "testing error"
@@ -28,16 +28,6 @@ class ValidationErrorsSpec extends PlaySpec {
   "Given an error code and an error value produce an Error model" in {
     error.code mustBe code
     error.value mustBe errorValue
-  }
-
-  "Given an empty list of errors the hasErrors method should return false" in {
-    val errors = new ValidationErrors(Seq())
-    errors.hasErrors mustBe false
-  }
-
-  "Given a list of errors the hasErrors method should return true" in {
-    val errors = new ValidationErrors(Seq(error))
-    errors.hasErrors mustBe true
   }
 
 }

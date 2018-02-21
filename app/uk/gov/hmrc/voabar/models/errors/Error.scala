@@ -16,8 +16,4 @@
 
 package uk.gov.hmrc.voabar.models.errors
 
-class ValidationErrors(val error: Seq[Error]) extends RuntimeException {
-  def hasErrors = error.nonEmpty
-}
-
 case class Error(code: String, value: String)
