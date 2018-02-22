@@ -66,19 +66,19 @@ class CharacterValidator {
 
   def validateCharacter(character: String): Boolean = character.matches(validCharacterRegex)
 
-    def charactersValidationStatus(batch: BatchSubmission) = {
-      val headerErrors: List[CharacterError] = validateHeader(batch.batchHeader)
-      val trailerErrors: List[CharacterError] = validateTrailer(batch.batchTrailer)
-      val reportsErrors: List[CharacterError] = validateBAPropertyReports(batch.baPropertyReports)
+  def charactersValidationStatus(batch: BatchSubmission) = {
+    val headerErrors: List[CharacterError] = validateHeader(batch.batchHeader)
+    val trailerErrors: List[CharacterError] = validateTrailer(batch.batchTrailer)
+    val reportsErrors: List[CharacterError] = validateBAPropertyReports(batch.baPropertyReports)
 
-      val remainingReports = if(reportsErrors.isEmpty) batch.baPropertyReports
-      else {
-        val invalidReportNumbers = reportsErrors.map(e => e.reportNumber).distinct
-        batch.baPropertyReports.filter(p => invalidReportNumbers.contains((p.node \ "BAreportNumber").text) == false)
-      }
-
-      val allErrors: List[CharacterError] = (headerErrors :: trailerErrors :: reportsErrors :: Nil).flatten
-
-      CharacterValidationResult(remainingReports, allErrors)
+    val remainingReports = if (reportsErrors.isEmpty) batch.baPropertyReports
+    else {
+      val invalidReportNumbers = reportsErrors.map(e => e.reportNumber).distinct
+      batch.baPropertyReports.filter(p => invalidReportNumbers.contains((p.node \ "BAreportNumber").text) == false)
     }
+
+    val allErrors: List[CharacterError] = (headerErrors :: trailerErrors :: reportsErrors :: Nil).flatten
+
+    CharacterValidationResult(remainingReports, allErrors)
+  }
 }
