@@ -23,7 +23,7 @@ import scala.xml.{Node, NodeSeq}
 
 class CharacterValidator {
 
-  val validCharacterRegex = """^["'a-zA-Z0-9\s\-&+\.@\(\):\/]+$"""
+  val validCharacterRegex = """^["'A-Z0-9\s\-&+\.@\(\):\/]+$"""
 
   def elementNodes(nodes: NodeSeq) = nodes.head.descendant.collect {
     case n@Node(_, _, child@_*) if child.size == 1 && child.head.isAtom => n
