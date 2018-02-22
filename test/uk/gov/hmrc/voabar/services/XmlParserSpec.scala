@@ -28,7 +28,7 @@ class XmlParserSpec extends WordSpec {
 
   val xmlParser = new XmlParser()
 
-  val batchSubmission:BatchSubmission = xmlParser.parseXml(IOUtils.toString(getClass.getResource("/xml/CTValid1.xml")))
+  val batchSubmission = xmlParser.parseXml(IOUtils.toString(getClass.getResource("/xml/CTValid1.xml")))
 
   "Given a valid BAReports xml file, XmlParser" should {
     "return a BatchSubmission object" in {
