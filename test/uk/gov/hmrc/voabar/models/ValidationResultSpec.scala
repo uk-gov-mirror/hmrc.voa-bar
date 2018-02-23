@@ -18,21 +18,22 @@ package uk.gov.hmrc.voabar.models
 
 import org.apache.commons.io.IOUtils
 import org.scalatestplus.play.PlaySpec
-import uk.gov.hmrc.voabar.models.errors.CharacterError
 import uk.gov.hmrc.voabar.services.XmlParser
+import uk.gov.hmrc.voabar.models.errors.Error
 
-class CharacterValidationResultSpec extends PlaySpec {
+class ValidationResultSpec extends PlaySpec {
 
   val xmlParser = new XmlParser
   val reports = xmlParser.parseXml(IOUtils.toString(getClass.getResource("/xml/CTValid2.xml"))).baPropertyReports
-  val errors = List(CharacterError("1", "date", 1000, "£"))
+  val errors = Seq(Error("1", Seq("date", "£")))
+
 
   "Given a list of BAPropertyReport and a list of Character Errors produce a CharacterValidationResult model" in {
-    val result = CharacterValidationResult(reports, errors)
+    val result = ValidationResult(reports, errors)
     result.baPropertyReports.size mustBe 4
     result.baPropertyReports mustBe reports
-    result.characterErrors.size mustBe 1
-    result.characterErrors mustBe errors
+    result.errors.size mustBe 1
+    result.errors mustBe errors
   }
 
 }

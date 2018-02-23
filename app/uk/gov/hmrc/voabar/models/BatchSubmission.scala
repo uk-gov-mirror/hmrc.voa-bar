@@ -17,5 +17,5 @@
 package uk.gov.hmrc.voabar.models
 
 case class BatchSubmission(batchHeader: BatchHeader,
-                           baPropertyReports: List[BAPropertyReport],
+                           baPropertyReports: Seq[BAPropertyReport],
                            batchTrailer: BatchTrailer)

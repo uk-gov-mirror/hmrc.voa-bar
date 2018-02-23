@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.voabar.models
 
-import uk.gov.hmrc.voabar.models.errors.CharacterError
+import uk.gov.hmrc.voabar.models.errors.Error
 
-case class CharacterValidationResult(baPropertyReports: List[BAPropertyReport], characterErrors: List[CharacterError])
+case class ValidationResult(baPropertyReports: Seq[BAPropertyReport], errors: Seq[Error])
 

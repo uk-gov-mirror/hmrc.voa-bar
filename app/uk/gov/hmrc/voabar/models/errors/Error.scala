@@ -16,4 +16,4 @@
 
 package uk.gov.hmrc.voabar.models.errors
 
-case class Error(code: String, value: String)
+case class Error(code: String, values: Seq[String] = Seq())

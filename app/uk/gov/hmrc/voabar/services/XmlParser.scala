@@ -27,7 +27,7 @@ class XmlParser {
 
     BatchSubmission(
       BatchHeader(xml \ "BAreportHeader"),
-      List[BAPropertyReport]((xml \ "BApropertyReport").toList map {i => BAPropertyReport(i)}: _*),
+      List[BAPropertyReport]((xml \ "BApropertyReport").toSeq map {i => BAPropertyReport(i)}: _*),
       BatchTrailer(xml \ "BAreportTrailer")
     )
   }

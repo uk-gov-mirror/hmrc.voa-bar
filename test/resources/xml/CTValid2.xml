@@ -221,8 +221,7 @@
         <IndicatedDateOfChange>2017-08-09</IndicatedDateOfChange>
         <PropertyPlanReferenceNumber>plan3</PropertyPlanReferenceNumber>
         <SourceOfUpdate>sourcing</SourceOfUpdate>
-        <Remarks>remarks
-        </Remarks>
+        <Remarks>remarks</Remarks>
     </BApropertyReport>
 
     <BApropertyReport>
@@ -330,8 +329,7 @@
         <IndicatedDateOfChange>2017-07-07</IndicatedDateOfChange>
         <PropertyPlanReferenceNumber>plan10</PropertyPlanReferenceNumber>
         <SourceOfUpdate>update</SourceOfUpdate>
-        <Remarks>remarks
-        </Remarks>
+        <Remarks>remarks</Remarks>
     </BApropertyReport>
 
     <BApropertyReport>
@@ -435,8 +433,7 @@
         <IndicatedDateOfChange>2017-07-11</IndicatedDateOfChange>
         <PropertyPlanReferenceNumber>plan11</PropertyPlanReferenceNumber>
         <SourceOfUpdate>plans</SourceOfUpdate>
-        <Remarks>some remarks
-        </Remarks>
+        <Remarks>some remarks</Remarks>
     </BApropertyReport>
     <BAreportTrailer>
         <RecordCount>4</RecordCount>

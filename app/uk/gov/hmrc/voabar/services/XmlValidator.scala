@@ -43,7 +43,7 @@ class XmlValidator {
     val errorHandler = new ErrorHandler {
       private def addError(exception: SAXParseException) {
         val split = exception.getMessage.split(":", 2) map (_.trim)
-        errors += Error(split(0), split(1))
+        errors += Error(split(0), Seq(split(1)))
       }
 
       override def warning(exception: SAXParseException) {
