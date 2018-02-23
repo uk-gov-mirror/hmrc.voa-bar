@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.voabar.services
 
+import play.api.Logger
 import uk.gov.hmrc.voabar.models._
 import uk.gov.hmrc.voabar.models.errors.CharacterError
 
@@ -25,8 +26,14 @@ class CharacterValidator {
 
   val validCharacterRegex = """^["'A-Z0-9\s\-&+\.@\(\):\/]+$"""
 
-  def elementNodes(nodes: NodeSeq) = nodes.head.descendant.collect {
-    case n@Node(_, _, child@_*) if child.size == 1 && child.head.isAtom => n
+  def elementNodes(nodes: NodeSeq) = nodes.headOption match {
+    case Some(n: Node) => n.descendant.collect {
+      case n @ Node(_, _, child @ _*) if child.size == 1 && child.head.isAtom => n
+    }
+    case None => {
+      Logger.warn("The parsed XML reached Character Validation with an empty NodeSeq")
+      throw new RuntimeException("The parsed XML reached Character Validation with an empty NodeSeq")
+    }
   }
 
   def validateHeader(header: BatchHeader): List[CharacterError] = {

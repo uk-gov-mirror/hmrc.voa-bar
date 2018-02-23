@@ -43,7 +43,7 @@ class XmlParserSpec extends WordSpec {
     }
 
     "contain a list of BAPropertyReports of type BAPropertyReport" in {
-      batchSubmission.baPropertyReports shouldBe a [List[BAPropertyReport]]
+      batchSubmission.baPropertyReports.isInstanceOf[List[BAPropertyReport]] shouldBe true
     }
 
     "contain a BatchTrailer" in {

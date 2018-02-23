@@ -16,11 +16,13 @@
 
 package uk.gov.hmrc.voabar.services
 
+import java.lang.RuntimeException
+
 import org.apache.commons.io.IOUtils
 import org.scalatestplus.play.PlaySpec
 import uk.gov.hmrc.voabar.models.{BatchHeader, BatchTrailer}
 
-import scala.xml.NodeSeq
+import scala.xml.{Node, NodeSeq}
 
 class CharacterValidatorSpec extends PlaySpec {
 
@@ -38,6 +40,23 @@ class CharacterValidatorSpec extends PlaySpec {
     <TotalCtaxReportCount>4</TotalCtaxReportCount>
   </BAreportTrailer>
 
+  val validTestBatchXml = """<BAreports SchemaId="BAtoVOA" SchemaVersion="4-0"
+            xmlns="http://www.govtalk.gov.uk/LG/Valuebill"
+            xmlns:apd="http://www.govtalk.gov.uk/people/AddressAndPersonalDetails"
+            xmlns:pdt="http://www.govtalk.gov.uk/people/PersonDescriptives"
+            xmlns:bs7666="http://www.govtalk.gov.uk/people/bs7666"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <BAreportHeader>
+    <BillingAuthority>VALID</BillingAuthority>
+  </BAreportHeader>
+    <BApropertyReport>
+      <BAreportNumber>200333</BAreportNumber>
+    </BApropertyReport>
+    <BAreportTrailer>
+      <RecordCount>4</RecordCount>
+    </BAreportTrailer>
+</BAreports>"""
+
   val validText = "SOME123'/:@ .-+&()"
   val invalidText = "SOME? <INVALID> £"
 
@@ -47,8 +66,21 @@ class CharacterValidatorSpec extends PlaySpec {
   val characterValidator = new CharacterValidator
   val xmlParser = new XmlParser
   val batchSubmission = xmlParser.parseXml(IOUtils.toString(getClass.getResource("/xml/CTValid2.xml")))
-
+  val fakeBatch = xmlParser.parseXml(validTestBatchXml)
   "Character Validator" must {
+
+    "The elementNodes should throw an exception if the NodeSeq is empty" in {
+      intercept[Exception] {
+        val result = characterValidator.elementNodes(NodeSeq.Empty)
+        result mustBe a [RuntimeException]
+      }
+    }
+
+    "The elementNodes should return a list of distinct end point nodes given a non empty NodeSeq" in {
+      val result = characterValidator.elementNodes(validHeader)
+      result.isEmpty mustBe false
+      result.size mustBe 4
+    }
 
     "The validateCharacter method should return true if the character is valid" in {
       characterValidator.validateCharacter(validChar) mustBe true
@@ -97,13 +129,18 @@ class CharacterValidatorSpec extends PlaySpec {
     "The validateBAPropertyReports method should return a list of errors if the reports contain invalid elements" in {
       val baPropertyReports = batchSubmission.baPropertyReports
       val result = characterValidator.validateBAPropertyReports(baPropertyReports)
-      result.foreach(println)
     }
 
     "The charactersValidationStatus should return a CharacterValidationResult containing the remaining reports and all character errors if any" in {
       val result = characterValidator.charactersValidationStatus(batchSubmission)
       result.baPropertyReports.size mustBe 0
       result.characterErrors.size mustBe 127
+    }
+
+    "The charactersValidationStatus should return a CharacterValidationResult containing the remaining reports and no character errors for a valid batch" in {
+      val result = characterValidator.charactersValidationStatus(fakeBatch)
+      result.baPropertyReports.size mustBe 1
+      result.characterErrors.size mustBe 0
     }
   }
 
