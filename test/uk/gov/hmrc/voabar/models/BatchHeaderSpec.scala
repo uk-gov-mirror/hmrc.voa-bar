@@ -14,6 +14,23 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.voabar.models.errors
+package uk.gov.hmrc.voabar.models
 
-case class Error(code: String, values: Seq[String] = Seq())
+import org.scalatestplus.play.PlaySpec
+import scala.xml.NodeSeq
+
+class BatchHeaderSpec extends PlaySpec {
+
+  val headerNode: NodeSeq = <BAreportHeader>
+    <BillingAuthority>Valid Council</BillingAuthority>
+    <BillingAuthorityIdentityCode>9999</BillingAuthorityIdentityCode>
+    <ProcessDate>2018-01-30</ProcessDate>
+    <EntryDateTime>2018-01-30T23:00:22</EntryDateTime>
+  </BAreportHeader>
+
+  "Given a NodeSeq representing the header produce a BatchHeader model" in {
+    val batchHeader = BatchHeader(headerNode)
+    batchHeader.node mustBe headerNode
+  }
+
+}

@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.voabar.models.errors
+package uk.gov.hmrc.voabar.models
 
-case class Error(code: String, values: Seq[String] = Seq())
+import scala.xml.NodeSeq
+
+case class BatchTrailer(node: NodeSeq)

@@ -21,13 +21,13 @@ import org.scalatestplus.play.PlaySpec
 class ErrorSpec extends PlaySpec {
 
   val code = "code1"
-  val errorValue = "testing error"
+  val errorValue = Seq("testing error")
 
   val error = Error(code, errorValue)
 
   "Given an error code and an error value produce an Error model" in {
     error.code mustBe code
-    error.value mustBe errorValue
+    error.values mustBe errorValue
   }
 
 }

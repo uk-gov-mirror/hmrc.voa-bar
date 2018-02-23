@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.voabar.models.errors
+package uk.gov.hmrc.voabar.models
 
-case class Error(code: String, values: Seq[String] = Seq())
+import uk.gov.hmrc.voabar.models.errors.Error
+
+case class ValidationResult(baPropertyReports: Seq[BAPropertyReport], errors: Seq[Error])
+

@@ -14,6 +14,22 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.voabar.models.errors
+package uk.gov.hmrc.voabar.services
 
-case class Error(code: String, values: Seq[String] = Seq())
+import uk.gov.hmrc.voabar.models.{BAPropertyReport, BatchHeader, BatchTrailer, BatchSubmission}
+import scala.xml._
+
+class XmlParser {
+
+  def parseXml(xmlString:String):BatchSubmission = {
+
+    val xml = XML.loadString(xmlString)
+
+    BatchSubmission(
+      BatchHeader(xml \ "BAreportHeader"),
+      List[BAPropertyReport]((xml \ "BApropertyReport").toSeq map {i => BAPropertyReport(i)}: _*),
+      BatchTrailer(xml \ "BAreportTrailer")
+    )
+  }
+
+}
