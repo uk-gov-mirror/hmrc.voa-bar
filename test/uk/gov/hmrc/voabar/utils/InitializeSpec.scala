@@ -16,9 +16,6 @@
 
 package uk.gov.hmrc.voabar.utils
 
-import java.util
-
-import com.typesafe.config
 import com.typesafe.config.ConfigFactory
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec

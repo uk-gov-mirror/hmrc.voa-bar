@@ -25,6 +25,7 @@ import uk.gov.hmrc.voabar.utils.Initialize
 import scala.collection.JavaConversions._
 
 class EmailSpec extends SpecBase {
+
   val init = injector.instanceOf[Initialize]
   val baRefNumber = "13432121232"
   val fileName = "sample.xml"

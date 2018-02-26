@@ -18,7 +18,6 @@ package uk.gov.hmrc.voabar.utils
 
 import javax.inject.{Singleton, Inject}
 import com.google.inject.AbstractModule
-import com.google.inject.name.Names
 import play.api.Configuration
 
 @Singleton
@@ -31,4 +30,3 @@ class StartupModule extends AbstractModule {
     bind(classOf[Initialize]).asEagerSingleton()
   }
 }
-

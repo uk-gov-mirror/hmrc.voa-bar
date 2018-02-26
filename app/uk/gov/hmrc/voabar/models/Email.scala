@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.voabar.models
 
-import play.api.i18n.Messages
 import play.api.libs.json.Json
 import uk.gov.hmrc.voabar.utils.Initialize
 
@@ -39,4 +38,3 @@ object Email {
     Email(Seq(emailAddress), "bars_alert", parameters)
   }
 }
-

@@ -30,6 +30,7 @@ import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
+import play.api.test.Helpers._
 
 class EmailConnectorSpec extends SpecBase {
 
@@ -50,18 +51,17 @@ class EmailConnectorSpec extends SpecBase {
       "Send the email returning a 200 when the email service succeeds" in {
         val httpMock = getHttpMock(202)
         val connector = new EmailConnector(httpMock, configuration, environment)
-        connector.sendEmail(email).map {
-          case Success(status) => status mustBe 200
-          case Failure(_) => assert(false)
-        }
+        val result = await(connector.sendEmail(email))
+
+        result.isSuccess mustBe true
+        result.get mustBe 200
       }
 
       "return a failure representing the error when send method fails" in {
         val httpMock = getHttpMock(500)
         val connector = new EmailConnector(httpMock, configuration, environment)
-        connector.sendEmail(email).map { result =>
-          assert(result.isFailure)
-        }
+        val result = await(connector.sendEmail(email))
+        result.isFailure mustBe true
       }
     }
 
@@ -76,7 +76,7 @@ class EmailConnectorSpec extends SpecBase {
         val httpMock = getHttpMock(200)
 
         val connector = new EmailConnector(httpMock, configuration, environment)
-        connector.sendJson(minimalJson)
+        await(connector.sendJson(minimalJson))
 
         verify(httpMock).POST(urlCaptor.capture, bodyCaptor.capture, headersCaptor.capture)(jsonWritesNapper.capture,
           httpReadsNapper.capture, headerCarrierNapper.capture, any())
@@ -86,14 +86,17 @@ class EmailConnectorSpec extends SpecBase {
       }
 
       "return a 200 if the email service call is successful" in {
-        new EmailConnector(getHttpMock(202), configuration, environment).sendJson(minimalJson).map { status =>
-          status mustBe Success(200)
+        val connector = new EmailConnector(getHttpMock(202), configuration, environment)
+        val result = await(connector.sendJson(minimalJson))
+
+        result mustBe Success(200)
         }
       }
 
       "throw an failure if the email service call fails" in {
-        new EmailConnector(getHttpMock(500), configuration, environment).sendJson(minimalJson). map { f =>
-          assert(f.isFailure)
+        val connector = new EmailConnector(getHttpMock(500), configuration, environment)
+        val result = await(connector.sendJson(minimalJson))
+          assert(result.isFailure)
         }
       }
 
@@ -101,10 +104,9 @@ class EmailConnectorSpec extends SpecBase {
         val httpMock = mock[HttpClient]
         when(httpMock.POST(anyString, any[JsValue], any[Seq[(String, String)]])(any[Writes[Any]], any[HttpReads[Any]],
           any[HeaderCarrier], any())) thenReturn  Future.successful(new RuntimeException)
-        new EmailConnector(httpMock, configuration, environment).sendJson(minimalJson). map {f =>
-          assert(f.isFailure)
-        }
+        val connector = new EmailConnector(httpMock, configuration, environment)
+        val result = await(connector.sendJson(minimalJson))
+          assert(result.isFailure)
       }
-    }
-  }
+
 }

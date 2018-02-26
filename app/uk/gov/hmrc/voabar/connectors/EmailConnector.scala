@@ -33,6 +33,7 @@ import play.api.Mode.Mode
 class EmailConnector @Inject()(val http: HttpClient,
                                val configuration: Configuration,
                                environment: Environment) extends ServicesConfig {
+
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
   override protected def mode: Mode = environment.mode
