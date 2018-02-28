@@ -34,7 +34,7 @@ class EmailSpec extends SpecBase {
   val email = Email(baRefNumber, fileName, dateSubmitted, errorList, init)
 
   "creating an email from valid input results in a map of parameters containing a baRefNumber key set to a value of 13432121232" in {
-    email.parameters.getOrElse("baRefNumber", "") mustBe s"BA : $baRefNumber"
+    email.parameters.getOrElse("baRefNumber", "") mustBe s"BA : $baRefNumber Type: CT"
   }
 
   "creating an email from valid input results in a map of parameters containing a fileName key set to a value of sample.xml" in {

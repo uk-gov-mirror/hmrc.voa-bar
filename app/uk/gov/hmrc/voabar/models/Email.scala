@@ -27,7 +27,7 @@ object Email {
   def apply(baRefNumber: String, fileName: String, dateSubmitted: String, errorList: String, init: Initialize): Email = {
 
     val parameters = Map(
-      "baRefNumber" -> s"BA : $baRefNumber",
+      "baRefNumber" -> s"BA : $baRefNumber Type: CT",
       "fileName" -> s"File name : $fileName",
       "dateSubmitted" -> s"Date Submitted : $dateSubmitted",
       "errorList" -> s"Errors : $errorList"
