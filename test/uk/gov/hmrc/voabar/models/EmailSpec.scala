@@ -19,7 +19,7 @@ package uk.gov.hmrc.voabar.models
 
 import com.typesafe.config.ConfigFactory
 import play.api.Configuration
-import uk.gov.hmrc.voabar.SpecBase
+import uk.gov.hmrc.voabar.base.SpecBase
 import uk.gov.hmrc.voabar.utils.Initialize
 
 import scala.collection.JavaConversions._

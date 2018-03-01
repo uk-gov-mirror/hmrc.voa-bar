@@ -22,7 +22,6 @@ import org.mockito.Mockito.{verify, when}
 import play.api.{Configuration, Environment}
 import play.api.libs.json._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, HttpResponse}
-import uk.gov.hmrc.voabar.SpecBase
 import uk.gov.hmrc.voabar.models.Email
 import uk.gov.hmrc.voabar.utils.Initialize
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
@@ -31,6 +30,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 import play.api.test.Helpers._
+import uk.gov.hmrc.voabar.base.SpecBase
 
 class EmailConnectorSpec extends SpecBase {
 

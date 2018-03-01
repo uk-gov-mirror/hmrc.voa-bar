@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.voabar
+package uk.gov.hmrc.voabar.base
 
 import org.mockito.Matchers.{any, anyString}
 import org.mockito.Mockito.when
