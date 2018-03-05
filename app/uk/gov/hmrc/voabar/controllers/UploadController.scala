@@ -23,18 +23,24 @@ import uk.gov.hmrc.play.bootstrap.controller.BaseController
 import scala.concurrent.Future
 
 @Singleton
-class UploadController @Inject()() extends BaseController{
+class UploadController @Inject()() extends BaseController {
 
-  def checkXml: Future[Result] = ???
-
-
+  def checkXml: Future[Int] = Future.successful(0)
 
   def upload(): Action[AnyContent] = Action.async { implicit request =>
     checkXml
-    Future.successful(Ok(""))
 
+//    val contentHeader = request.headers.get("ContentHeader").getOrElse("")
+//
+//    if (contentHeader == "") {
+//      Future.successful(NotAcceptable())
+//    } else {
+//      Future.successful(Ok(""))
+//    }
+
+    request.headers.get("Content-Type") match {
+      case Some(content) if content == "application/xml" => Future.successful(Ok)
+      case _ => Future.successful(NotAcceptable)
+    }
   }
-
-
-
 }
