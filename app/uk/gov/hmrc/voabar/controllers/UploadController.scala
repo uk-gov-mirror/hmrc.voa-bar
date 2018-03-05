@@ -16,9 +16,25 @@
 
 package uk.gov.hmrc.voabar.controllers
 
-import org.scalatest.mockito.MockitoSugar
-import org.scalatestplus.play.PlaySpec
+import javax.inject.{Inject, Singleton}
+import play.api.mvc.{Action, AnyContent, Result}
+import uk.gov.hmrc.play.bootstrap.controller.BaseController
 
-class ReportStatusControllerSpec extends PlaySpec with MockitoSugar {
+import scala.concurrent.Future
+
+@Singleton
+class UploadController @Inject()() extends BaseController{
+
+  def checkXml: Future[Result] = ???
+
+
+
+  def upload(): Action[AnyContent] = Action.async { implicit request =>
+    checkXml
+    Future.successful(Ok(""))
+
+  }
+
+
 
 }
