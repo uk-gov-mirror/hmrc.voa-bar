@@ -20,28 +20,46 @@ import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status, _}
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class UploadControllerSpec extends PlaySpec with MockitoSugar {
 
   val controller = new UploadController
 
-  def fakeRequestWithXML(xmlStr: String) = {
-    val xmlNodes = scala.xml.XML.loadString(xmlStr)
-    FakeRequest("POST", "").withHeaders("Content-Type" -> "application/xml").withXmlBody(xmlNodes)
+  def fakeRequestWithXML = {
+    val xmlNode = scala.xml.XML.loadString("""<xml>Wibble</xml>""")
+    FakeRequest("POST", "")
+      .withHeaders(
+        "Content-Type" -> "application/xml",
+        "Content-Length" -> s"${xmlNode.length}",
+        "BA-Code" -> "1234")
+      .withXmlBody(xmlNode)
   }
 
-  "Return status 200 for a post carrying xml" in {
-    val result = controller.upload()(fakeRequestWithXML("""<xml>Wibble</xml>"""))
+  "Return status 200 (OK) for a post carrying xml" in {
+    val result = controller.upload()(fakeRequestWithXML)
+    result.map{ x => println(x.header)}
     status(result) mustBe 200
   }
 
-  "Return 406 when given a content type that is not xml" in {
-    val result = controller.upload()(FakeRequest("POST", "/upload").withHeaders("Content-Type" -> "application/text"))
-    status(result) mustBe 406
+  "Return 415 (Unsupported Media Type) when given a content type that is not xml" in {
+    val result = controller.upload()(FakeRequest("POST", "/upload")
+      .withHeaders("Content-Type" -> "application/text"))
+    status(result) mustBe 415
   }
 
-  "Return 400 when given a content type that is xml but no xml is given" in {
-    val result = controller.upload()(FakeRequest("POST", "/upload").withHeaders("Content-Type" -> "application/xml"))
+  "Return 400 (Bad Request) when given a content type that is xml but no xml is given" in {
+    val result = controller.upload()(FakeRequest("POST", "/upload")
+      .withHeaders("Content-Type" -> "application/xml"))
     status(result) mustBe 400
+  }
+
+  "A request must contain a Billing Authority Code in the header" in {
+    fakeRequestWithXML.headers.get("BA-Code") mustBe Some("1234")
+  }
+
+  "A unique id is generated for each xml submission" in {
+    val id:Option[String] = controller.generateSubmissionID(fakeRequestWithXML)
+    id.isDefined mustBe true
   }
 }

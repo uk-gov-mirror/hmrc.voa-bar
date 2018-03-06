@@ -17,30 +17,40 @@
 package uk.gov.hmrc.voabar.controllers
 
 import javax.inject.{Inject, Singleton}
-import play.api.mvc.{Action, AnyContent, Result}
+import play.api.mvc.{Action, AnyContent, Request, Result}
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
 
 import scala.concurrent.Future
+import scala.xml.NodeSeq
 
 @Singleton
 class UploadController @Inject()() extends BaseController {
 
-  def checkXml: Future[Int] = Future.successful(0)
+  def checkXml(node:NodeSeq): Future[Int] = {
+    Thread.sleep(5000)
+    Future.successful(0)
+  }
 
   def upload(): Action[AnyContent] = Action.async { implicit request =>
-    checkXml
-
-//    val contentHeader = request.headers.get("ContentHeader").getOrElse("")
-//
-//    if (contentHeader == "") {
-//      Future.successful(NotAcceptable())
-//    } else {
-//      Future.successful(Ok(""))
-//    }
 
     request.headers.get("Content-Type") match {
-      case Some(content) if content == "application/xml" => Future.successful(Ok)
-      case _ => Future.successful(NotAcceptable)
+      case Some(content) if content == "application/xml" =>
+        request.body.asXml match {
+          case Some(xml) =>
+            val id = generateSubmissionID
+            checkXml(xml)
+            Future.successful(Ok("Received XML body").withHeaders("Content-Length" -> s"${xml.length}"))
+
+          case None => Future.successful(BadRequest)
+        }
+      case _ => Future.successful(UnsupportedMediaType)
     }
   }
+
+  def generateSubmissionID(implicit request:Request[AnyContent]): Option[String] = {
+    for (code <- request.headers.get("BA-Code"))
+      yield s"$code-${System.currentTimeMillis()}-${scala.util.Random.alphanumeric.take(2).mkString("")}"
+  }
+
+
 }
