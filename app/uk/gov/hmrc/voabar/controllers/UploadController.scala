@@ -32,22 +32,40 @@ class UploadController @Inject()() extends BaseController {
     Future.successful(0)
   }
 
-  def upload(): Action[AnyContent] = Action.async { implicit request =>
+  def upload(): Action[AnyContent] = Action { implicit request =>
 
-    request.headers.get("Content-Type") match {
+    //    request.headers.get("Content-Type") match {
+    //      case Some(content) if content == "application/xml" =>
+    //        request.body.asXml match {
+    //          case Some(xml) =>
+    //            request.headers.get("BA-Code") match {
+    //              case Some(baCode) =>
+    //                val id = generateSubmissionID(baCode)
+    //                checkXml (xml)
+    //                Future.successful (Ok(id))
+    //              case _ => Future.successful(BadRequest)
+    //            }
+    //          case None => Future.successful(Unauthorized)
+    //        }
+    //      case _ => Future.successful(UnsupportedMediaType)
+    //    }
+    //  }
+
+    val headers = request.headers
+    headers.get("Content-Type") match {
       case Some(content) if content == "application/xml" =>
-        request.body.asXml match {
-          case Some(xml) =>
-            request.headers.get("BA-Code") match {
-              case Some(baCode) =>
-                val id = generateSubmissionID(baCode)
-                checkXml (xml)
-                Future.successful (Ok(id))
-              case _ => Future.successful(BadRequest)
-            }
-          case None => Future.successful(BadRequest)
+        headers.get("BA-Code") match {
+          case Some(baCode) => request.body.asXml match {
+            case Some(xml) =>
+              val id = generateSubmissionID(baCode)
+              checkXml(xml)
+              Ok(id)
+            case None => BadRequest
+          }
+          case None => Unauthorized
         }
-      case _ => Future.successful(UnsupportedMediaType)
+      case Some(_) => UnsupportedMediaType
+      case None => BadRequest
     }
   }
 

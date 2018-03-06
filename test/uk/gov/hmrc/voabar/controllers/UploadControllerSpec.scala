@@ -58,13 +58,13 @@ class UploadControllerSpec extends PlaySpec with MockitoSugar {
 
   "Return 400 (Bad Request) when given a content type that is xml but no xml is given" in {
     val result = controller.upload()(FakeRequest("POST", "/upload")
-      .withHeaders("Content-Type" -> "application/xml"))
+      .withHeaders("Content-Type" -> "application/xml", "BA-Code" -> "1234"))
     status(result) mustBe 400
   }
 
   "A request must contain a Billing Authority Code in the header" in {
     val result = controller.upload()(fakeRequestWithXMLButNoBACode)
-    status(result) mustBe 400
+    status(result) mustBe UNAUTHORIZED
   }
 
   "An id is generated for each xml submission" in {
