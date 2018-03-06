@@ -70,10 +70,6 @@ class UploadControllerSpec extends PlaySpec with MockitoSugar {
   "An id is generated for each xml submission" in {
     val result = controller.upload()(fakeRequestWithXML)
     status(result) mustBe 200
-    val resultAsString = contentAsString(result)
-
-    println(">>>>>>>>>>>>>>>>>>>>>" + resultAsString)
-
-    resultAsString.matches("^\\d+-\\d+-[A-Z][A-Z]$") mustBe true
+    contentAsString(result).matches("^\\d+-\\d+-[A-Z][A-Z]$") mustBe true
   }
 }
