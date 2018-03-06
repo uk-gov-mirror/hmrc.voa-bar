@@ -20,6 +20,7 @@ import javax.inject.{Inject, Singleton}
 import play.api.mvc.{Action, AnyContent, Request, Result}
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
 
+import scala.collection.immutable
 import scala.concurrent.Future
 import scala.xml.NodeSeq
 
@@ -51,7 +52,9 @@ class UploadController @Inject()() extends BaseController {
   }
 
   def generateSubmissionID(baCode: String): String = {
-    s"$baCode-${System.currentTimeMillis()}-${scala.util.Random.alphanumeric.take(2).mkString("")}"
+    val chars = 'A' to 'Z'
+    def ran = scala.util.Random.nextInt(chars.size)
+    s"$baCode-${System.currentTimeMillis()}-${chars(ran)}${chars(ran)}"
   }
 
 }
