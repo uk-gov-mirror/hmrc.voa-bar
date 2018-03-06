@@ -27,7 +27,7 @@ import scala.xml.NodeSeq
 class UploadController @Inject()() extends BaseController {
 
   def checkXml(node:NodeSeq): Future[Int] = {
-    Thread.sleep(5000)
+    Thread.sleep(10)
     Future.successful(0)
   }
 
@@ -37,20 +37,21 @@ class UploadController @Inject()() extends BaseController {
       case Some(content) if content == "application/xml" =>
         request.body.asXml match {
           case Some(xml) =>
-            val id = generateSubmissionID
-            checkXml(xml)
-            Future.successful(Ok("Received XML body").withHeaders("Content-Length" -> s"${xml.length}"))
-
+            request.headers.get("BA-Code") match {
+              case Some(baCode) =>
+                val id = generateSubmissionID(baCode)
+                checkXml (xml)
+                Future.successful (Ok(id))
+              case _ => Future.successful(BadRequest)
+            }
           case None => Future.successful(BadRequest)
         }
       case _ => Future.successful(UnsupportedMediaType)
     }
   }
 
-  def generateSubmissionID(implicit request:Request[AnyContent]): Option[String] = {
-    for (code <- request.headers.get("BA-Code"))
-      yield s"$code-${System.currentTimeMillis()}-${scala.util.Random.alphanumeric.take(2).mkString("")}"
+  def generateSubmissionID(baCode: String): String = {
+    s"$baCode-${System.currentTimeMillis()}-${scala.util.Random.alphanumeric.take(2).mkString("")}"
   }
-
 
 }

@@ -36,9 +36,17 @@ class UploadControllerSpec extends PlaySpec with MockitoSugar {
       .withXmlBody(xmlNode)
   }
 
+  def fakeRequestWithXMLButNoBACode = {
+    val xmlNode = scala.xml.XML.loadString("""<xml>Wibble</xml>""")
+    FakeRequest("POST", "")
+      .withHeaders(
+        "Content-Type" -> "application/xml",
+        "Content-Length" -> s"${xmlNode.length}")
+      .withXmlBody(xmlNode)
+  }
+
   "Return status 200 (OK) for a post carrying xml" in {
     val result = controller.upload()(fakeRequestWithXML)
-    result.map{ x => println(x.header)}
     status(result) mustBe 200
   }
 
@@ -55,11 +63,17 @@ class UploadControllerSpec extends PlaySpec with MockitoSugar {
   }
 
   "A request must contain a Billing Authority Code in the header" in {
-    fakeRequestWithXML.headers.get("BA-Code") mustBe Some("1234")
+    val result = controller.upload()(fakeRequestWithXMLButNoBACode)
+    status(result) mustBe 400
   }
 
-  "A unique id is generated for each xml submission" in {
-    val id:Option[String] = controller.generateSubmissionID(fakeRequestWithXML)
-    id.isDefined mustBe true
+  "An id is generated for each xml submission" in {
+    val result = controller.upload()(fakeRequestWithXML)
+    status(result) mustBe 200
+    val resultAsString = contentAsString(result)
+
+    println(">>>>>>>>>>>>>>>>>>>>>" + resultAsString)
+
+    resultAsString.matches("^\\d+-\\d+-[A-Z][A-Z]$") mustBe true
   }
 }
