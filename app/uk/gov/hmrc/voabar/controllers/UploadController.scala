@@ -51,6 +51,10 @@ class UploadController @Inject()() extends BaseController {
     }
   }
 
+  
+
+
+
   def generateSubmissionID(baCode: String): String = {
     val chars = 'A' to 'Z'
     def ran = scala.util.Random.nextInt(chars.size)
