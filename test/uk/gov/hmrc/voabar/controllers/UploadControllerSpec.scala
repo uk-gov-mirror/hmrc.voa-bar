@@ -20,7 +20,7 @@ import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status, _}
-import scala.concurrent.ExecutionContext.Implicits.global
+
 
 class UploadControllerSpec extends PlaySpec with MockitoSugar {
 
@@ -45,12 +45,13 @@ class UploadControllerSpec extends PlaySpec with MockitoSugar {
       .withXmlBody(xmlNode)
   }
 
+
   "Return status 200 (OK) for a post carrying xml" in {
     val result = controller.upload()(fakeRequestWithXML)
     status(result) mustBe 200
   }
 
-  "Return 415 (Unsupported Media Type) when given a content type that is not xml" in {
+  "Return 415 (Unsupported Media Type) when the Content-Type header value is not xml" in {
     val result = controller.upload()(FakeRequest("POST", "/upload")
       .withHeaders("Content-Type" -> "application/text"))
     status(result) mustBe 415
@@ -59,6 +60,12 @@ class UploadControllerSpec extends PlaySpec with MockitoSugar {
   "Return 400 (Bad Request) when given a content type that is xml but no xml is given" in {
     val result = controller.upload()(FakeRequest("POST", "/upload")
       .withHeaders("Content-Type" -> "application/xml", "BA-Code" -> "1234"))
+    status(result) mustBe 400
+  }
+
+  "Return 400 (Bad Request) when a request contains no content type" in {
+    val result = controller.upload()(FakeRequest("POST", "/upload")
+      .withHeaders("BA-Code" -> "1234"))
     status(result) mustBe 400
   }
 
