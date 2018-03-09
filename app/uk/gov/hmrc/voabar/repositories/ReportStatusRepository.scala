@@ -32,10 +32,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 
-class ReactiveMongoRepository(config: Configuration, mongo: () => DefaultDB)
-  extends ReactiveRepository[ReportStatus, BSONObjectID](config.getString("appName").get, mongo, ReportStatus.format) {
+class ImplReactiveMongoRepository(config: Configuration, mongo: () => DefaultDB)
+  extends ReactiveRepository[ReportStatus, BSONObjectID](config.getString("appName").get, mongo, ReportStatus.format)
+  with ReactiveMongoRepository {
 
-  val fieldName = "lastUpdated"
+  val fieldName = "created"
   val createdIndexName = "userAnswersExpiry"
   val expireAfterSeconds = "expireAfterSeconds"
   val timeToLiveInSeconds: Int = config.getInt("mongodb.timeToLiveInSeconds").get
@@ -67,12 +68,17 @@ class ReactiveMongoRepository(config: Configuration, mongo: () => DefaultDB)
   }
 }
 
+trait ReactiveMongoRepository {
+  def insert(rs: ReportStatus): Future[Boolean]
+  def getAll(id: String): Future[List[ReportStatus]]
+}
+
 @Singleton
 class ReportStatusRepository @Inject()(config: Configuration) {
 
   class DbConnection extends MongoDbConnection
 
-  private lazy val rsRepository = new ReactiveMongoRepository(config, new DbConnection().db)
+  private lazy val rsRepository = new ImplReactiveMongoRepository(config, new DbConnection().db)
 
   def apply(): ReactiveMongoRepository = rsRepository
 }

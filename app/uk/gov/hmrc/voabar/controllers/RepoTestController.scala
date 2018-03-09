@@ -37,7 +37,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
 @Singleton
 class RepoTestController @Inject()(mongo: ReportStatusRepository) extends BaseController {
   def executeTest0: Future[Boolean] = {
-    val status0 = ReportStatus("sId000", "Report99999 submitted")
+    val chars = 'A' to 'Z'
+    def r = scala.util.Random.nextInt(chars.size)
+
+    val status0 = ReportStatus("sId000", s"status-${System.currentTimeMillis()}-${chars(r)}${chars(r)}")
     mongo().insert(status0)
   }
 
@@ -45,6 +48,17 @@ class RepoTestController @Inject()(mongo: ReportStatusRepository) extends BaseCo
     executeTest0 map {
       response =>
         if (response) Ok("Test 0 complete with true") else Ok("Test0 complete with false")
+    }
+  }
+
+  def executeTest1(): Future[List[ReportStatus]] = {
+    mongo().getAll("sId000")
+  }
+
+  def test1(): Action[AnyContent] = Action.async {implicit request =>
+    executeTest1 map {
+      response =>
+        Ok("Test 1 complete with " + response)
     }
   }
 }
