@@ -30,14 +30,6 @@ class MockBAReportBuilderSpec extends WordSpec{
       val reasonCode:String = (builder("CR03",1,0) \\ "ReasonForReportCode").text
       reasonCode shouldBe "CR03"
     }
-
-    "contain the number of existing entries specified" in {
-      val nodeseq:NodeSeq = builder("CR03",2,2) \\ "ExistingEntries"
-      val existingEntriesCount:Int = nodeseq.size
-      println(nodeseq)
-      existingEntriesCount shouldBe (2)
-
-    }
   }
 
 
