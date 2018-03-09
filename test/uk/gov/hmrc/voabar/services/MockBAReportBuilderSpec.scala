@@ -23,20 +23,31 @@ import scala.xml._
 
 class MockBAReportBuilderSpec extends WordSpec{
 
-  val builder = MockBAReportBuilder
+  val reportBuilder = new MockBAReportBuilder
 
   "A mock BA property report" should  {
+
     "contain the reason for report code specified" in {
-      val reasonCode:String = (builder("CR03",1,0) \\ "ReasonForReportCode").text
+      val reasonCode:String = (reportBuilder("CR03",1000,1,0).node \\ "ReasonForReportCode").text
       reasonCode shouldBe "CR03"
     }
 
-    "contain the number of existing entries specified" in {
-      val nodeseq:NodeSeq = builder("CR03",2,2) \\ "ExistingEntries"
-      val existingEntriesCount:Int = nodeseq.size
-      println(nodeseq)
-      existingEntriesCount shouldBe (2)
+    "contain the corresponding reason for report description for a given reason code" in {
+      val reasonDescription:String = (reportBuilder("CR05",1000,1,1).node \\  "ReasonForReportDescription").text
+      reasonDescription shouldBe "Reconstituted Property"
+    }
 
+    "contain the BA code specified" in {
+      val baCode:String = (reportBuilder("CR03",1000,1,0).node \\ "BAidentityNumber").text
+      baCode shouldBe "1000"
+    }
+
+    "contain the number of existing entries and proposed entries specified" in {
+      val baPropertyReport:NodeSeq = reportBuilder("CR03",1000,3,0).node
+      val existingEntries = baPropertyReport \\ "ExistingEntries"
+      val proposedEntries = baPropertyReport \\ "ProposedEntries"
+      existingEntries should have size 3
+      proposedEntries should have size 0
     }
   }
 

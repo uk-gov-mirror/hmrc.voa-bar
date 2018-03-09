@@ -22,29 +22,31 @@ import scala.xml._
 
 class BusinessRules {
 
-  def checkTaxRules(baReport:BAPropertyReport):List[String] = {
+  def reasonForReportErrors(baReport:BAPropertyReport):List[String] = {
     (baReport.node \\ "TypeOfTax" \ "_").headOption match {
       case Some(node) => node.label match {
         case "CtaxReasonForReport" => validateCTaxCode(baReport.node)
-        case _ => throw new Exception(s"Error: Unsupported tax type: ${node.label} ")
+        case _ => throw new RuntimeException(s"Unsupported tax type: ${node.label} ")
       }
-      case None => throw new Exception("Error: No TypeOfTax xml element found")
+      case None => throw new RuntimeException("Xml element not found: TypeOfTax")
     }
   }
 
-  def validateCTaxCode(implicit node:NodeSeq): List[String] = {
-    val repCode:String = (node \\ "ReasonForReport").text
+  private def validateCTaxCode(implicit node:NodeSeq): List[String] = {
+
+    val repCode:String = (node \\ "ReasonForReportCode").text
     val lb = new ListBuffer[String]
 
     repCode match {
-      case "CR03" => //must be no existing- only 1 proposed
+      case "CR03" => // (New) must be no existing- only 1 proposed
         if (proposedEntries != 1) lb += "There must be one proposed entry for reason code CR03"
         if (existingEntries != 0) lb += "There must be no existing entries for reason code CR03"
-      case "CR04" => // must be either 1 existing or 1 proposed
-        if (((proposedEntries != 1) && (existingEntries !=0 )) ||
-          ((proposedEntries != 0) && (existingEntries != 1)))
+      case "CR04" => // (Change to Domestic Use) must be either 1 existing or 1 proposed
+        if (((proposedEntries == 1) && (existingEntries ==0 )) ||
+          ((proposedEntries == 0) && (existingEntries == 1))){}
+        else
           lb += "There must be either one existing entry or one proposed entry for reason code CR04"
-      case "CR05" => // must be at least 1 existing and at least 1 proposed
+      case "CR05" => // (Reconstituted Property) must be at least 1 existing and at least 1 proposed
         if (proposedEntries == 0) lb += "There must be at least one proposed entry for reason code CR05"
         if (existingEntries == 0) lb += "There must be at least one existing entry for reason code CR05"
       case "CR08" => lb += s"report code: ${repCode} NOT IN USE"
@@ -61,11 +63,8 @@ class BusinessRules {
     lb.toList
   }
 
-  def proposedEntries(implicit node:NodeSeq):Int = (node \\ "ProposedEntries").size
-  def existingEntries(implicit node:NodeSeq):Int = (node \\ "ExistingEntries").size
-
-
-
+  private def proposedEntries(implicit node:NodeSeq):Int = (node \\ "ProposedEntries").size
+  private def existingEntries(implicit node:NodeSeq):Int = (node \\ "ExistingEntries").size
 
 
 

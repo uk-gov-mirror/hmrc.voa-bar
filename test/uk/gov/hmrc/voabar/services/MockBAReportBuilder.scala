@@ -16,10 +16,11 @@
 
 package uk.gov.hmrc.voabar.services
 
+import uk.gov.hmrc.voabar.models.BAPropertyReport
+
 import scala.xml._
 
-object MockBAReportBuilder {
-
+class MockBAReportBuilder {
 
   private val baReportCodes:Map[String,String] = Map(
     "CR03" -> "New",
@@ -28,27 +29,50 @@ object MockBAReportBuilder {
     "CR08" -> "NOT IN USE",
     "CR11" -> "Boundary Change - NOT IN USE",
     "CR12" -> "Major Address Change - NOT IN USE",
-    "CR13" -> "Boundary Change, Add DO NOT USE THIS CODE"
+    "CR13" -> "Boundary Change, Add DO NOT USE THIS CODE",
+    "CR99" -> "NOT A VOA CODE - USED FOR TEST PURPOSES"
   )
 
-  def apply(repCode:String,existingCount:Int,proposedCount:Int):NodeSeq = {
+  def apply(reasonCode:String, baCode:Int, existingEntries:Int, proposedEntries:Int):BAPropertyReport = {
+
+    val node =
+
     <BApropertyReport>
       <DateSent>2017-03-18</DateSent>
       <TransactionIdentityBA>16286449061000</TransactionIdentityBA>
-      <BAidentityNumber>840</BAidentityNumber>
+      <BAidentityNumber>{baCode}</BAidentityNumber>
       <BAreportNumber>118294</BAreportNumber>
       <TypeOfTax>
         <CtaxReasonForReport>
-          <ReasonForReportCode>{repCode}</ReasonForReportCode>
-          <ReasonForReportDescription>{baReportCodes(repCode)}</ReasonForReportDescription>
+          <ReasonForReportCode>{reasonCode}</ReasonForReportCode>
+          <ReasonForReportDescription>{baReportCodes(reasonCode)}</ReasonForReportDescription>
         </CtaxReasonForReport>
       </TypeOfTax>
-      {for (i <- 0 until existingCount) existingEntries}
-      {for (i <- 0 until proposedCount) proposedEntries}
       <IndicatedDateOfChange>2017-03-17</IndicatedDateOfChange>
       <Remarks>Some remarks that may include text that helps to
         describe this property report submission</Remarks>
      </BApropertyReport>
+
+    val newNode = concat(NodeSeq.Empty,existingEntries, proposedEntries)
+
+    val newChilds:NodeSeq = node.child.foldLeft(NodeSeq.Empty)((acc, elem) =>
+      if(elem.label == "TypeOfTax") acc ++ elem ++ newNode else acc ++ elem)
+
+    val n = <BApropertyReport></BApropertyReport>
+
+    def addNode(orig:Node,childs:NodeSeq) = orig match {
+      case Elem(prefix,label,attributes,scope,child@_*) => Elem(prefix,label,attributes,scope,child ++ childs: _*)
+    }
+    BAPropertyReport(addNode(n,newChilds))
+    
+  }
+
+  private def concat(node:NodeSeq, existing: Int, proposed: Int): NodeSeq = existing match {
+    case 0 => proposed match {
+      case 0 => node
+      case _ => concat(node ++ proposedEntries, 0, proposed - 1)
+    }
+    case _ => concat(node ++ existingEntries, existing -1, proposed)
   }
 
   private val existingEntries:NodeSeq =
@@ -146,7 +170,4 @@ object MockBAReportBuilder {
         </OccupierContact>
       </AssessmentProperties>
     </ProposedEntries>
-
-
-
 }
