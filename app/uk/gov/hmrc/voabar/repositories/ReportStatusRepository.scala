@@ -18,35 +18,22 @@ package uk.gov.hmrc.voabar.repositories
 
 import javax.inject.{Inject, Singleton}
 
-import org.joda.time.{DateTime, DateTimeZone}
+import play.api.libs.json.Json
 import play.api.{Configuration, Logger}
-import play.api.libs.json.{JsValue, Json}
 import play.modules.reactivemongo.MongoDbConnection
-import reactivemongo.api.{Cursor, DefaultDB}
-import reactivemongo.api.collections.GenericQueryBuilder
 import reactivemongo.api.indexes.{Index, IndexType}
+import reactivemongo.api.{Cursor, DefaultDB}
 import reactivemongo.bson.{BSONDocument, BSONObjectID}
 import reactivemongo.play.json.ImplicitBSONHandlers._
-import uk.gov.hmrc.http.cache.client.CacheMap
 import uk.gov.hmrc.mongo.ReactiveRepository
-import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
+import uk.gov.hmrc.voabar.models.ReportStatus
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-case class DatedCacheMap(id: String,
-                         data: Map[String, JsValue],
-                         lastUpdated: DateTime = DateTime.now(DateTimeZone.UTC))
-
-object DatedCacheMap {
-  implicit val dateFormat = ReactiveMongoFormats.dateTimeFormats
-  implicit val formats = Json.format[DatedCacheMap]
-
-  def apply(cacheMap: CacheMap): DatedCacheMap = DatedCacheMap(cacheMap.id, cacheMap.data)
-}
 
 class ReactiveMongoRepository(config: Configuration, mongo: () => DefaultDB)
-  extends ReactiveRepository[DatedCacheMap, BSONObjectID](config.getString("appName").get, mongo, DatedCacheMap.formats) {
+  extends ReactiveRepository[ReportStatus, BSONObjectID](config.getString("appName").get, mongo, ReportStatus.format) {
 
   val fieldName = "lastUpdated"
   val createdIndexName = "userAnswersExpiry"
@@ -68,17 +55,15 @@ class ReactiveMongoRepository(config: Configuration, mongo: () => DefaultDB)
     }
   }
 
-  def insert(cm: CacheMap): Future[Boolean] = {
-    val cmDocument = Json.toJson(DatedCacheMap(cm))
-
-    collection.insert[JsValue](cmDocument).map {
+  def insert(rs: ReportStatus): Future[Boolean] = {
+    collection.insert[ReportStatus](rs).map {
       lastError => lastError.ok
     }
   }
 
-  def getAll(id: String): Future[List[DatedCacheMap]] = {
-    val cursor = collection.find(Json.obj("id" -> id)).cursor[DatedCacheMap]()
-    cursor.collect(10, Cursor.FailOnError[List[DatedCacheMap]]())
+  def getAll(id: String): Future[List[ReportStatus]] = {
+    val cursor = collection.find(Json.obj("id" -> id)).cursor[ReportStatus]()
+    cursor.collect(10, Cursor.FailOnError[List[ReportStatus]]())
   }
 }
 
@@ -87,8 +72,8 @@ class ReportStatusRepository @Inject()(config: Configuration) {
 
   class DbConnection extends MongoDbConnection
 
-  private lazy val sessionRepository = new ReactiveMongoRepository(config, new DbConnection().db)
+  private lazy val rsRepository = new ReactiveMongoRepository(config, new DbConnection().db)
 
-  def apply(): ReactiveMongoRepository = sessionRepository
+  def apply(): ReactiveMongoRepository = rsRepository
 }
 

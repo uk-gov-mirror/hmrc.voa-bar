@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.voabar.models.errors
+package uk.gov.hmrc.voabar.models
 
+import org.joda.time.{DateTime, DateTimeZone}
 import play.api.libs.json._
+import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
+import uk.gov.hmrc.voabar.models.errors.Error
 
-case class Error(code: String, values: Seq[String] = Seq())
+case class ReportStatus(submissionId: String, status: String, errors: Seq[Error] = Seq(), created: DateTime = DateTime.now(DateTimeZone.UTC))
 
-object Error {
-  implicit val format = Json.format[Error]
+object ReportStatus {
+  implicit val dateFormat = ReactiveMongoFormats.dateTimeFormats
+  implicit val format = Json.format[ReportStatus]
 }
