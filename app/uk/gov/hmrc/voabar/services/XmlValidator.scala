@@ -24,7 +24,7 @@ import javax.xml.transform.stream.StreamSource
 import javax.xml.validation.SchemaFactory
 
 import org.xml.sax.{ErrorHandler, SAXParseException}
-import uk.gov.hmrc.voabar.models.errors.Error
+import uk.gov.hmrc.voabar.models.Error
 
 class XmlValidator {
 

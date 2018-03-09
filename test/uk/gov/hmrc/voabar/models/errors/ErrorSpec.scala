@@ -17,6 +17,7 @@
 package uk.gov.hmrc.voabar.models.errors
 
 import org.scalatestplus.play.PlaySpec
+import uk.gov.hmrc.voabar.models.Error
 
 class ErrorSpec extends PlaySpec {
 

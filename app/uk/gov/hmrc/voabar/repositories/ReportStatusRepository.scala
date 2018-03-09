@@ -62,7 +62,7 @@ class ReactiveMongoRepository(config: Configuration, mongo: () => DefaultDB)
   }
 
   def getAll(id: String): Future[List[ReportStatus]] = {
-    val cursor = collection.find(Json.obj("id" -> id)).cursor[ReportStatus]()
+    val cursor = collection.find(Json.obj("submissionId" -> id)).cursor[ReportStatus]()
     cursor.collect(10, Cursor.FailOnError[List[ReportStatus]]())
   }
 }
