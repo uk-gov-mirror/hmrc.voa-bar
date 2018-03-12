@@ -29,19 +29,19 @@ import scala.concurrent.Future
 import uk.gov.hmrc.voabar.models.{LoginDetails, ReportStatus}
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import uk.gov.hmrc.voabar.connectors.LegacyConnector
-import uk.gov.hmrc.voabar.repositories.ReportStatusRepository
+import uk.gov.hmrc.voabar.repositories.ReactiveMongoRepository
 
 import scala.util.{Failure, Success}
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
-class RepoTestController @Inject()(mongo: ReportStatusRepository) extends BaseController {
+class RepoTestController @Inject()(mongo: ReactiveMongoRepository) extends BaseController {
   def executeTest0: Future[Boolean] = {
     val chars = 'A' to 'Z'
     def r = scala.util.Random.nextInt(chars.size)
 
     val status0 = ReportStatus("sId000", s"status-${System.currentTimeMillis()}-${chars(r)}${chars(r)}")
-    mongo().insert(status0)
+    mongo.insert(status0)
   }
 
   def test0(): Action[AnyContent] = Action.async {implicit request =>
@@ -52,7 +52,7 @@ class RepoTestController @Inject()(mongo: ReportStatusRepository) extends BaseCo
   }
 
   def executeTest1(): Future[List[ReportStatus]] = {
-    mongo().getAll("sId000")
+    mongo.getAll("sId000")
   }
 
   def test1(): Action[AnyContent] = Action.async {implicit request =>

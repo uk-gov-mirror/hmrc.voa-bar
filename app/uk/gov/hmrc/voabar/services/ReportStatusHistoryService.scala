@@ -20,15 +20,15 @@ import javax.inject.{Inject, Singleton}
 
 import play.api.Logger
 import uk.gov.hmrc.voabar.models.ReportStatus
-import uk.gov.hmrc.voabar.repositories.ReportStatusRepository
+import uk.gov.hmrc.voabar.repositories.ReactiveMongoRepository
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
-class ReportStatusHistoryService @Inject() (statusRepository: ReportStatusRepository){
+class ReportStatusHistoryService @Inject() (statusRepository: ReactiveMongoRepository){
   def reportSubmitted(submissionId: String): Future[Boolean] = {
     val status = ReportStatus(submissionId, "SUBMITTED")
-    statusRepository().insert(status) map identity recover {
+    statusRepository.insert(status) map identity recover {
       case t: Throwable => {
         Logger.warn(s"Mongo exception while inserting SUBMITTED status for $submissionId with message ${t.getMessage}")
         false

@@ -18,6 +18,7 @@ package uk.gov.hmrc.voabar.repositories
 
 import javax.inject.{Inject, Singleton}
 
+import com.google.inject.ImplementedBy
 import play.api.libs.json.Json
 import play.api.{Configuration, Logger}
 import play.modules.reactivemongo.MongoDbConnection
@@ -31,9 +32,9 @@ import uk.gov.hmrc.voabar.models.ReportStatus
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-
-class ImplReactiveMongoRepository(config: Configuration, mongo: () => DefaultDB)
-  extends ReactiveRepository[ReportStatus, BSONObjectID](config.getString("appName").get, mongo, ReportStatus.format)
+@Singleton
+class ReactiveMongoRepositoryImpl @Inject() (config: Configuration)
+  extends ReactiveRepository[ReportStatus, BSONObjectID](config.getString("appName").get, (new MongoDbConnection(){}).db, ReportStatus.format)
   with ReactiveMongoRepository {
 
   val fieldName = "created"
@@ -68,18 +69,10 @@ class ImplReactiveMongoRepository(config: Configuration, mongo: () => DefaultDB)
   }
 }
 
+@ImplementedBy(classOf[ReactiveMongoRepositoryImpl])
 trait ReactiveMongoRepository {
   def insert(rs: ReportStatus): Future[Boolean]
   def getAll(id: String): Future[List[ReportStatus]]
 }
 
-@Singleton
-class ReportStatusRepository @Inject()(config: Configuration) {
-
-  class DbConnection extends MongoDbConnection
-
-  private lazy val rsRepository = new ImplReactiveMongoRepository(config, new DbConnection().db)
-
-  def apply(): ReactiveMongoRepository = rsRepository
-}
 
