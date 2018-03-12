@@ -22,6 +22,7 @@ import play.api.Logger
 import uk.gov.hmrc.voabar.models.ReportStatus
 import uk.gov.hmrc.voabar.repositories.ReactiveMongoRepository
 import scala.concurrent.Future
+import uk.gov.hmrc.voabar.models.Error
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
@@ -36,11 +37,42 @@ class ReportStatusHistoryService @Inject() (statusRepository: ReactiveMongoRepos
     }
   }
 
-  def reportCheckedWithNoErrorsFound(submissionId: String): Future[Boolean] = ???
+  def reportCheckedWithNoErrorsFound(submissionId: String): Future[Boolean] = {
+    val status = ReportStatus(submissionId, "VALIDATED")
+    statusRepository.insert(status) map identity recover {
+      case t: Throwable => {
+        Logger.warn(s"Mongo exception while inserting VALIDATED status for $submissionId with message ${t.getMessage}")
+        false
+      }
+    }
+  }
 
-  def reportCheckedWithErrorsFound(submissionId: String, errors: Seq[Error]): Future[Boolean] = ???
+  def reportCheckedWithErrorsFound(submissionId: String, errors: Seq[Error]): Future[Boolean] = {
+    val status = ReportStatus(submissionId, "INVALIDATED", errors)
+    statusRepository.insert(status) map identity recover {
+      case t: Throwable => {
+        Logger.warn(s"Mongo exception while inserting INVALIDATED status for $submissionId with message ${t.getMessage}")
+        false
+      }
+    }
+  }
 
-  def reportForwarded(submissionId: String): Future[Boolean] = ???
+  def reportForwarded(submissionId: String): Future[Boolean] = {
+    val status = ReportStatus(submissionId, "FORWARDED")
+    statusRepository.insert(status) map identity recover {
+      case t: Throwable => {
+        Logger.warn(s"Mongo exception while inserting FORWARDED status for $submissionId with message ${t.getMessage}")
+        false
+      }
+    }
+  }
 
-  def findSubmission(submissionId: String): Future[List[ReportStatus]] = ???
+  def findSubmission(submissionId: String): Future[Option[List[ReportStatus]]] = {
+    statusRepository.getAll(submissionId) map { statuses => Some(statuses) } recover {
+      case t: Throwable => {
+        Logger.warn(s"Mongo exception while inserting FORWARDED status for $submissionId with message ${t.getMessage}")
+        None
+      }
+    }
+  }
 }
