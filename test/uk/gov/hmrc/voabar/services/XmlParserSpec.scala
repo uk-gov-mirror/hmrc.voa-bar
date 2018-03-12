@@ -18,7 +18,7 @@ package uk.gov.hmrc.voabar.services
 
 import org.apache.commons.io.IOUtils
 import org.scalatest.WordSpec
-import uk.gov.hmrc.voabar.models.{BAPropertyReport, BatchHeader, BatchSubmission, BatchTrailer}
+import uk.gov.hmrc.voabar.models.{BAPropertyReport, BAReportHeader, BABatchReport, BAReportTrailer}
 import org.scalatest.Matchers._
 import uk.gov.hmrc.voabar.models
 
@@ -28,32 +28,32 @@ class XmlParserSpec extends WordSpec {
 
   val xmlParser = new XmlParser()
 
-  val batchSubmission = xmlParser.parseXml(IOUtils.toString(getClass.getResource("/xml/CTValid1.xml")))
+  val batchSubmission = xmlParser.fromXml(IOUtils.toString(getClass.getResource("/xml/CTValid1.xml")))
 
   "Given a valid BAReports xml file, XmlParser" should {
     "return a BatchSubmission object" in {
-      batchSubmission shouldBe a [BatchSubmission]
+      batchSubmission shouldBe a [BABatchReport]
     }
   }
 
   "A BatchSubmission object" should {
 
     "contain a BatchHeader" in {
-      batchSubmission.batchHeader shouldBe a [BatchHeader]
+      batchSubmission.baReportHeader shouldBe a [BAReportHeader]
     }
 
     "contain a list of BAPropertyReports of type BAPropertyReport" in {
-      batchSubmission.baPropertyReports.isInstanceOf[List[BAPropertyReport]] shouldBe true
+      batchSubmission.baPropertyReport.isInstanceOf[List[BAPropertyReport]] shouldBe true
     }
 
     "contain a BatchTrailer" in {
-      batchSubmission.batchTrailer shouldBe a [BatchTrailer]
+      batchSubmission.baReportTrailer shouldBe a [BAReportTrailer]
     }
   }
 
   "A BatchHeader" should {
 
-    val batchHeader = batchSubmission.batchHeader
+    val batchHeader = batchSubmission.baReportHeader
 
     "contain a BillingAuthority element value" in {
       (batchHeader.node \ "BillingAuthority").text shouldBe "Valid Council"
@@ -75,52 +75,52 @@ class XmlParserSpec extends WordSpec {
   "BAPropertyReports" should {
 
     "contain 1 report" in {
-      batchSubmission.baPropertyReports.size shouldBe (1)
+      batchSubmission.baPropertyReport.size shouldBe (1)
     }
   }
 
   "A BAPropertyReport" should {
 
     "contain a DateSent" in {
-      (batchSubmission.baPropertyReports.head.node \ "DateSent").text shouldBe "2018-01-30"
+      (batchSubmission.baPropertyReport.head.node \ "DateSent").text shouldBe "2018-01-30"
     }
 
     "contain a TransactionIdentityBA" in {
-      (batchSubmission.baPropertyReports.head.node \ "TransactionIdentityBA").text shouldBe "22121746115111"
+      (batchSubmission.baPropertyReport.head.node \ "TransactionIdentityBA").text shouldBe "22121746115111"
     }
 
     "contain a BAidentityNumber" in {
-      (batchSubmission.baPropertyReports.head.node \ "BAidentityNumber").text shouldBe "9999"
+      (batchSubmission.baPropertyReport.head.node \ "BAidentityNumber").text shouldBe "9999"
     }
 
     "contain a BAreportNumber" in {
-      (batchSubmission.baPropertyReports.head.node \ "BAreportNumber").text shouldBe "211909"
+      (batchSubmission.baPropertyReport.head.node \ "BAreportNumber").text shouldBe "211909"
     }
 
     "contain a ReasonForReportCode" in {
-      (batchSubmission.baPropertyReports.head.node \ "TypeOfTax" \\ "ReasonForReportCode").text shouldBe "CR03"
+      (batchSubmission.baPropertyReport.head.node \ "TypeOfTax" \\ "ReasonForReportCode").text shouldBe "CR03"
     }
 
     "contain a ReasonForReportDescription" in {
-      (batchSubmission.baPropertyReports.head.node \ "TypeOfTax" \\ "ReasonForReportDescription").text shouldBe "New"
+      (batchSubmission.baPropertyReport.head.node \ "TypeOfTax" \\ "ReasonForReportDescription").text shouldBe "New"
     }
 
     "contain a IndicatedDateOfChange" in {
-      (batchSubmission.baPropertyReports.head.node \ "IndicatedDateOfChange").text shouldBe "2018-05-01"
+      (batchSubmission.baPropertyReport.head.node \ "IndicatedDateOfChange").text shouldBe "2018-05-01"
     }
 
     "contain a Remarks" in {
-      (batchSubmission.baPropertyReports.head.node \ "Remarks").text shouldBe "THIS IS A BLUEPRINT TEST PLEASE DELETE / NO ACTION THIS REPORT"
+      (batchSubmission.baPropertyReport.head.node \ "Remarks").text shouldBe "THIS IS A BLUEPRINT TEST PLEASE DELETE / NO ACTION THIS REPORT"
     }
 
     "contain a UniquePropertyReferenceNumber" in {
-      (batchSubmission.baPropertyReports.head.node \ "ProposedEntries" \\ "UniquePropertyReferenceNumber").text shouldBe "121102276285"
+      (batchSubmission.baPropertyReport.head.node \ "ProposedEntries" \\ "UniquePropertyReferenceNumber").text shouldBe "121102276285"
     }
   }
 
   "A BAReportTrailer" should {
 
-    val batchTrailer = batchSubmission.batchTrailer
+    val batchTrailer = batchSubmission.baReportTrailer
 
     "contain a RecordCount" in {
       (batchTrailer.node \ "RecordCount").text shouldBe ("8")
@@ -140,12 +140,12 @@ class XmlParserSpec extends WordSpec {
 
   }
 
-  val complexBatchSubmission = xmlParser.parseXml(IOUtils.toString(getClass.getResource("/xml/CTValid2.xml")))
+  val complexBatchSubmission = xmlParser.fromXml(IOUtils.toString(getClass.getResource("/xml/CTValid2.xml")))
 
   "A BAReport containing multiple BAReports" should {
 
     "be parsed correctly and hold the correct number of reports" in {
-      complexBatchSubmission.baPropertyReports.size shouldBe (4)
+      complexBatchSubmission.baPropertyReport.size shouldBe (4)
     }
   }
 

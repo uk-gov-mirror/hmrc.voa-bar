@@ -19,8 +19,9 @@ package uk.gov.hmrc.voabar.models
 import org.scalatestplus.play.PlaySpec
 import scala.xml.NodeSeq
 
-class BatchSubmissionSpec extends PlaySpec {
+class BABatchReportSpec extends PlaySpec {
 
+  val baReports:BAReports = BAReports(<a b="1"></a>.attributes)
   val headerNode: NodeSeq = <BAreportHeader>TEST SAMPLE1</BAreportHeader>
   val trailerNode: NodeSeq = <BAreportTrailer>TEST SAMPLE2</BAreportTrailer>
   val report1: NodeSeq = <BApropertyReport>SAMPLE1</BApropertyReport>
@@ -29,15 +30,15 @@ class BatchSubmissionSpec extends PlaySpec {
   val report4: NodeSeq = <BApropertyReport>SAMPLE4</BApropertyReport>
 
   "Given a header node, trailer node and a list of property report nodes produce a BatchSubmission model containing 4 reports" in {
-    val batchHeader = BatchHeader(headerNode)
-    val batchTrailer = BatchTrailer(trailerNode)
+    val batchHeader = BAReportHeader(headerNode)
+    val batchTrailer = BAReportTrailer(trailerNode)
     val bAPropertyReports = List(BAPropertyReport(report1), BAPropertyReport(report2), BAPropertyReport(report3), BAPropertyReport(report4))
 
-    val batchSubmission = BatchSubmission(batchHeader, bAPropertyReports, batchTrailer)
+    val batchSubmission = BABatchReport(baReports,batchHeader, bAPropertyReports, batchTrailer)
 
-    batchSubmission.batchHeader.node mustBe headerNode
-    batchSubmission.batchTrailer.node mustBe trailerNode
-    batchSubmission.baPropertyReports.size mustBe 4
+    batchSubmission.baReports mustBe baReports
+    batchSubmission.baReportTrailer.node mustBe trailerNode
+    batchSubmission.baPropertyReport.size mustBe 4
   }
 
 }

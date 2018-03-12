@@ -20,7 +20,7 @@ import java.lang.RuntimeException
 
 import org.apache.commons.io.IOUtils
 import org.scalatestplus.play.PlaySpec
-import uk.gov.hmrc.voabar.models.{BAPropertyReport, BatchHeader, BatchTrailer}
+import uk.gov.hmrc.voabar.models.{BAPropertyReport, BAReportHeader, BAReportTrailer}
 
 import scala.xml.{Node, NodeSeq}
 
@@ -65,8 +65,8 @@ class CharacterValidatorSpec extends PlaySpec {
   val characterValidator = new CharacterValidator
   val xmlParser = new XmlParser
 
-  val batchSubmission = xmlParser.parseXml(IOUtils.toString(getClass.getResource("/xml/CTValid2.xml")))
-  val fakeBatch = xmlParser.parseXml(validTestBatchXml)
+  val batchSubmission = xmlParser.fromXml(IOUtils.toString(getClass.getResource("/xml/CTValid2.xml")))
+  val fakeBatch = xmlParser.fromXml(validTestBatchXml)
 
   "Character Validator" must {
 
@@ -93,26 +93,26 @@ class CharacterValidatorSpec extends PlaySpec {
     }
 
     "The validateHeader method should return an empty sequence if the header doesn't contain any invalid elements" in {
-      val batchHeader = BatchHeader(validHeader)
+      val batchHeader = BAReportHeader(validHeader)
       val result = characterValidator.validateHeader(batchHeader)
       result.isEmpty mustBe true
     }
 
     "The validateHeader method should return a sequence of errors if the header contains invalid elements" in {
-      val batchHeader = batchSubmission.batchHeader
+      val batchHeader = batchSubmission.baReportHeader
       val result = characterValidator.validateHeader(batchHeader)
       result.isEmpty mustBe false
       result.size mustBe 1
     }
 
     "The validateTrailer method should return an empty sequence if the header doesn't contain any invalid elements" in {
-      val batchTrailer = batchSubmission.batchTrailer
+      val batchTrailer = batchSubmission.baReportTrailer
       val result = characterValidator.validateTrailer(batchTrailer)
       result.isEmpty mustBe true
     }
 
     "The validateTrailer method should return a sequence of errors if the header contains invalid elements" in {
-      val batchTrailer = BatchTrailer(invalidTrailer)
+      val batchTrailer = BAReportTrailer(invalidTrailer)
       val result = characterValidator.validateTrailer(batchTrailer)
       result.isEmpty mustBe false
       result.size mustBe 1
@@ -120,33 +120,33 @@ class CharacterValidatorSpec extends PlaySpec {
 
     "The validateBAPropertyReports method should return a sequence of errors if the reports contain invalid elements and " +
       "no remaining reports if all contain errors" in {
-      val baPropertyReports = batchSubmission.baPropertyReports
+      val baPropertyReports = batchSubmission.baPropertyReport
       val result = characterValidator.validateBAPropertyReports(baPropertyReports)
       result._1.size mustBe 0
       result._2.size mustBe 14
     }
 
     "The validateBAPropertyReports method should return an empty list of errors and a list of remaining reports if all reports are valid" in {
-      val baPropertyReports = fakeBatch.baPropertyReports
+      val baPropertyReports = fakeBatch.baPropertyReport
       val result = characterValidator.validateBAPropertyReports(baPropertyReports)
       result._1.size mustBe 1
       result._2.size mustBe 0
     }
 
     "The validatePropertyReport method should return a Left(Seq[Error]) for invalid reports" in {
-      val baPropertyReport = batchSubmission.baPropertyReports.head
+      val baPropertyReport = batchSubmission.baPropertyReport.head
       val result = characterValidator.validatePropertyReport(baPropertyReport)
       result.isLeft mustBe true
     }
 
     "The validatePropertyReport method should return a Right(BAPropertyReport) for valid reports" in {
-      val baPropertyReport = fakeBatch.baPropertyReports.head
+      val baPropertyReport = fakeBatch.baPropertyReport.head
       val result = characterValidator.validatePropertyReport(baPropertyReport)
       result.isRight mustBe true
     }
 
     "The getPropertyReportNumber should return a report number for an existing BAPropertyReport" in {
-     val result = characterValidator.getPropertyReportNumber(batchSubmission.baPropertyReports.head)
+     val result = characterValidator.getPropertyReportNumber(batchSubmission.baPropertyReport.head)
       result mustBe "200000"
     }
 

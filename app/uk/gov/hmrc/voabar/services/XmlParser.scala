@@ -16,20 +16,56 @@
 
 package uk.gov.hmrc.voabar.services
 
-import uk.gov.hmrc.voabar.models.{BAPropertyReport, BatchHeader, BatchTrailer, BatchSubmission}
+import uk.gov.hmrc.voabar.models._
+
 import scala.xml._
 
 class XmlParser {
 
-  def parseXml(xmlString:String):BatchSubmission = {
+  def fromXml(xmlString:String):BABatchReport = {
 
-    val xml = XML.loadString(xmlString)
+    val xml:Node = XML.loadString(xmlString)
 
-    BatchSubmission(
-      BatchHeader(xml \ "BAreportHeader"),
+    BABatchReport(
+      BAReports(xml.attributes),
+      BAReportHeader(xml \ "BAreportHeader"),
       List[BAPropertyReport]((xml \ "BApropertyReport").toSeq map {i => BAPropertyReport(i)}: _*),
-      BatchTrailer(xml \ "BAreportTrailer")
+      BAReportTrailer(xml \ "BAreportTrailer")
     )
   }
+
+  def toXml(bABatchReport:BABatchReport): Node = {
+    val rootNode:Node = <BAReports></BAReports>
+    ???
+  }
+
+  private def addAttributes(attributes:MetaData, node:Node): Node = node match {
+    case Elem(prefix,label,attrs,scope,child) => Elem(prefix,label,attributes,scope,child)
+  }
+
+  private def addChild(childs:NodeSeq, node:Node): Node = node match {
+    case Elem(prefix,label,attrs,scope,child@_*) => Elem(prefix,label,attrs,scope,child ++ childs: _*)
+  }
+
+  private def smallBatch(baBatchReport:BABatchReport):Seq[BABatchReport] = {
+    def batch(
+               reportsRemaining:Seq[BAPropertyReport],
+               buildSeq:Seq[BABatchReport]): Seq[BABatchReport] = reportsRemaining match {
+      case Nil => buildSeq
+      case hd :: tl => batch(tl, Seq(BABatchReport(
+        baBatchReport.baReports,
+        baBatchReport.baReportHeader,
+        Seq(hd),
+        baBatchReport.baReportTrailer)))
+    }
+    batch(baBatchReport.baPropertyReport,Seq[BABatchReport]())
+  }
+
+
+
+
+
+
+
 
 }

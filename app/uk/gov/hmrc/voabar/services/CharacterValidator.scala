@@ -37,7 +37,7 @@ class CharacterValidator {
     }
   }
 
-  def validateHeader(header: BatchHeader): Seq[Error] = {
+  def validateHeader(header: BAReportHeader): Seq[Error] = {
     val location = "Header"
     val elements = elementNodes(header.node)
 
@@ -47,7 +47,7 @@ class CharacterValidator {
     Seq(errors: _*)
   }
 
-  def validateTrailer(trailer: BatchTrailer): Seq[Error] = {
+  def validateTrailer(trailer: BAReportTrailer): Seq[Error] = {
     val location = "Trailer"
     val elements = elementNodes(trailer.node)
 
@@ -90,10 +90,10 @@ class CharacterValidator {
     }
   }
 
-  def charactersValidationStatus(batch: BatchSubmission) = {
-    val headerErrors: Seq[Error] = validateHeader(batch.batchHeader)
-    val trailerErrors: Seq[Error] = validateTrailer(batch.batchTrailer)
-    val reportsResult = validateBAPropertyReports(batch.baPropertyReports)
+  def charactersValidationStatus(batch: BABatchReport) = {
+    val headerErrors: Seq[Error] = validateHeader(batch.baReportHeader)
+    val trailerErrors: Seq[Error] = validateTrailer(batch.baReportTrailer)
+    val reportsResult = validateBAPropertyReports(batch.baPropertyReport)
 
     val remainingReports = reportsResult._1
     val reportsErrors = reportsResult._2

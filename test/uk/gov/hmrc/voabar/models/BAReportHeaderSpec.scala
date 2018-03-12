@@ -16,6 +16,21 @@
 
 package uk.gov.hmrc.voabar.models
 
-case class BatchSubmission(batchHeader: BatchHeader,
-                           baPropertyReports: Seq[BAPropertyReport],
-                           batchTrailer: BatchTrailer)
+import org.scalatestplus.play.PlaySpec
+import scala.xml.NodeSeq
+
+class BAReportHeaderSpec extends PlaySpec {
+
+  val headerNode: NodeSeq = <BAreportHeader>
+    <BillingAuthority>Valid Council</BillingAuthority>
+    <BillingAuthorityIdentityCode>9999</BillingAuthorityIdentityCode>
+    <ProcessDate>2018-01-30</ProcessDate>
+    <EntryDateTime>2018-01-30T23:00:22</EntryDateTime>
+  </BAreportHeader>
+
+  "Given a NodeSeq representing the header produce a BatchHeader model" in {
+    val batchHeader = BAReportHeader(headerNode)
+    batchHeader.node mustBe headerNode
+  }
+
+}
