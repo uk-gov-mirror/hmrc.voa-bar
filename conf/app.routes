@@ -1,3 +1,5 @@
 # microservice specific routes
 
 POST        /login                   @uk.gov.hmrc.voabar.controllers.LoginController.login
+
+POST        /upload                  @uk.gov.hmrc.voabar.controllers.UploadController.upload
