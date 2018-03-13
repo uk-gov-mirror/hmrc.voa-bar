@@ -29,23 +29,33 @@ class XmlParser {
     BABatchReport(
       BAReports(xml.attributes),
       BAReportHeader(xml \ "BAreportHeader"),
-      List[BAPropertyReport]((xml \ "BApropertyReport").toSeq map {i => BAPropertyReport(i)}: _*),
+      List[BAPropertyReport]((xml \ "BApropertyReport") map {i => BAPropertyReport(i)}: _*),
       BAReportTrailer(xml \ "BAreportTrailer")
     )
   }
 
   def toXml(bABatchReport:BABatchReport): Node = {
-    val rootNode:Node = <BAReports></BAReports>
-    ???
+    val rootNode:Node = <BAreports></BAreports>
+    val rootWithAttrs = addAttributes(bABatchReport.baReports.attributes,rootNode)
+    val propertyReports = bABatchReport.baPropertyReport.foldLeft(NodeSeq.Empty)((acc, elem) =>
+    acc ++ elem.node)
+    val newNode = bABatchReport.baReportHeader.node ++
+      propertyReports ++ bABatchReport.baReportTrailer.node
+    val completeReport = addChild(newNode,rootWithAttrs)
+    completeReport
   }
 
-  private def addAttributes(attributes:MetaData, node:Node): Node = node match {
-    case Elem(prefix,label,attrs,scope,child) => Elem(prefix,label,attributes,scope,child)
+  private[services] def addAttributes(attributes:MetaData, node:Node): Node = node match {
+    case e:Elem => e%attributes
   }
 
-  private def addChild(childs:NodeSeq, node:Node): Node = node match {
-    case Elem(prefix,label,attrs,scope,child@_*) => Elem(prefix,label,attrs,scope,child ++ childs: _*)
+  private[services] def addChild(childs:NodeSeq, node:Node): Node = node match {
+    case Elem(prefix,label,attr,scope,child@_*) => Elem.apply(prefix,label,attr,scope,false,child ++ childs: _*)
   }
+
+//  def splitBatch(baBatchReport:BABatchReport): Seq[Node] = {
+//    smallBatch(baBatchReport).map{batch => toXml(batch)}
+//  }
 
   private def smallBatch(baBatchReport:BABatchReport):Seq[BABatchReport] = {
     def batch(
@@ -60,12 +70,5 @@ class XmlParser {
     }
     batch(baBatchReport.baPropertyReport,Seq[BABatchReport]())
   }
-
-
-
-
-
-
-
 
 }

@@ -18,17 +18,17 @@ package uk.gov.hmrc.voabar.services
 
 import org.apache.commons.io.IOUtils
 import org.scalatest.WordSpec
-import uk.gov.hmrc.voabar.models.{BAPropertyReport, BAReportHeader, BABatchReport, BAReportTrailer}
+import uk.gov.hmrc.voabar.models._
 import org.scalatest.Matchers._
 import uk.gov.hmrc.voabar.models
 
-import scala.xml.{Elem, Node, NodeSeq}
+import scala.xml._
 
 class XmlParserSpec extends WordSpec {
 
   val xmlParser = new XmlParser()
 
-  val batchSubmission = xmlParser.fromXml(IOUtils.toString(getClass.getResource("/xml/CTValid1.xml")))
+  val batchSubmission: BABatchReport = xmlParser.fromXml(IOUtils.toString(getClass.getResource("/xml/CTValid1.xml")))
 
   "Given a valid BAReports xml file, XmlParser" should {
     "return a BatchSubmission object" in {
@@ -37,6 +37,10 @@ class XmlParserSpec extends WordSpec {
   }
 
   "A BatchSubmission object" should {
+
+    "contain a BAReports" in {
+      batchSubmission.baReports shouldBe a [BAReports]
+    }
 
     "contain a BatchHeader" in {
       batchSubmission.baReportHeader shouldBe a [BAReportHeader]
@@ -50,6 +54,17 @@ class XmlParserSpec extends WordSpec {
       batchSubmission.baReportTrailer shouldBe a [BAReportTrailer]
     }
   }
+
+  "A BAReports" should {
+
+    val attributes:MetaData = batchSubmission.baReports.attributes
+
+    "contain attributes" in {
+      println("ATTRIBUTES :" + attributes)
+      attributes.length shouldBe 3
+    }
+  }
+
 
   "A BatchHeader" should {
 
@@ -75,7 +90,7 @@ class XmlParserSpec extends WordSpec {
   "BAPropertyReports" should {
 
     "contain 1 report" in {
-      batchSubmission.baPropertyReport.size shouldBe (1)
+      batchSubmission.baPropertyReport.size shouldBe 1
     }
   }
 
@@ -123,30 +138,45 @@ class XmlParserSpec extends WordSpec {
     val batchTrailer = batchSubmission.baReportTrailer
 
     "contain a RecordCount" in {
-      (batchTrailer.node \ "RecordCount").text shouldBe ("8")
+      (batchTrailer.node \ "RecordCount").text shouldBe "8"
     }
 
     "contain an EntryDateTime" in {
-      (batchTrailer.node \ "EntryDateTime").text shouldBe ("2018-01-30T23:01:43")
+      (batchTrailer.node \ "EntryDateTime").text shouldBe "2018-01-30T23:01:43"
     }
 
     "contain a TotalNNDRreportCount" in {
-      (batchTrailer.node \ "TotalNNDRreportCount").text shouldBe ("0")
+      (batchTrailer.node \ "TotalNNDRreportCount").text shouldBe "0"
     }
 
     "contain a TotalCtaxReportCount" in {
-      (batchTrailer.node \ "TotalCtaxReportCount").text shouldBe ("8")
+      (batchTrailer.node \ "TotalCtaxReportCount").text shouldBe "8"
     }
 
   }
 
-  val complexBatchSubmission = xmlParser.fromXml(IOUtils.toString(getClass.getResource("/xml/CTValid2.xml")))
+  val multipleReportBatch = xmlParser.fromXml(IOUtils.toString(getClass.getResource("/xml/CTValid2.xml")))
 
   "A BAReport containing multiple BAReports" should {
 
-    "be parsed correctly and hold the correct number of reports" in {
-      complexBatchSubmission.baPropertyReport.size shouldBe (4)
+    "hold the correct number of reports" in {
+      multipleReportBatch.baPropertyReport.size shouldBe 4
     }
+
+    "state the correct batch size in the trailer" in {
+      (multipleReportBatch.baReportTrailer.node \ "RecordCount").text shouldBe "4"
+    }
+  }
+
+  "A BABatchReport object should be constructed to an xml node" in {
+    val xmlReport = xmlParser.toXml(multipleReportBatch)
+    //println(">>>>>>>>>"+multipleReportBatch.baReportHeader)
+
+    val xmlfile = IOUtils.toString(getClass.getResource("/xml/CTValid2.xml"))
+    val file: Node = XML.loadFile("test/resources/xml/CTValid2.xml")
+    val validator = new XmlValidator()
+    println(validator.validate(xmlfile))
+
   }
 
 }
