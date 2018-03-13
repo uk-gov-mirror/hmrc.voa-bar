@@ -35,7 +35,7 @@ class LoginControllerSpec extends PlaySpec with MockitoSugar {
   val fakeRequest = FakeRequest("GET", "/")
   def fakeRequestWithJson(jsonStr: String) = {
     val json = Json.parse(jsonStr)
-    FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json").withJsonBody(json)
+    FakeRequest("POST", "").withHeaders("Content-Type" -> "application/json", "BA-Code" -> "1234").withJsonBody(json)
   }
 
   val mockLegacyConnector = mock[LegacyConnector]
@@ -88,4 +88,6 @@ class LoginControllerSpec extends PlaySpec with MockitoSugar {
       status(result) mustBe INTERNAL_SERVER_ERROR
     }
   }
+
+
 }

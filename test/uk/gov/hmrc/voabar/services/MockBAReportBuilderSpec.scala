@@ -14,21 +14,23 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.voabar.models.errors
+package uk.gov.hmrc.voabar.services
 
-import org.scalatestplus.play.PlaySpec
-import uk.gov.hmrc.voabar.models.Error
+import org.scalatest.WordSpec
+import org.scalatest.Matchers._
 
-class ErrorSpec extends PlaySpec {
+import scala.xml._
 
-  val code = "code1"
-  val errorValue = Seq("testing error")
+class MockBAReportBuilderSpec extends WordSpec{
 
-  val error = Error(code, errorValue)
+  val builder = MockBAReportBuilder
 
-  "Given an error code and an error value produce an Error model" in {
-    error.code mustBe code
-    error.values mustBe errorValue
+  "A mock BA property report" should  {
+    "contain the reason for report code specified" in {
+      val reasonCode:String = (builder("CR03",1,0) \\ "ReasonForReportCode").text
+      reasonCode shouldBe "CR03"
+    }
   }
+
 
 }

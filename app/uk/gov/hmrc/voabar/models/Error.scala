@@ -14,21 +14,12 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.voabar.models.errors
+package uk.gov.hmrc.voabar.models
 
-import org.scalatestplus.play.PlaySpec
-import uk.gov.hmrc.voabar.models.Error
+import play.api.libs.json._
 
-class ErrorSpec extends PlaySpec {
+case class Error(code: String, values: Seq[String] = Seq())
 
-  val code = "code1"
-  val errorValue = Seq("testing error")
-
-  val error = Error(code, errorValue)
-
-  "Given an error code and an error value produce an Error model" in {
-    error.code mustBe code
-    error.values mustBe errorValue
-  }
-
+object Error {
+  implicit val format = Json.format[Error]
 }
