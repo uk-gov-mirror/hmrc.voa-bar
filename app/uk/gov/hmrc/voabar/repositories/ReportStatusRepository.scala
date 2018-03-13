@@ -63,16 +63,22 @@ class ReactiveMongoRepositoryImpl @Inject() (config: Configuration)
     }
   }
 
-  def getAll(id: String): Future[List[ReportStatus]] = {
-    val cursor = collection.find(Json.obj("submissionId" -> id)).cursor[ReportStatus]()
+  def getSubmission(submissionId: String): Future[List[ReportStatus]] = {
+    val cursor = collection.find(Json.obj("submissionId" -> submissionId)).cursor[ReportStatus]()
     cursor.collect(10, Cursor.FailOnError[List[ReportStatus]]())
+  }
+
+  def getReportsByBaCode(code:String): Future[List[ReportStatus]] = {
+    val cursor = collection.find(Json.obj("baCode" -> code)).cursor[ReportStatus]()
+    cursor.collect(1000, Cursor.FailOnError[List[ReportStatus]]())
   }
 }
 
 @ImplementedBy(classOf[ReactiveMongoRepositoryImpl])
 trait ReactiveMongoRepository {
   def insert(rs: ReportStatus): Future[Boolean]
-  def getAll(id: String): Future[List[ReportStatus]]
+  def getSubmission(submissionId: String): Future[List[ReportStatus]]
+  def getReportsByBaCode(code:String): Future[List[ReportStatus]]
 }
 
 

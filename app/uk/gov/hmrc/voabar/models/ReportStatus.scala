@@ -20,7 +20,7 @@ import org.joda.time.{DateTime, DateTimeZone}
 import play.api.libs.json._
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
-case class ReportStatus(submissionId: String, status: String, errors: Seq[Error] = Seq(), created: DateTime = DateTime.now(DateTimeZone.UTC))
+case class ReportStatus(baCode: String, submissionId: String, status: String, errors: Seq[Error] = Seq(), created: DateTime = DateTime.now(DateTimeZone.UTC))
 
 object ReportStatus {
   implicit val dateFormat = ReactiveMongoFormats.dateTimeFormats

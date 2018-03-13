@@ -27,8 +27,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
 class ReportStatusHistoryService @Inject() (statusRepository: ReactiveMongoRepository){
-  def reportSubmitted(submissionId: String): Future[Boolean] = {
-    val status = ReportStatus(submissionId, "SUBMITTED")
+  def reportSubmitted(baCode: String, submissionId: String): Future[Boolean] = {
+    val status = ReportStatus(baCode, submissionId, "SUBMITTED")
     statusRepository.insert(status) map identity recover {
       case t: Throwable => {
         Logger.warn(s"Mongo exception while inserting SUBMITTED status for $submissionId with message ${t.getMessage}")
@@ -37,8 +37,8 @@ class ReportStatusHistoryService @Inject() (statusRepository: ReactiveMongoRepos
     }
   }
 
-  def reportCheckedWithNoErrorsFound(submissionId: String): Future[Boolean] = {
-    val status = ReportStatus(submissionId, "VALIDATED")
+  def reportCheckedWithNoErrorsFound(baCode: String, submissionId: String): Future[Boolean] = {
+    val status = ReportStatus(baCode, submissionId, "VALIDATED")
     statusRepository.insert(status) map identity recover {
       case t: Throwable => {
         Logger.warn(s"Mongo exception while inserting VALIDATED status for $submissionId with message ${t.getMessage}")
@@ -47,8 +47,8 @@ class ReportStatusHistoryService @Inject() (statusRepository: ReactiveMongoRepos
     }
   }
 
-  def reportCheckedWithErrorsFound(submissionId: String, errors: Seq[Error]): Future[Boolean] = {
-    val status = ReportStatus(submissionId, "INVALIDATED", errors)
+  def reportCheckedWithErrorsFound(baCode: String, submissionId: String, errors: Seq[Error]): Future[Boolean] = {
+    val status = ReportStatus(baCode, submissionId, "INVALIDATED", errors)
     statusRepository.insert(status) map identity recover {
       case t: Throwable => {
         Logger.warn(s"Mongo exception while inserting INVALIDATED status for $submissionId with message ${t.getMessage}")
@@ -57,8 +57,8 @@ class ReportStatusHistoryService @Inject() (statusRepository: ReactiveMongoRepos
     }
   }
 
-  def reportForwarded(submissionId: String): Future[Boolean] = {
-    val status = ReportStatus(submissionId, "FORWARDED")
+  def reportForwarded(baCode: String, submissionId: String): Future[Boolean] = {
+    val status = ReportStatus(baCode, submissionId, "FORWARDED")
     statusRepository.insert(status) map identity recover {
       case t: Throwable => {
         Logger.warn(s"Mongo exception while inserting FORWARDED status for $submissionId with message ${t.getMessage}")
@@ -67,10 +67,19 @@ class ReportStatusHistoryService @Inject() (statusRepository: ReactiveMongoRepos
     }
   }
 
-  def findSubmission(submissionId: String): Future[Option[List[ReportStatus]]] = {
-    statusRepository.getAll(submissionId) map { statuses => Some(statuses) } recover {
+  def findReportsBySubmission(submissionId: String): Future[Option[List[ReportStatus]]] = {
+    statusRepository.getSubmission(submissionId) map { statuses => Some(statuses) } recover {
       case t: Throwable => {
         Logger.warn(s"Mongo exception while inserting FORWARDED status for $submissionId with message ${t.getMessage}")
+        None
+      }
+    }
+  }
+
+  def findReportsByBaCode(code: String): Future[Option[Map[String, List[ReportStatus]]]] = {
+    statusRepository.getReportsByBaCode(code) map { statuses => Some(statuses.groupBy(_.submissionId)) } recover {
+      case t: Throwable => {
+        Logger.warn(s"Mongo exception while inserting FORWARDED status for $code with message ${t.getMessage}")
         None
       }
     }
