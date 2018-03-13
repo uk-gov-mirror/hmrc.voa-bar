@@ -34,13 +34,16 @@ import scala.concurrent.Future
 
 @Singleton
 class ReactiveMongoRepositoryImpl @Inject() (config: Configuration)
-  extends ReactiveRepository[ReportStatus, BSONObjectID](config.getString("appName").get, (new MongoDbConnection(){}).db, ReportStatus.format)
+  extends ReactiveRepository[ReportStatus, BSONObjectID](config.getString("appName").get, new MongoDbConnection(){}.db, ReportStatus.format)
   with ReactiveMongoRepository {
 
   val fieldName = "created"
   val createdIndexName = "userAnswersExpiry"
   val expireAfterSeconds = "expireAfterSeconds"
   val timeToLiveInSeconds: Int = config.getInt("mongodb.timeToLiveInSeconds").get
+  val findSubmissionCursorMax = config.getInt("mongodb.findSubmissionCursorMax").get
+  val findBaCursorMax = config.getInt("mongodb.findBaCursorMax").get
+
 
   createIndex(fieldName, createdIndexName, timeToLiveInSeconds)
 
@@ -63,14 +66,15 @@ class ReactiveMongoRepositoryImpl @Inject() (config: Configuration)
     }
   }
 
+
   def getSubmission(submissionId: String): Future[List[ReportStatus]] = {
     val cursor = collection.find(Json.obj("submissionId" -> submissionId)).cursor[ReportStatus]()
-    cursor.collect(10, Cursor.FailOnError[List[ReportStatus]]())
+    cursor.collect(findSubmissionCursorMax, Cursor.FailOnError[List[ReportStatus]]())
   }
 
   def getReportsByBaCode(code:String): Future[List[ReportStatus]] = {
     val cursor = collection.find(Json.obj("baCode" -> code)).cursor[ReportStatus]()
-    cursor.collect(1000, Cursor.FailOnError[List[ReportStatus]]())
+    cursor.collect(findBaCursorMax, Cursor.FailOnError[List[ReportStatus]]())
   }
 }
 
