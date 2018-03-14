@@ -24,7 +24,7 @@ import scala.concurrent.Future
 @Singleton
 class UploadController @Inject()() extends BaseController {
 
-  private def checkXml(node: String): Future[Int] = {
+  private def checkXml(node: String, baCode: String, password: String): Future[Int] = {
     Thread.sleep(10)
     Future.successful(0)
   }
@@ -40,7 +40,7 @@ class UploadController @Inject()() extends BaseController {
               case Some(pass) => request.body.asText match {
                 case Some(xml) =>
                   val id = generateSubmissionID(baCode)
-                  checkXml(xml)
+                  checkXml(xml, baCode, pass)
                   Ok(id)
                 case None => BadRequest
               }
