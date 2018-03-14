@@ -10,7 +10,7 @@ object MicroServiceBuild extends Build with MicroService {
   val appName = "voa-bar"
   private val mockitoAllVersion = "1.10.19"
   private val scalaTestPlusPlayVersion = "2.0.1"
-  private val httpCachingClientVersion = "7.0.0"
+  private val httpCachingClientVersion = "7.1.0"
   private val playReactivemongoVersion = "6.0.0"
 
   override lazy val appDependencies: Seq[ModuleID] = compile ++ test()
@@ -18,7 +18,7 @@ object MicroServiceBuild extends Build with MicroService {
   val compile = Seq(
     "uk.gov.hmrc" %% "play-reactivemongo" % "6.1.0",
     ws,
-    "uk.gov.hmrc" %% "bootstrap-play-25" % "1.4.0",
+    "uk.gov.hmrc" %% "bootstrap-play-25" % "1.5.0",
     "uk.gov.hmrc" %% "http-caching-client" % httpCachingClientVersion,
     "uk.gov.hmrc" %% "play-reactivemongo" % playReactivemongoVersion
   )
