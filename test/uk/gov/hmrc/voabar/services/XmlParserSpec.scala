@@ -57,12 +57,12 @@ class XmlParserSpec extends WordSpec {
 
   "A BAReports" should {
 
-    val attributes:MetaData = batchSubmission.baReports.attributes
-
-    "contain attributes" in {
-      println("ATTRIBUTES :" + attributes)
-      attributes.length shouldBe 3
-    }
+//    val attributes:MetaData = batchSubmission.baReports.
+//
+//    "contain attributes" in {
+//      println("ATTRIBUTES :" + attributes)
+//      attributes.length shouldBe 3
+//    }
   }
 
 
@@ -169,13 +169,9 @@ class XmlParserSpec extends WordSpec {
   }
 
   "A BABatchReport object should be constructed to an xml node" in {
-    val xmlReport = xmlParser.toXml(multipleReportBatch)
-    //println(">>>>>>>>>"+multipleReportBatch.baReportHeader)
 
-    val xmlfile = IOUtils.toString(getClass.getResource("/xml/CTValid2.xml"))
-    val file: Node = XML.loadFile("test/resources/xml/CTValid2.xml")
-    val validator = new XmlValidator()
-    println(validator.validate(xmlfile))
+
+
 
   }
 

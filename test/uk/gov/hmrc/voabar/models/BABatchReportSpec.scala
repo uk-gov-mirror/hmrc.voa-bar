@@ -21,7 +21,7 @@ import scala.xml.NodeSeq
 
 class BABatchReportSpec extends PlaySpec {
 
-  val baReports:BAReports = BAReports(<a b="1"></a>.attributes)
+  val baReports:BAReports = BAReports(<a b="1"></a>)
   val headerNode: NodeSeq = <BAreportHeader>TEST SAMPLE1</BAreportHeader>
   val trailerNode: NodeSeq = <BAreportTrailer>TEST SAMPLE2</BAreportTrailer>
   val report1: NodeSeq = <BApropertyReport>SAMPLE1</BApropertyReport>
