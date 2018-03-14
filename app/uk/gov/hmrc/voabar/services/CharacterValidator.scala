@@ -25,7 +25,7 @@ import scala.xml.{Node, NodeSeq}
 
 class CharacterValidator {
 
-  val validCharacterRegex = """(['A-Z0-9\s\-&+\.@\(\):\/])+""".r
+  val validCharacterRegex:Regex = """(['A-Z0-9\s\-&+\.@\(\):\/])+""".r
 
   def elementNodes(nodes: NodeSeq) = nodes.headOption match {
     case Some(n: Node) => n.descendant.collect {

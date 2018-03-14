@@ -18,7 +18,9 @@ package uk.gov.hmrc.voabar.services
 import uk.gov.hmrc.voabar.models.BAPropertyReport
 
 import scala.collection.mutable.ListBuffer
+import scala.util.matching.Regex
 import scala.xml._
+import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 class BusinessRules {
 
@@ -65,7 +67,6 @@ class BusinessRules {
 
   private def proposedEntries(implicit node:NodeSeq):Int = (node \\ "ProposedEntries").size
   private def existingEntries(implicit node:NodeSeq):Int = (node \\ "ExistingEntries").size
-
-
+  
 
 }

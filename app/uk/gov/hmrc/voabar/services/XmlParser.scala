@@ -27,50 +27,20 @@ class XmlParser {
     val xml:Node = XML.loadString(xmlString)
 
     BABatchReport(
-      BAReports(xml),
+      BAReports(addChild(xml,NodeSeq.Empty)),
       BAReportHeader(xml \ "BAreportHeader"),
       List[BAPropertyReport]((xml \ "BApropertyReport") map {i => BAPropertyReport(i)}: _*),
       BAReportTrailer(xml \ "BAreportTrailer")
     )
   }
 
-//  def toXml(bABatchReport:BABatchReport): Node = {
-//    val rootNode:Node = <BAreports></BAreports>
-//    val rootWithAttrs = addAttributes(bABatchReport.baReports.attributes,rootNode)
-//    val propertyReports = bABatchReport.baPropertyReport.foldLeft(NodeSeq.Empty)((acc, elem) =>
-//    acc ++ elem.node)
-//    val newNode = bABatchReport.baReportHeader.node ++
-//      propertyReports ++ bABatchReport.baReportTrailer.node
-//    val completeReport = addChild(newNode,rootWithAttrs)
-//    completeReport
-//  }
-
-//  private[services] def addAttributes(attributes:MetaData, node:Node): Node = node match {
-//    case e:Elem => e%attributes
-//  }
-
-//  private[services] def addChild(childs:NodeSeq, node:Node): Node = node match {
-//    case Elem(prefix,label,attr,scope,child@_*) => Elem.apply(prefix,label,attr,scope,false,child ++ childs: _*)
-//  }
-
-//  def splitBatch(baBatchReport:BABatchReport): Seq[Node] = {
-//    smallBatch(baBatchReport).map{batch => toXml(batch)}
-//  }
-
   private def addChild(node:Node,newNode:NodeSeq): Node = node match {
     case Elem(prefix,label,attrs,ns,child@_*) => Elem(prefix,label,attrs,ns,false,newNode: _*)
   }
 
-
-  private def split(node:Node):Seq[Node] = {
+  def parseBatch(node:Node):Seq[Node] = {
     val batchHeader = node \ "BAreportHeader"
     val batchTrailer = node \ "BAreportTrailer"
-    val propertyReports:Seq[Node] = (node \ "BApropertyReport") map {report =>
-      val newNode = batchHeader ++ report ++ batchTrailer
-      addChild(node,newNode)
-    }
-    propertyReports
+    (node \ "BApropertyReport") map {report => addChild(node,batchHeader ++ report ++ batchTrailer)}
   }
-
-
 }

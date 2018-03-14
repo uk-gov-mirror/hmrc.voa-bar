@@ -17,9 +17,12 @@
 package uk.gov.hmrc.voabar.services
 
 
+import org.apache.commons.io.IOUtils
 import org.scalatest.WordSpec
 import org.scalatest.Matchers._
 import uk.gov.hmrc.voabar.models.BAPropertyReport
+
+import scala.xml.{Node, XML}
 
 class BusinessRulesSpec extends WordSpec {
 
@@ -152,6 +155,13 @@ class BusinessRulesSpec extends WordSpec {
         an [RuntimeException] should be thrownBy businessRules.reasonForReportErrors(xmlNode)
        }
       }
+
+  "A BA report containing illegal chars" should {
+    "be identified" in {
+
+
+    }
+  }
 
 
 

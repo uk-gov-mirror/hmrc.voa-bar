@@ -16,6 +16,6 @@
 
 package uk.gov.hmrc.voabar.models
 
-import scala.xml.{MetaData, Node}
+import scala.xml.NodeSeq
 
-case class BAReports(Node:Node)
+case class BAReports(node:NodeSeq)

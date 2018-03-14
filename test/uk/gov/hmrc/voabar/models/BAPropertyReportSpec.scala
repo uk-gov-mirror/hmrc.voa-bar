@@ -59,8 +59,7 @@ class BAPropertyReportSpec extends PlaySpec {
   </BApropertyReport>
 
   "Given a NodeSeq representing the property report produce a BAPropertyReport model" in {
-    val batchHeader = BAReportTrailer(propertyReportNode)
-    batchHeader.node mustBe propertyReportNode
+    BAPropertyReport(propertyReportNode).node mustBe propertyReportNode
   }
 
 }

@@ -16,8 +16,6 @@
 
 package uk.gov.hmrc.voabar.models
 
-import scala.xml.Node
-
 case class BABatchReport(baReports:BAReports,
                          baReportHeader:BAReportHeader,
                          baPropertyReport:Seq[BAPropertyReport],

@@ -55,14 +55,12 @@ class XmlParserSpec extends WordSpec {
     }
   }
 
-  "A BAReports" should {
+  "A BAReports object" should {
+    "contain a single element with no children" in {
 
-//    val attributes:MetaData = batchSubmission.baReports.
-//
-//    "contain attributes" in {
-//      println("ATTRIBUTES :" + attributes)
-//      attributes.length shouldBe 3
-//    }
+    }
+
+
   }
 
 
@@ -168,7 +166,41 @@ class XmlParserSpec extends WordSpec {
     }
   }
 
-  "A BABatchReport object should be constructed to an xml node" in {
+  "A BA batch submission" should  {
+
+    val report:Node = XML.loadString(IOUtils.toString(getClass.getResource("/xml/CTValid2.xml")))
+    val result = xmlParser.parseBatch(report)
+
+    "be parsed into multiple smaller batches" in {
+
+      result.size shouldBe 4
+    }
+
+    "each batch should contain a single (non-empty) header node" in {
+      val nonEmptyHeaders:Seq[NodeSeq] = result.map(_ \ "BAreportHeader")
+
+      nonEmptyHeaders.size shouldBe 4
+      nonEmptyHeaders.forall(_.size == 1) shouldBe true
+    }
+
+    "each batch should contain a single (non-empty) trailer node" in {
+      val nonEmptyTrailers:Seq[NodeSeq] = result.map(_ \ "BAreportTrailer")
+
+      nonEmptyTrailers.size shouldBe 4
+      nonEmptyTrailers.forall(_.size == 1) shouldBe true
+    }
+
+    "each batch should contain a single (non-empty) property report" in {
+      val nonEmptyPropertyReports:Seq[NodeSeq] = result.map(_ \ "BApropertyReport")
+
+      nonEmptyPropertyReports.size shouldBe 4
+      nonEmptyPropertyReports.forall(_.size == 1) shouldBe true
+    }
+
+
+
+
+
 
 
 
