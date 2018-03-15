@@ -20,9 +20,12 @@ import org.apache.commons.io.IOUtils
 import org.scalatest.Matchers._
 import org.scalatest.WordSpec
 
+import scala.xml.{Node, XML}
+
 class XmlValidatorSpec extends WordSpec {
 
   val validator = new XmlValidator
+  val parser = new XmlParser
 
   "A valid xml file" should {
     "validate successfully" in {
@@ -50,6 +53,16 @@ class XmlValidatorSpec extends WordSpec {
       val errors = validator.validate(IOUtils.toString(getClass.getResource("/xml/CTInvalid2.xml")))
       errors should have size 18
       assert(errors.toString.contains("CouncilTaxBand"))
+    }
+  }
+
+  "A valid batch submission containing 4 reports" should {
+    "validate successfully when parsed into smaller batches" in {
+      val report:Node = XML.loadString(IOUtils.toString(getClass.getResource("/xml/CTValid2.xml")))
+      val smallBatches = parser.parseBatch(report)
+
+      val result = smallBatches.map{report => validator.validate(report.toString)}
+      result.forall(_.isEmpty) // no errors
     }
   }
 

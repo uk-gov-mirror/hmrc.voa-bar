@@ -22,7 +22,7 @@ import org.apache.commons.io.IOUtils
 import org.scalatestplus.play.PlaySpec
 import uk.gov.hmrc.voabar.models.{BAPropertyReport, BAReportHeader, BAReportTrailer}
 
-import scala.xml.{Node, NodeSeq}
+import scala.xml.{Node, NodeSeq, XML}
 
 class CharacterValidatorSpec extends PlaySpec {
 
@@ -165,6 +165,15 @@ class CharacterValidatorSpec extends PlaySpec {
       val result = characterValidator.charactersValidationStatus(fakeBatch)
       result.baPropertyReports.size mustBe 1
       result.errors.size mustBe 0
+    }
+
+    "The charValidator" should {
+      "detect bad chars" in {
+        val validator = new CharacterValidator
+
+        val result = validator.charValidator.transform(XML.loadString(validTestBatchXml))
+
+      }
     }
   }
 

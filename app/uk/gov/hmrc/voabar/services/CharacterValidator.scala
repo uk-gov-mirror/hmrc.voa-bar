@@ -21,6 +21,7 @@ import uk.gov.hmrc.voabar.models._
 import uk.gov.hmrc.voabar.models.errors.Error
 
 import scala.util.matching.Regex
+import scala.xml.transform.{RewriteRule, RuleTransformer}
 import scala.xml.{Node, NodeSeq}
 
 class CharacterValidator {
@@ -102,4 +103,13 @@ class CharacterValidator {
 
     ValidationResult(remainingReports, allErrors)
   }
+
+  val charValidator = new RuleTransformer(new RewriteRule {
+    override def transform(node:Node): Seq[Node] = node match {
+      case n:Node if n.child.length == 1 && n.child.head.isAtom =>
+        println(s"node visited : ${n.nameToString(new StringBuilder)}")
+        n
+      case other => other
+    }
+  })
 }

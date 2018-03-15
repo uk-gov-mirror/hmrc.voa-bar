@@ -18,9 +18,7 @@ package uk.gov.hmrc.voabar.services
 import uk.gov.hmrc.voabar.models.BAPropertyReport
 
 import scala.collection.mutable.ListBuffer
-import scala.util.matching.Regex
 import scala.xml._
-import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 class BusinessRules {
 
@@ -40,33 +38,33 @@ class BusinessRules {
     val lb = new ListBuffer[String]
 
     repCode match {
-      case "CR03" => // (New) must be no existing- only 1 proposed
+      case "CR03" => // (New) no existing- only 1 proposed
         if (proposedEntries != 1) lb += "There must be one proposed entry for reason code CR03"
         if (existingEntries != 0) lb += "There must be no existing entries for reason code CR03"
-      case "CR04" => // (Change to Domestic Use) must be either 1 existing or 1 proposed
+      case "CR04" => // (Change to Domestic Use) either 1 existing or 1 proposed
         if (((proposedEntries == 1) && (existingEntries ==0 )) ||
           ((proposedEntries == 0) && (existingEntries == 1))){}
         else
           lb += "There must be either one existing entry or one proposed entry for reason code CR04"
-      case "CR05" => // (Reconstituted Property) must be at least 1 existing and at least 1 proposed
+      case "CR05" => // (Reconstituted Property) at least 1 existing and at least 1 proposed
         if (proposedEntries == 0) lb += "There must be at least one proposed entry for reason code CR05"
         if (existingEntries == 0) lb += "There must be at least one existing entry for reason code CR05"
-      case "CR08" => lb += s"report code: ${repCode} NOT IN USE"
-      case "CR11" => lb += s"report code: ${repCode} NOT IN USE"
-      case "CR12" => // must be 1 existing and 1 proposed
+      case "CR08" => lb += s"report code: $repCode NOT IN USE"
+      case "CR11" => lb += s"report code: $repCode NOT IN USE"
+      case "CR12" => // 1 existing and 1 proposed
         if (proposedEntries != 1) lb += "There must be one proposed entry for reason code CR12"
         if (existingEntries != 1) lb += "There must be one existing entry for reason code CR12"
-      case "CR13" => lb += s"report code: ${repCode} NOT IN USE"
+      case "CR13" => lb += s"report code: $repCode NOT IN USE"
 
-      case _ => // default - must be 1 existing and none proposed
-        if (proposedEntries != 0) lb += s"There must be no proposed entries for reason code ${repCode}"
-        if (existingEntries != 1) lb += s"There must be one existing entry for reason code ${repCode}"
+      case _ => // default - 1 existing and none proposed
+        if (proposedEntries != 0) lb += s"There must be no proposed entries for reason code $repCode"
+        if (existingEntries != 1) lb += s"There must be one existing entry for reason code $repCode"
     }
     lb.toList
   }
 
   private def proposedEntries(implicit node:NodeSeq):Int = (node \\ "ProposedEntries").size
   private def existingEntries(implicit node:NodeSeq):Int = (node \\ "ExistingEntries").size
-  
+
 
 }

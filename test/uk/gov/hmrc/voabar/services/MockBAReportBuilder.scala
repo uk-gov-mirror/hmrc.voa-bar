@@ -58,22 +58,22 @@ class MockBAReportBuilder {
     val newChilds:NodeSeq = node.child.foldLeft(NodeSeq.Empty)((acc, elem) =>
       if(elem.label == "TypeOfTax") acc ++ elem ++ newNode else acc ++ elem)
 
-    val n = <BApropertyReport></BApropertyReport>
+    val root = <BApropertyReport></BApropertyReport>
 
     def addNode(orig:Node,childs:NodeSeq) = orig match {
-      case Elem(prefix,label,attributes,scope,child@_*) => Elem(prefix,label,attributes,scope,child ++ childs: _*)
+      case Elem(prefix,label,attributes,scope,child@_*) => Elem(prefix,label,attributes,scope,false,child ++ childs: _*)
     }
-    BAPropertyReport(addNode(n,newChilds))
-    
+    BAPropertyReport(addNode(root,newChilds))
   }
 
-  private def concat(node:NodeSeq, existing: Int, proposed: Int): NodeSeq = existing match {
+  private def concat(node:NodeSeq, existing:Int, proposed:Int):NodeSeq = existing match {
     case 0 => proposed match {
       case 0 => node
-      case _ => concat(node ++ proposedEntries, 0, proposed - 1)
+      case _ => concat(node ++ proposedEntries, 0,proposed - 1)
     }
-    case _ => concat(node ++ existingEntries, existing -1, proposed)
+    case _ => concat(node ++ existingEntries, existing -1,proposed)
   }
+
 
   private val existingEntries:NodeSeq =
 
