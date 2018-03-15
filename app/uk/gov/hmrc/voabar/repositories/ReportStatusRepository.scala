@@ -17,7 +17,6 @@
 package uk.gov.hmrc.voabar.repositories
 
 import javax.inject.{Inject, Singleton}
-
 import com.google.inject.ImplementedBy
 import play.api.libs.json.Json
 import play.api.{Configuration, Logger}

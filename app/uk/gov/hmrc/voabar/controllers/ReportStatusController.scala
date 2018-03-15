@@ -19,11 +19,37 @@ package uk.gov.hmrc.voabar.controllers
 import javax.inject.{Inject, Singleton}
 
 import play.api.libs.json._
+import play.api.Logger
+import play.api.mvc.{Action, AnyContent, Result}
+import play.api.mvc.Results._
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import uk.gov.hmrc.voabar.models.ReportStatus
+import uk.gov.hmrc.voabar.services.ReportStatusHistoryService
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
-class ReportStatusController @Inject()() extends BaseController {
-  def generateReportStatuses(json: JsValue): Future[JsValue] = ???
+class ReportStatusController @Inject()(reportStatusHistory: ReportStatusHistoryService) extends BaseController {
+  def generateReportStatuses(baCode: String): Future[Option[JsValue]] = {
+    reportStatusHistory.findReportsByBaCode(baCode) map {
+      case Some(sm) => Some(Json.toJson(sm))
+      case None => None
+    }
+  }
+
+  def onPageLoad(): Action[AnyContent] = Action.async {implicit request =>
+    val headers = request.headers
+    headers.get("BA-Code") match {
+      case Some(baCode) => generateReportStatuses(baCode) map {
+        case Some(json) => Ok(json)
+        case None =>
+          Logger.warn(s"Request for status reports from front end received while mongo unavailable")
+          BadRequest("No BA Code found in header")
+      }
+      case None =>
+        Logger.warn(s"Request for status reports from front end received without BA code in header")
+        Future.successful(BadRequest("No BA Code found in header"))
+    }
+  }
 }
