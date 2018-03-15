@@ -17,17 +17,15 @@
 package uk.gov.hmrc.voabar.controllers
 
 import javax.inject.{Inject, Singleton}
-import play.api.mvc.{Action, AnyContent, Request, Result}
+import play.api.mvc.{Action, AnyContent}
+import play.api.mvc.Results._
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
-
-import scala.collection.immutable
 import scala.concurrent.Future
-import scala.xml.NodeSeq
 
 @Singleton
 class UploadController @Inject()() extends BaseController {
 
-  private def checkXml(node:NodeSeq): Future[Int] = {
+  private def checkXml(node: String, baCode: String, password: String): Future[Int] = {
     Thread.sleep(10)
     Future.successful(0)
   }
@@ -36,15 +34,19 @@ class UploadController @Inject()() extends BaseController {
 
     val headers = request.headers
     headers.get("Content-Type") match {
-      case Some(content) if content == "application/xml" =>
+      case Some(content) if content == "text/plain" =>
         headers.get("BA-Code") match {
-          case Some(baCode) => request.body.asXml match {
-            case Some(xml) =>
-              val id = generateSubmissionID(baCode)
-              checkXml(xml)
-              Ok(id)
-            case None => BadRequest
-          }
+          case Some(baCode) =>
+            headers.get("password") match {
+              case Some(pass) => request.body.asText match {
+                case Some(xml) =>
+                  val id = generateSubmissionID(baCode)
+                  checkXml(xml, baCode, pass)
+                  Ok(id)
+                case None => BadRequest
+              }
+              case None => Unauthorized
+            }
           case None => Unauthorized
         }
       case Some(_) => UnsupportedMediaType
@@ -54,7 +56,9 @@ class UploadController @Inject()() extends BaseController {
 
   private def generateSubmissionID(baCode: String): String = {
     val chars = 'A' to 'Z'
+
     def ran = scala.util.Random.nextInt(chars.size)
+
     s"$baCode-${System.currentTimeMillis()}-${chars(ran)}${chars(ran)}"
   }
 

@@ -20,6 +20,7 @@ import javax.inject.{Inject, Singleton}
 
 import play.api.Logger
 import play.api.mvc.{Action, AnyContent}
+import play.api.mvc.Results._
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
 import scala.concurrent.Future
 import uk.gov.hmrc.voabar.models.LoginDetails

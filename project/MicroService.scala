@@ -29,7 +29,7 @@ trait MicroService {
     .enablePlugins(Seq(play.sbt.PlayScala,SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin) ++ plugins : _*)
     .settings(playSettings : _*)
     .settings(
-      ScoverageKeys.coverageExcludedFiles := "<empty>;Reverse.*;.*filters.*;.*handlers.*;.*components.*;.*repositories.*;" +
+      ScoverageKeys.coverageExcludedFiles := "<empty>;Reverse.*;.*filters.*;.*handlers.*;.*components.*;.*repositories.*;.*RepoTestController.*;" +
         ".*BuildInfo.*;.*javascript.*;.*Routes.*;.*GuiceInjector",
       ScoverageKeys.coverageMinimum := 90,
       ScoverageKeys.coverageFailOnMinimum := true,

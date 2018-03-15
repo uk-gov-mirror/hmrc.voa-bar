@@ -27,22 +27,33 @@ class UploadControllerSpec extends PlaySpec with MockitoSugar {
   val controller = new UploadController
 
   def fakeRequestWithXML = {
-    val xmlNode = scala.xml.XML.loadString("""<xml>Wibble</xml>""")
+    val xmlNode = """<xml>Wibble</xml>"""
     FakeRequest("POST", "")
       .withHeaders(
-        "Content-Type" -> "application/xml",
+        "Content-Type" -> "text/plain",
         "Content-Length" -> s"${xmlNode.length}",
-        "BA-Code" -> "1234")
-      .withXmlBody(xmlNode)
+        "BA-Code" -> "1234",
+        "password" -> "pass1")
+        .withTextBody(xmlNode)
   }
 
   def fakeRequestWithXMLButNoBACode = {
-    val xmlNode = scala.xml.XML.loadString("""<xml>Wibble</xml>""")
+    val xmlNode = """<xml>Wibble</xml>"""
     FakeRequest("POST", "")
       .withHeaders(
-        "Content-Type" -> "application/xml",
+        "Content-Type" -> "text/plain",
         "Content-Length" -> s"${xmlNode.length}")
-      .withXmlBody(xmlNode)
+      .withTextBody(xmlNode)
+  }
+
+  def fakeRequestWithXMLButNoPassword = {
+    val xmlNode = """<xml>Wibble</xml>"""
+    FakeRequest("POST", "")
+      .withHeaders(
+        "Content-Type" -> "text/plain",
+        "Content-Length" -> s"${xmlNode.length}",
+        "BA-Code" -> "1234")
+      .withTextBody(xmlNode)
   }
 
 
@@ -51,26 +62,31 @@ class UploadControllerSpec extends PlaySpec with MockitoSugar {
     status(result) mustBe 200
   }
 
-  "Return 415 (Unsupported Media Type) when the Content-Type header value is not xml" in {
+  "Return 415 (Unsupported Media Type) when the Content-Type header value is not text/plain" in {
     val result = controller.upload()(FakeRequest("POST", "/upload")
       .withHeaders("Content-Type" -> "application/text"))
     status(result) mustBe 415
   }
 
-  "Return 400 (Bad Request) when given a content type that is xml but no xml is given" in {
+  "Return 400 (Bad Request) when given a content type that is text/plain but no text is given" in {
     val result = controller.upload()(FakeRequest("POST", "/upload")
-      .withHeaders("Content-Type" -> "application/xml", "BA-Code" -> "1234"))
+      .withHeaders("Content-Type" -> "text/plain", "BA-Code" -> "1234", "password" -> "pass1"))
     status(result) mustBe 400
   }
 
   "Return 400 (Bad Request) when a request contains no content type" in {
     val result = controller.upload()(FakeRequest("POST", "/upload")
-      .withHeaders("BA-Code" -> "1234"))
+      .withHeaders("BA-Code" -> "1234", "password" -> "pass1"))
     status(result) mustBe 400
   }
 
   "A request must contain a Billing Authority Code in the header" in {
     val result = controller.upload()(fakeRequestWithXMLButNoBACode)
+    status(result) mustBe UNAUTHORIZED
+  }
+
+  "A request must contain a password in the header" in {
+    val result = controller.upload()(fakeRequestWithXMLButNoPassword)
     status(result) mustBe UNAUTHORIZED
   }
 

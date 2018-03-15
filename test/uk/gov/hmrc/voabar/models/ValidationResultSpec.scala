@@ -19,7 +19,6 @@ package uk.gov.hmrc.voabar.models
 import org.apache.commons.io.IOUtils
 import org.scalatestplus.play.PlaySpec
 import uk.gov.hmrc.voabar.services.XmlParser
-import uk.gov.hmrc.voabar.models.errors.Error
 
 class ValidationResultSpec extends PlaySpec {
 
