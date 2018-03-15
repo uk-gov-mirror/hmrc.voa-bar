@@ -29,7 +29,7 @@ import scala.concurrent.Future
 class ReportStatusHistoryServiceSpec extends PlaySpec with MockitoSugar {
   val baCode = "ba1221"
   val submissionId = "sId999"
-  val mockConfig = mock[Configuration]
+  val mockConfig: Configuration = mock[Configuration]
   val errors = Seq(Error("BAD-CHAR", Seq("ba1221")))
   val rs0 = ReportStatus(baCode, submissionId, "SUBMITTED")
   val rs1 = ReportStatus(baCode, submissionId, "INVALIDATED", errors)
@@ -57,7 +57,7 @@ class ReportStatusHistoryServiceSpec extends PlaySpec with MockitoSugar {
 
     def getReportsByBaCode(code: String): Future[List[ReportStatus]] = ???
 
-    def clearCaptured() = {
+    def clearCaptured():Unit = {
       capturedReportStatus = None
     }
   }
@@ -126,208 +126,208 @@ class ReportStatusHistoryServiceSpec extends PlaySpec with MockitoSugar {
 
   "ReportStatusHistoryService" must {
     "When recording a submission return a false if the mongo db throws an exception when inserting a document" in {
-      val service = new ReportStatusHistoryService(fakeRepositoryInsertThrows)
+      val service = new ReportStatusHistoryServiceImpl(fakeRepositoryInsertThrows)
       val result = await(service.reportSubmitted(baCode, submissionId))
       result mustBe false
     }
 
     "When recording a submission return a false if the mongo db returns a false when inserting the document" in {
-      val service = new ReportStatusHistoryService(fakeRepositoryInsertFalse)
+      val service = new ReportStatusHistoryServiceImpl(fakeRepositoryInsertFalse)
       val result = await(service.reportSubmitted(baCode, submissionId))
       result mustBe false
     }
 
     "When recording a submission return a true if the mongo db returns a true when inserting the document" in {
-      val service = new ReportStatusHistoryService(fakeRepositoryInsert)
+      val service = new ReportStatusHistoryServiceImpl(fakeRepositoryInsert)
       val result = await(service.reportSubmitted(baCode, submissionId))
       result mustBe true
     }
 
     "when recording a submission insert a ReportStatus with the submissionId string set to submitted id" in {
-      fakeRepositoryInsert.clearCaptured
-      val service = new ReportStatusHistoryService(fakeRepositoryInsert)
+      fakeRepositoryInsert.clearCaptured()
+      val service = new ReportStatusHistoryServiceImpl(fakeRepositoryInsert)
       val result = await(service.reportSubmitted(baCode, submissionId))
       fakeRepositoryInsert.capturedReportStatus match {
         case Some(rs) => rs.submissionId mustBe submissionId
-        case None => assert(false)
+        case None => fail()
       }
     }
 
     "when recording a submission insert a ReportStatus with the status string set to SUBMITTED" in {
-      fakeRepositoryInsert.clearCaptured
-      val service = new ReportStatusHistoryService(fakeRepositoryInsert)
+      fakeRepositoryInsert.clearCaptured()
+      val service = new ReportStatusHistoryServiceImpl(fakeRepositoryInsert)
       val result = await(service.reportSubmitted(baCode, submissionId))
       fakeRepositoryInsert.capturedReportStatus match {
         case Some(rs) => rs.status mustBe "SUBMITTED"
-        case None => assert(false)
+        case None => fail()
       }
     }
 
     "When recording a check with no errors found return a false if the mongo db throws an exception when inserting a document" in {
-      val service = new ReportStatusHistoryService(fakeRepositoryInsertThrows)
+      val service = new ReportStatusHistoryServiceImpl(fakeRepositoryInsertThrows)
       val result = await(service.reportCheckedWithNoErrorsFound(baCode, submissionId))
       result mustBe false
     }
 
     "When recording a check with no errors found return a false if the mongo db returns a false when inserting the document" in {
-      val service = new ReportStatusHistoryService(fakeRepositoryInsertFalse)
+      val service = new ReportStatusHistoryServiceImpl(fakeRepositoryInsertFalse)
       val result = await(service.reportCheckedWithNoErrorsFound(baCode, submissionId))
       result mustBe false
     }
 
     "When recording a check with no errors found return a true if the mongo db returns a true when inserting the document" in {
-      val service = new ReportStatusHistoryService(fakeRepositoryInsert)
+      val service = new ReportStatusHistoryServiceImpl(fakeRepositoryInsert)
       val result = await(service.reportCheckedWithNoErrorsFound(baCode, submissionId))
       result mustBe true
     }
 
     "when recording a check with no errors insert a ReportStatus with the submissionId string set to submitted id" in {
-      fakeRepositoryInsert.clearCaptured
-      val service = new ReportStatusHistoryService(fakeRepositoryInsert)
+      fakeRepositoryInsert.clearCaptured()
+      val service = new ReportStatusHistoryServiceImpl(fakeRepositoryInsert)
       val result = await(service.reportCheckedWithNoErrorsFound(baCode, submissionId))
       fakeRepositoryInsert.capturedReportStatus match {
         case Some(rs) => rs.submissionId mustBe submissionId
-        case None => assert(false)
+        case None => fail()
       }
     }
 
     "when recording a check with no errors insert a ReportStatus with the status string set to SUBMITTED" in {
-      fakeRepositoryInsert.clearCaptured
-      val service = new ReportStatusHistoryService(fakeRepositoryInsert)
+      fakeRepositoryInsert.clearCaptured()
+      val service = new ReportStatusHistoryServiceImpl(fakeRepositoryInsert)
       val result = await(service.reportCheckedWithNoErrorsFound(baCode, submissionId))
       fakeRepositoryInsert.capturedReportStatus match {
         case Some(rs) => rs.status mustBe "VALIDATED"
-        case None => assert(false)
+        case None => fail()
       }
     }
 
     "When recording a check with errors found return a false if the mongo db throws an exception when inserting a document" in {
-      val service = new ReportStatusHistoryService(fakeRepositoryInsertThrows)
+      val service = new ReportStatusHistoryServiceImpl(fakeRepositoryInsertThrows)
       val result = await(service.reportCheckedWithErrorsFound(baCode, submissionId, errors))
       result mustBe false
     }
 
     "When recording a check with errors found return a false if the mongo db returns a false when inserting the document" in {
-      val service = new ReportStatusHistoryService(fakeRepositoryInsertFalse)
+      val service = new ReportStatusHistoryServiceImpl(fakeRepositoryInsertFalse)
       val result = await(service.reportCheckedWithErrorsFound(baCode, submissionId, errors))
       result mustBe false
     }
 
     "When recording a check with errors found return a true if the mongo db returns a true when inserting the document" in {
-      val service = new ReportStatusHistoryService(fakeRepositoryInsert)
+      val service = new ReportStatusHistoryServiceImpl(fakeRepositoryInsert)
       val result = await(service.reportCheckedWithErrorsFound(baCode, submissionId, errors))
       result mustBe true
     }
 
     "when recording a check with errors insert a ReportStatus with the submissionId string set to submitted id" in {
-      fakeRepositoryInsert.clearCaptured
-      val service = new ReportStatusHistoryService(fakeRepositoryInsert)
+      fakeRepositoryInsert.clearCaptured()
+      val service = new ReportStatusHistoryServiceImpl(fakeRepositoryInsert)
       val result = await(service.reportCheckedWithErrorsFound(baCode, submissionId, errors))
       fakeRepositoryInsert.capturedReportStatus match {
         case Some(rs) => rs.submissionId mustBe submissionId
-        case None => assert(false)
+        case None => fail()
       }
     }
 
     "when recording a check with errors insert a ReportStatus with the status string set to SUBMITTED" in {
-      fakeRepositoryInsert.clearCaptured
-      val service = new ReportStatusHistoryService(fakeRepositoryInsert)
+      fakeRepositoryInsert.clearCaptured()
+      val service = new ReportStatusHistoryServiceImpl(fakeRepositoryInsert)
       val result = await(service.reportCheckedWithErrorsFound(baCode, submissionId, errors))
       fakeRepositoryInsert.capturedReportStatus match {
         case Some(rs) => rs.status mustBe "INVALIDATED"
-        case None => assert(false)
+        case None => fail()
       }
     }
 
     "when recording a check with errors insert a ReportStatus with the errors sequence set to Seq(Error(BAD-CHAR, Seq(ba1221)))" in {
-      fakeRepositoryInsert.clearCaptured
-      val service = new ReportStatusHistoryService(fakeRepositoryInsert)
+      fakeRepositoryInsert.clearCaptured()
+      val service = new ReportStatusHistoryServiceImpl(fakeRepositoryInsert)
       val result = await(service.reportCheckedWithErrorsFound(baCode, submissionId, errors))
       fakeRepositoryInsert.capturedReportStatus match {
         case Some(rs) => rs.errors mustBe errors
-        case None => assert(false)
+        case None => fail()
       }
     }
 
     "When recording a forwarded return a false if the mongo db throws an exception when inserting a document" in {
-      val service = new ReportStatusHistoryService(fakeRepositoryInsertThrows)
+      val service = new ReportStatusHistoryServiceImpl(fakeRepositoryInsertThrows)
       val result = await(service.reportForwarded(baCode, submissionId))
       result mustBe false
     }
 
     "When recording a forwarded found return a false if the mongo db returns a false when inserting the document" in {
-      val service = new ReportStatusHistoryService(fakeRepositoryInsertFalse)
+      val service = new ReportStatusHistoryServiceImpl(fakeRepositoryInsertFalse)
       val result = await(service.reportForwarded(baCode, submissionId))
       result mustBe false
     }
 
     "When recording a forwarded found return a true if the mongo db returns a true when inserting the document" in {
-      val service = new ReportStatusHistoryService(fakeRepositoryInsert)
+      val service = new ReportStatusHistoryServiceImpl(fakeRepositoryInsert)
       val result = await(service.reportForwarded(baCode, submissionId))
       result mustBe true
     }
 
     "when recording a forwarded insert a ReportStatus with the submissionId string set to submitted id" in {
-      fakeRepositoryInsert.clearCaptured
-      val service = new ReportStatusHistoryService(fakeRepositoryInsert)
+      fakeRepositoryInsert.clearCaptured()
+      val service = new ReportStatusHistoryServiceImpl(fakeRepositoryInsert)
       val result = await(service.reportForwarded(baCode, submissionId))
       fakeRepositoryInsert.capturedReportStatus match {
         case Some(rs) => rs.submissionId mustBe submissionId
-        case None => assert(false)
+        case None => fail()
       }
     }
 
     "when recording a forwarded insert a ReportStatus with the status string set to FORWARDED" in {
-      fakeRepositoryInsert.clearCaptured
-      val service = new ReportStatusHistoryService(fakeRepositoryInsert)
+      fakeRepositoryInsert.clearCaptured()
+      val service = new ReportStatusHistoryServiceImpl(fakeRepositoryInsert)
       val result = await(service.reportForwarded(baCode, submissionId))
       fakeRepositoryInsert.capturedReportStatus match {
         case Some(rs) => rs.status mustBe "FORWARDED"
-        case None => assert(false)
+        case None => fail()
       }
     }
 
     "When finding the details of a submission return a None if the mongo throws an exception when finding a document" in {
-      val service = new ReportStatusHistoryService(fakeRepositoryFindSubmissionThrows)
+      val service = new ReportStatusHistoryServiceImpl(fakeRepositoryFindSubmissionThrows)
       val result = await(service.findReportsBySubmission(submissionId))
       result mustBe None
     }
 
     "When finding the details of a submission return a Some empty list if the mongo db returns an empty list of matching documents" in {
-      val service = new ReportStatusHistoryService(fakeRepositoryFindBySubmissionNothing)
+      val service = new ReportStatusHistoryServiceImpl(fakeRepositoryFindBySubmissionNothing)
       val result = await(service.findReportsBySubmission(submissionId))
       result match {
         case Some(list) => list.isEmpty mustBe true
-        case None => assert(false)
+        case None => fail()
       }
     }
 
     "When finding the details of a submission return a Some list if the mongo db returns an list of matching documents" in {
-      val service = new ReportStatusHistoryService(fakeRepositoryFindSubmission)
+      val service = new ReportStatusHistoryServiceImpl(fakeRepositoryFindSubmission)
       val result = await(service.findReportsBySubmission(submissionId))
       result match {
         case Some(list) => list mustBe statuses
-        case None => assert(false)
+        case None => fail()
       }
     }
 
     "When finding the reports for a BA return a None if the mongo throws an exception when finding a document" in {
-      val service = new ReportStatusHistoryService(fakeRepositoryFindBaThrows)
+      val service = new ReportStatusHistoryServiceImpl(fakeRepositoryFindBaThrows)
       val result = await(service.findReportsByBaCode(baCode))
       result mustBe None
     }
 
     "When finding the reports for a BA return a Some empty list if the mongo db returns an empty map of matching documents" in {
-      val service = new ReportStatusHistoryService(fakeRepositoryFindByBaNothing)
+      val service = new ReportStatusHistoryServiceImpl(fakeRepositoryFindByBaNothing)
       val result = await(service.findReportsByBaCode(baCode))
       result match {
         case Some(map) => map.isEmpty mustBe true
-        case None => assert(false)
+        case None => fail()
       }
     }
 
     "When finding the reports for a BA return a Some list if the mongo db returns an list of matching documents" in {
-      val service = new ReportStatusHistoryService(fakeRepositoryFindByBa)
+      val service = new ReportStatusHistoryServiceImpl(fakeRepositoryFindByBa)
       val result = await(service.findReportsByBaCode(baCode))
       result match {
         case Some(map) =>
@@ -340,7 +340,7 @@ class ReportStatusHistoryServiceSpec extends PlaySpec with MockitoSugar {
           val reports1 = map.getOrElse("altSubmission", Seq())
           reports1.contains(rs2) mustBe true
 
-        case None => assert(false)
+        case None => fail()
       }
     }
   }
