@@ -107,8 +107,10 @@ class CharacterValidator {
   val charValidator = new RuleTransformer(new RewriteRule {
     override def transform(node:Node): Seq[Node] = node match {
       case n:Node if n.child.length == 1 && n.child.head.isAtom =>
-        println(s"node visited : ${n.nameToString(new StringBuilder)}")
-        n
+
+        // TODO run the character validator on the text node
+        
+                n
       case other => other
     }
   })

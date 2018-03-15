@@ -52,7 +52,7 @@ class MockBAReportBuilderSpec extends WordSpec{
     }
   }
 
-    "a batch report" should {
+    "a valid batch report may be made invalid" should {
 
       val batchSubmission = XML.loadString(IOUtils.toString(getClass.getResource("/xml/CTValid2.xml")))
 
@@ -66,7 +66,7 @@ class MockBAReportBuilderSpec extends WordSpec{
         val result = reportBuilder.invalidateBatch(batchSubmission,"Some Valid Council","Some New Council")
         (result \\ "BillingAuthority").text shouldBe "Some New Council"
       }
-      
+
 
 
 

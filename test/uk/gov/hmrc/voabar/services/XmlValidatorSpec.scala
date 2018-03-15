@@ -26,31 +26,37 @@ class XmlValidatorSpec extends WordSpec {
 
   val validator = new XmlValidator
   val parser = new XmlParser
+  val builder = new MockBAReportBuilder
+
+  val valid1 = IOUtils.toString(getClass.getResource("/xml/CTValid1.xml"))
+  val valid2 = IOUtils.toString(getClass.getResource("/xml/CTValid2.xml"))
+  val invalid1 = IOUtils.toString(getClass.getResource("/xml/CTInvalid1.xml"))
+  val invalid2 = IOUtils.toString(getClass.getResource("/xml/CTInvalid2.xml"))
 
   "A valid xml file" should {
     "validate successfully" in {
-      val errors = validator.validate(IOUtils.toString(getClass.getResource("/xml/CTValid1.xml")))
+      val errors = validator.validate(valid1)
       errors should have size 0
     }
   }
 
   "An invalid xml file" should {
     "not validate successfully" in {
-      val errors = validator.validate(IOUtils.toString(getClass.getResource("/xml//CTInvalid1.xml")))
+      val errors = validator.validate(invalid1)
       errors should have size 4
     }
   }
 
   "A valid CT xml file" should {
     "validate successfully" in {
-      val errors = validator.validate(IOUtils.toString(getClass.getResource("/xml/CTValid2.xml")))
+      val errors = validator.validate(valid2)
       errors should have size 0
     }
   }
 
   "An invalid CT xml file" should {
     "not validate successfully and contain a CouncilTaxBand related error" in {
-      val errors = validator.validate(IOUtils.toString(getClass.getResource("/xml/CTInvalid2.xml")))
+      val errors = validator.validate(invalid2)
       errors should have size 18
       assert(errors.toString.contains("CouncilTaxBand"))
     }
@@ -58,11 +64,27 @@ class XmlValidatorSpec extends WordSpec {
 
   "A valid batch submission containing 4 reports" should {
     "validate successfully when parsed into smaller batches" in {
-      val report:Node = XML.loadString(IOUtils.toString(getClass.getResource("/xml/CTValid2.xml")))
+      val report:Node = XML.loadString(valid2)
       val smallBatches = parser.parseBatch(report)
 
       val result = smallBatches.map{report => validator.validate(report.toString)}
-      result.forall(_.isEmpty) // no errors
+      result.forall(_.isEmpty)
+    }
+  }
+
+  "An invalid batch submission containing 1 report" should {
+    "return with 1 error when parsed" in {
+      val report:Seq[Node] = builder.invalidateBatch(XML.loadString(valid1),"ProcessDate","ProcessData")
+      val smallBatches = parser.parseBatch(report.head)
+      smallBatches.map(batch => validator.validate(batch.toString)).size shouldBe 1
+    }
+
+    "An invalid batch submission containing 4 reports" should {
+      "return with 4 errors when parsed" in {
+        val report:Seq[Node] = builder.invalidateBatch(XML.loadString(valid2),"ProcessDate","ProcessData")
+        val smallBatches = parser.parseBatch(report.head)
+        smallBatches.map(batch => validator.validate(batch.toString)).size shouldBe 4
+      }
     }
   }
 

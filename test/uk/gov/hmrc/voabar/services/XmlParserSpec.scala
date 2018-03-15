@@ -55,14 +55,6 @@ class XmlParserSpec extends WordSpec {
     }
   }
 
-  "A BAReports object" should {
-    "contain a single element with no children" in {
-
-    }
-
-
-  }
-
 
   "A BatchHeader" should {
 
