@@ -17,16 +17,18 @@
 package uk.gov.hmrc.voabar.services
 
 import javax.inject.{Inject, Singleton}
-
+import com.google.inject.ImplementedBy
 import play.api.Logger
 import uk.gov.hmrc.voabar.models.ReportStatus
 import uk.gov.hmrc.voabar.repositories.ReactiveMongoRepository
+
 import scala.concurrent.Future
 import uk.gov.hmrc.voabar.models.Error
+
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
-class ReportStatusHistoryService @Inject() (statusRepository: ReactiveMongoRepository){
+class ReportStatusHistoryServiceImpl @Inject() (statusRepository: ReactiveMongoRepository) extends ReportStatusHistoryService {
   def reportSubmitted(baCode: String, submissionId: String): Future[Boolean] = {
     val status = ReportStatus(baCode, submissionId, "SUBMITTED")
     statusRepository.insert(status) map identity recover {
@@ -85,3 +87,19 @@ class ReportStatusHistoryService @Inject() (statusRepository: ReactiveMongoRepos
     }
   }
 }
+
+@ImplementedBy(classOf[ReportStatusHistoryServiceImpl])
+trait ReportStatusHistoryService {
+  def reportSubmitted(baCode: String, submissionId: String): Future[Boolean]
+
+  def reportCheckedWithNoErrorsFound(baCode: String, submissionId: String): Future[Boolean]
+
+  def reportCheckedWithErrorsFound(baCode: String, submissionId: String, errors: Seq[Error]): Future[Boolean]
+
+  def reportForwarded(baCode: String, submissionId: String): Future[Boolean]
+
+  def findReportsBySubmission(submissionId: String): Future[Option[List[ReportStatus]]]
+
+  def findReportsByBaCode(code: String): Future[Option[Map[String, List[ReportStatus]]]]
+}
+

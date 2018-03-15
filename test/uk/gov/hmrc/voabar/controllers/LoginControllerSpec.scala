@@ -56,7 +56,7 @@ class LoginControllerSpec extends PlaySpec with MockitoSugar {
     result.right.get mustBe LoginDetails("ba0121", "xxxdyyy")
   }
 
-  "return 200 for a POST carrying login detrails" in {
+  "return 200 for a POST carrying login details" in {
     val result = new LoginController(mockLegacyConnector).login()(fakeRequestWithJson(goodJson))
     status(result) mustBe OK
   }
