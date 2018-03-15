@@ -16,9 +16,11 @@
 
 package uk.gov.hmrc.voabar.services
 
+import org.apache.commons.io.IOUtils
 import uk.gov.hmrc.voabar.models.BAPropertyReport
 
 import scala.xml._
+import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 class MockBAReportBuilder {
 
@@ -73,6 +75,24 @@ class MockBAReportBuilder {
     }
     case _ => concat(node ++ existingEntries, existing -1,proposed)
   }
+
+  private def invalidate(existingVal:String,newValue:String) = new RewriteRule {
+    override def transform(node:Node): Seq[Node] = node match {
+    case e:Elem if e.label == existingVal  => e.copy(label = newValue)
+    case e:Elem if e.text == existingVal => e.copy(child=Text(newValue))
+      case other => other
+    }
+  }
+
+  private def invalidator(rule:RewriteRule,node:Node):Seq[Node] = {
+    val transformer = new RuleTransformer(rule)
+    transformer.transform(node)
+  }
+
+
+  def invalidateBatch(node:Node, key:String, newValue:String): Seq[Node] = invalidator(invalidate(key,newValue),node)
+
+
 
 
   private val existingEntries:NodeSeq =

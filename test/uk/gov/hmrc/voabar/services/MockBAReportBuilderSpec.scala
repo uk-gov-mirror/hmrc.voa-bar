@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.voabar.services
 
+import org.apache.commons.io.IOUtils
 import org.scalatest.WordSpec
 import org.scalatest.Matchers._
 
@@ -50,6 +51,26 @@ class MockBAReportBuilderSpec extends WordSpec{
       proposedEntries should have size 0
     }
   }
+
+    "a batch report" should {
+
+      val batchSubmission = XML.loadString(IOUtils.toString(getClass.getResource("/xml/CTValid2.xml")))
+
+      "may be modified by replacing an existing element label with a new label" in {
+        val result = reportBuilder.invalidateBatch(batchSubmission,"BAreportHeader","invalidHeader")
+        (result \\ "BAreportHeader").size shouldBe 0
+        (result \\ "invalidHeader").size shouldBe 1
+      }
+
+      "may be modified by replacing some existing data with some new data" in {
+        val result = reportBuilder.invalidateBatch(batchSubmission,"Some Valid Council","Some New Council")
+        (result \\ "BillingAuthority").text shouldBe "Some New Council"
+      }
+      
+
+
+
+    }
 
 
 }
