@@ -38,8 +38,7 @@ class ReportStatusControllerSpec  extends PlaySpec with MockitoSugar {
   val fakeMap = Map(submissionId -> List(rs))
   val fakeMapAsJson = Json.toJson(fakeMap).toString()
 
-  val fakeRequestWithHeader = FakeRequest("GET", "").withHeaders("Content-Type" -> "application/json", "BA-Code" -> baCode)
-  val fakeRequestWithoutHeader = FakeRequest("GET", "").withHeaders("Content-Type" -> "application/json")
+  val fakeRequest = FakeRequest("GET", "").withHeaders("Content-Type" -> "application/json")
 
   object fakeHistoryService extends ReportStatusHistoryService {
     def reportSubmitted(baCode: String, submissionId: String): Future[Boolean] = ???
@@ -71,26 +70,19 @@ class ReportStatusControllerSpec  extends PlaySpec with MockitoSugar {
 
     "Given a BA in the header, the onPageLoad method returns a status of 200" in {
       val controller = new ReportStatusController(fakeHistoryService)
-      val result = controller.onPageLoad()(fakeRequestWithHeader)
+      val result = controller.onPageLoad("bacode")(fakeRequest)
       status(result) mustBe 200
     }
 
     "Given a BA in the header, the onPageLoad method returns a json body with the report statuses in it" in {
       val controller = new ReportStatusController(fakeHistoryService)
-      val result = controller.onPageLoad()(fakeRequestWithHeader)
+      val result = controller.onPageLoad("bacode")(fakeRequest)
       contentAsJson(result).toString() mustBe fakeMapAsJson
     }
 
-    "return 400 (badrequest) when given no BA in the header" in {
-      val controller = new ReportStatusController(fakeHistoryService)
-      val result = controller.onPageLoad()(fakeRequestWithoutHeader)
-      status(result) mustBe 400
-    }
-
-
     "return 400 (badrequest) when the backend service call fails" in {
       val controller = new ReportStatusController(fakeHistoryServiceMongoFails)
-      val result = controller.onPageLoad()(fakeRequestWithHeader)
+      val result = controller.onPageLoad("bacode")(fakeRequest)
       status(result) mustBe 400
     }
   }
