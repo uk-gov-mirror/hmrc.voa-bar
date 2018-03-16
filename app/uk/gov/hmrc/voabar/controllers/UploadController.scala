@@ -17,17 +17,21 @@
 package uk.gov.hmrc.voabar.controllers
 
 import javax.inject.{Inject, Singleton}
+
 import play.api.mvc.{Action, AnyContent}
 import play.api.mvc.Results._
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import uk.gov.hmrc.voabar.services.ReportStatusHistoryService
+
 import scala.concurrent.Future
 
 @Singleton
-class UploadController @Inject()() extends BaseController {
+class UploadController @Inject()(historyService: ReportStatusHistoryService) extends BaseController {
 
-  private def checkXml(node: String, baCode: String, password: String): Future[Int] = {
+  def checkXml(node: String, baCode: String, password: String, submissionId: String): Future[Unit] = {
     Thread.sleep(10)
-    Future.successful(0)
+    historyService.reportCheckedWithNoErrorsFound(baCode, submissionId)
+    Future.successful(())
   }
 
   def upload(): Action[AnyContent] = Action { implicit request =>
@@ -41,7 +45,8 @@ class UploadController @Inject()() extends BaseController {
               case Some(pass) => request.body.asText match {
                 case Some(xml) =>
                   val id = generateSubmissionID(baCode)
-                  checkXml(xml, baCode, pass)
+                  historyService.reportSubmitted(baCode, id)
+                  checkXml(xml, baCode, pass, id)
                   Ok(id)
                 case None => BadRequest
               }

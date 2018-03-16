@@ -20,11 +20,46 @@ import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status, _}
+import uk.gov.hmrc.voabar.models.{Error, ReportStatus}
+import uk.gov.hmrc.voabar.services.ReportStatusHistoryService
+
+import scala.concurrent.Future
 
 
 class UploadControllerSpec extends PlaySpec with MockitoSugar {
 
-  val controller = new UploadController
+  object fakeHistoryService extends ReportStatusHistoryService {
+    var reportIsSubmittedCalled = false
+    var reportIsCheckedWithErrorsFound = false
+    var reportIsCheckedWithoutErrorsFound = false
+
+    def reportSubmitted(baCode: String, submissionId: String): Future[Boolean] = {
+      reportIsSubmittedCalled = true
+      Future.successful(true)
+    }
+
+    def reportCheckedWithNoErrorsFound(baCode: String, submissionId: String): Future[Boolean] = {
+      reportIsCheckedWithoutErrorsFound = true
+      Future.successful(true)
+    }
+
+    def reportCheckedWithErrorsFound(baCode: String, submissionId: String, errors: Seq[Error]): Future[Boolean] = {
+      reportIsCheckedWithErrorsFound  = true
+      Future.successful(true)
+    }
+
+    def reportForwarded(baCode: String, submissionId: String): Future[Boolean] = ???
+    def findReportsBySubmission(submissionId: String): Future[Option[List[ReportStatus]]] = ???
+    def findReportsByBaCode(code: String): Future[Option[Map[String, List[ReportStatus]]]] = ???
+    def clearCaptures() = {
+      reportIsSubmittedCalled = false
+      reportIsCheckedWithErrorsFound = false
+      reportIsCheckedWithoutErrorsFound = false
+
+    }
+  }
+
+  val controller = new UploadController(fakeHistoryService)
 
   def fakeRequestWithXML = {
     val xmlNode = """<xml>Wibble</xml>"""
@@ -54,6 +89,23 @@ class UploadControllerSpec extends PlaySpec with MockitoSugar {
         "Content-Length" -> s"${xmlNode.length}",
         "BA-Code" -> "1234")
       .withTextBody(xmlNode)
+  }
+
+  "Checking the incoming XML returns a unit" in {
+    val unit: Unit = ()
+    await(controller.checkXml("", "bacode", "password", "submissionid")) mustBe unit
+  }
+
+  "Uploading an xml file records that the report was submitted" in {
+    fakeHistoryService.clearCaptures()
+    val result = await(controller.upload()(fakeRequestWithXML))
+    fakeHistoryService.reportIsSubmittedCalled mustBe true
+  }
+
+  "Uploading an xml file records either that the file was checked without errors or the file was checked and errors were found" in {
+    fakeHistoryService.clearCaptures()
+    val result = await(controller.upload()(fakeRequestWithXML))
+    fakeHistoryService.reportIsCheckedWithErrorsFound || fakeHistoryService.reportIsCheckedWithoutErrorsFound mustBe true
   }
 
 
