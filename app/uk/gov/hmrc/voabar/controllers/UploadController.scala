@@ -31,6 +31,7 @@ class UploadController @Inject()(historyService: ReportStatusHistoryService) ext
   def checkXml(node: String, baCode: String, password: String, submissionId: String): Future[Unit] = {
     Thread.sleep(10)
     historyService.reportCheckedWithNoErrorsFound(baCode, submissionId)
+    historyService.reportForwarded(baCode, submissionId)
     Future.successful(())
   }
 

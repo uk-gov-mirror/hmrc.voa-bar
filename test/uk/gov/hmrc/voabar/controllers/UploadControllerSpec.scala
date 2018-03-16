@@ -48,7 +48,8 @@ class UploadControllerSpec extends PlaySpec with MockitoSugar {
       Future.successful(true)
     }
 
-    def reportForwarded(baCode: String, submissionId: String): Future[Boolean] = ???
+    def reportForwarded(baCode: String, submissionId: String): Future[Boolean] = Future.successful(true)
+
     def findReportsBySubmission(submissionId: String): Future[Option[List[ReportStatus]]] = ???
     def findReportsByBaCode(code: String): Future[Option[Map[String, List[ReportStatus]]]] = ???
     def clearCaptures() = {
