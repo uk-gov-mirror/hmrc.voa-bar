@@ -188,15 +188,6 @@ class XmlParserSpec extends WordSpec {
       nonEmptyPropertyReports.size shouldBe 4
       nonEmptyPropertyReports.forall(_.size == 1) shouldBe true
     }
-
-
-
-
-
-
-
-
-
   }
 
 }

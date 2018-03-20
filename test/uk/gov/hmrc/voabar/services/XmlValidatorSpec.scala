@@ -68,7 +68,7 @@ class XmlValidatorSpec extends WordSpec {
       val smallBatches = parser.parseBatch(report)
 
       val result = smallBatches.map{report => validator.validate(report.toString)}
-      result.forall(_.isEmpty)
+      result.forall(_.isEmpty) shouldBe true
     }
   }
 
