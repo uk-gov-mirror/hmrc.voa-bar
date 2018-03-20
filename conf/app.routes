@@ -1,11 +1,11 @@
 # microservice specific routes
 
-POST        /login                   @uk.gov.hmrc.voabar.controllers.LoginController.login
+POST        /login                  @uk.gov.hmrc.voabar.controllers.LoginController.login
 
-POST        /upload                  @uk.gov.hmrc.voabar.controllers.UploadController.upload
+POST        /upload                 @uk.gov.hmrc.voabar.controllers.UploadController.upload
 
-GET         /reports                 @uk.gov.hmrc.voabar.controllers.ReportStatusController.onPageLoad
+GET         /reports/:bacode        @uk.gov.hmrc.voabar.controllers.ReportStatusController.onPageLoad(bacode)
 
-GET         /test0                   @uk.gov.hmrc.voabar.controllers.RepoTestController.test0
+GET         /test0                  @uk.gov.hmrc.voabar.controllers.RepoTestController.test0
 
-GET         /test1                   @uk.gov.hmrc.voabar.controllers.RepoTestController.test1
+GET         /test1                  @uk.gov.hmrc.voabar.controllers.RepoTestController.test1

@@ -38,18 +38,12 @@ class ReportStatusController @Inject()(reportStatusHistory: ReportStatusHistoryS
     }
   }
 
-  def onPageLoad(): Action[AnyContent] = Action.async {implicit request =>
-    val headers = request.headers
-    headers.get("BA-Code") match {
-      case Some(baCode) => generateReportStatuses(baCode) map {
+  def onPageLoad(baCode: String): Action[AnyContent] = Action.async {implicit request =>
+    generateReportStatuses(baCode) map {
         case Some(json) => Ok(json)
         case None =>
           Logger.warn(s"Request for status reports from front end received while mongo unavailable")
           BadRequest("No BA Code found in header")
       }
-      case None =>
-        Logger.warn(s"Request for status reports from front end received without BA code in header")
-        Future.successful(BadRequest("No BA Code found in header"))
-    }
   }
 }
