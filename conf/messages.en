@@ -1,0 +1,8 @@
+1001 = There must be one proposed entry for reason code
+1002 = There must be no existing entries for reason code
+1003 = There must be either one existing entry or one proposed entry for reason code
+1004 = There must be at least one proposed entry for reason code
+1005 = There must be at least one existing entry for reason code
+1006 = NOT IN USE
+1007 = There must be one existing entry for reason code
+1008 = There must be no proposed entries for reason code

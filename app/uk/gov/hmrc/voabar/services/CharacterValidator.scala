@@ -27,7 +27,7 @@ class CharacterValidator {
 
   val validCharacterRegex:Regex = """(['A-Z0-9\s\-&+\.@\(\):\/])+""".r
 
-  def elementNodes(nodes: NodeSeq) = nodes.headOption match {
+  def elementNodes(nodes: NodeSeq): List[Node] = nodes.headOption match {
     case Some(n: Node) => n.descendant.collect {
       case n@Node(_, _, child@_*) if child.size == 1 && child.head.isAtom => n
     }
@@ -41,8 +41,8 @@ class CharacterValidator {
     val location = "Header"
     val elements = elementNodes(header.node)
 
-    val errors = elements.collect {
-      case e: Node if (validateString(e.text) == false) => Error("1000", Seq(location, e.label, e.text))
+    val errors:Seq[Error] = elements.collect {
+      case e: Node if validateString(e.text) == false => Error("1000", Seq(location, e.label, e.text))
     }
     Seq(errors: _*)
   }
@@ -106,9 +106,9 @@ class CharacterValidator {
   val charValidator = new RuleTransformer(new RewriteRule {
     override def transform(node:Node): Seq[Node] = node match {
       case n:Node if n.child.length == 1 && n.child.head.isAtom =>
-
         // TODO run the character validator on the text node
-        
+        val reg = "[A-Z]"
+        println("Alan".matches(reg))
                 n
       case other => other
     }

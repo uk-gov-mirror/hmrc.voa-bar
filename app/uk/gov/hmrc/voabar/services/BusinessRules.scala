@@ -15,14 +15,14 @@
  */
 
 package uk.gov.hmrc.voabar.services
-import uk.gov.hmrc.voabar.models.BAPropertyReport
+import uk.gov.hmrc.voabar.models.{BAPropertyReport, Error}
 
 import scala.collection.mutable.ListBuffer
 import scala.xml._
 
 class BusinessRules {
 
-  def reasonForReportErrors(baReport:BAPropertyReport):List[String] = {
+  def reasonForReportErrors(baReport:BAPropertyReport):List[Error] = {
     (baReport.node \\ "TypeOfTax" \ "_").headOption match {
       case Some(node) => node.label match {
         case "CtaxReasonForReport" => validateCTaxCode(baReport.node)
@@ -32,33 +32,34 @@ class BusinessRules {
     }
   }
 
-  private def validateCTaxCode(implicit node:NodeSeq): List[String] = {
+  private def validateCTaxCode(implicit node:NodeSeq): List[Error] = {
 
     val repCode:String = (node \\ "ReasonForReportCode").text
-    val lb = new ListBuffer[String]
+    val reportNumber:String = (node \\ "BAreportNumber").text
+    val lb = new ListBuffer[Error]
 
     repCode match {
       case "CR03" => // (New) no existing- only 1 proposed
-        if (proposedEntries != 1) lb += "There must be one proposed entry for reason code CR03"
-        if (existingEntries != 0) lb += "There must be no existing entries for reason code CR03"
+        if (proposedEntries != 1) lb += Error("1001", Seq(s"$reportNumber",s"$repCode"))
+        if (existingEntries != 0) lb += Error("1002", Seq(s"$reportNumber",s"$repCode"))
       case "CR04" => // (Change to Domestic Use) either 1 existing or 1 proposed
         if (((proposedEntries == 1) && (existingEntries ==0 )) ||
           ((proposedEntries == 0) && (existingEntries == 1))){}
         else
-          lb += "There must be either one existing entry or one proposed entry for reason code CR04"
+          lb += Error("1003",Seq(s"$reportNumber", s"$repCode"))
       case "CR05" => // (Reconstituted Property) at least 1 existing and at least 1 proposed
-        if (proposedEntries == 0) lb += "There must be at least one proposed entry for reason code CR05"
-        if (existingEntries == 0) lb += "There must be at least one existing entry for reason code CR05"
-      case "CR08" => lb += s"report code: $repCode NOT IN USE"
-      case "CR11" => lb += s"report code: $repCode NOT IN USE"
+        if (proposedEntries == 0) lb += Error("1004", Seq(s"$reportNumber", s"$repCode"))
+        if (existingEntries == 0) lb += Error("1005", Seq(s"$reportNumber", s"$repCode"))
+      case "CR08" => lb += Error("1006", Seq(s"$reportNumber", s"$repCode"))
+      case "CR11" => lb += Error("1006", Seq(s"$reportNumber", s"$repCode"))
       case "CR12" => // 1 existing and 1 proposed
-        if (proposedEntries != 1) lb += "There must be one proposed entry for reason code CR12"
-        if (existingEntries != 1) lb += "There must be one existing entry for reason code CR12"
-      case "CR13" => lb += s"report code: $repCode NOT IN USE"
+        if (proposedEntries != 1) lb += Error("1001", Seq(s"$reportNumber", s"$repCode"))
+        if (existingEntries != 1) lb += Error("1007", Seq(s"$reportNumber", s"$repCode"))
+      case "CR13" => lb += Error("1006", Seq(s"$reportNumber", s"$repCode"))
 
       case _ => // default - 1 existing and none proposed
-        if (proposedEntries != 0) lb += s"There must be no proposed entries for reason code $repCode"
-        if (existingEntries != 1) lb += s"There must be one existing entry for reason code $repCode"
+        if (proposedEntries != 0) lb += Error("1008", Seq(s"$reportNumber", s"$repCode"))
+        if (existingEntries != 1) lb += Error("1007", Seq(s"$reportNumber", s"$repCode"))
     }
     lb.toList
   }
