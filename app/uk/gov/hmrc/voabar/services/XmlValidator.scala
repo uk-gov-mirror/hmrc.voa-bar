@@ -33,7 +33,7 @@ class XmlValidator {
   factory.setResourceResolver(new ResourceResolver)
   val schema = factory.newSchema(schemaFile1)
 
-  def validate(xml: String) = {
+  def validate(xml: String):Seq[Error] = {
     val documentBuilderFactory = DocumentBuilderFactory.newInstance
     documentBuilderFactory.setNamespaceAware(true)
     val parser = documentBuilderFactory.newDocumentBuilder

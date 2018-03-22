@@ -16,40 +16,81 @@
 
 package uk.gov.hmrc.voabar.services
 
+import org.apache.commons.io.IOUtils
+import uk.gov.hmrc.voabar.models.BAPropertyReport
+
 import scala.xml._
+import scala.xml.transform.{RewriteRule, RuleTransformer}
 
-object MockBAReportBuilder {
-
+class MockBAReportBuilder {
 
   private val baReportCodes:Map[String,String] = Map(
     "CR03" -> "New",
-    "CR04" -> "Change To Domestic Use",
+    "CR04" -> "Change to domestic use",
     "CR05" -> "Reconstituted Property",
     "CR08" -> "NOT IN USE",
     "CR11" -> "Boundary Change - NOT IN USE",
     "CR12" -> "Major Address Change - NOT IN USE",
-    "CR13" -> "Boundary Change, Add DO NOT USE THIS CODE"
+    "CR13" -> "Boundary Change, Add DO NOT USE THIS CODE",
+    "CR99" -> "NOT A VOA CODE - USED FOR TEST PURPOSES"
   )
 
-  def apply(repCode:String,existingCount:Int,proposedCount:Int):NodeSeq = {
+  def apply(reasonCode:String, baCode:Int, existingEntries:Int, proposedEntries:Int):BAPropertyReport = {
+
+    val node =
+
     <BApropertyReport>
       <DateSent>2017-03-18</DateSent>
       <TransactionIdentityBA>16286449061000</TransactionIdentityBA>
-      <BAidentityNumber>840</BAidentityNumber>
+      <BAidentityNumber>{baCode}</BAidentityNumber>
       <BAreportNumber>118294</BAreportNumber>
       <TypeOfTax>
         <CtaxReasonForReport>
-          <ReasonForReportCode>{repCode}</ReasonForReportCode>
-          <ReasonForReportDescription>{baReportCodes(repCode)}</ReasonForReportDescription>
+          <ReasonForReportCode>{reasonCode}</ReasonForReportCode>
+          <ReasonForReportDescription>{baReportCodes(reasonCode)}</ReasonForReportDescription>
         </CtaxReasonForReport>
       </TypeOfTax>
-      {for (i <- 0 until existingCount) existingEntries}
-      {for (i <- 0 until proposedCount) proposedEntries}
       <IndicatedDateOfChange>2017-03-17</IndicatedDateOfChange>
       <Remarks>Some remarks that may include text that helps to
         describe this property report submission</Remarks>
      </BApropertyReport>
+
+    val newNode = concat(NodeSeq.Empty,existingEntries, proposedEntries)
+
+    val newChilds:NodeSeq = node.child.foldLeft(NodeSeq.Empty)((acc, elem) =>
+      if(elem.label == "TypeOfTax") acc ++ elem ++ newNode else acc ++ elem)
+
+    val root = <BApropertyReport></BApropertyReport>
+
+    def addNode(orig:Node,childs:NodeSeq) = orig match {
+      case Elem(prefix,label,attributes,scope,child@_*) => Elem(prefix,label,attributes,scope,false,child ++ childs: _*)
+    }
+    BAPropertyReport(addNode(root,newChilds))
   }
+
+  private def concat(node:NodeSeq, existing:Int, proposed:Int):NodeSeq = existing match {
+    case 0 => if (proposed == 0) {
+      node
+    } else {
+      concat(node ++ proposedEntries, 0, proposed -1)
+    }
+    case _ => concat(node ++ existingEntries, existing -1, proposed)
+  }
+
+  private def invalidate(existingVal:String,newValue:String) = new RewriteRule {
+    override def transform(node:Node): Seq[Node] = node match {
+      case e:Elem if e.label == existingVal  => e.copy(label = newValue)
+      case e:Elem if e.text == existingVal => e.copy(child=Text(newValue))
+      case other => other
+    }
+  }
+
+  private def invalidator(rule:RewriteRule,node:Node):Seq[Node] = {
+    val transformer = new RuleTransformer(rule)
+    transformer.transform(node)
+  }
+
+  def invalidateBatch(node:Node, key:String, newValue:String): Seq[Node] = invalidator(invalidate(key,newValue),node)
 
   private val existingEntries:NodeSeq =
 
@@ -146,7 +187,4 @@ object MockBAReportBuilder {
         </OccupierContact>
       </AssessmentProperties>
     </ProposedEntries>
-
-
-
 }

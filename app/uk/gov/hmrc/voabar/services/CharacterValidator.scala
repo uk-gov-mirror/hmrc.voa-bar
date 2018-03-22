@@ -24,9 +24,9 @@ import scala.xml.{Node, NodeSeq}
 
 class CharacterValidator {
 
-  val validCharacterRegex = """(['A-Z0-9\s\-&+\.@\(\):\/])+""".r
+  val validCharacterRegex:Regex = """(['A-Z0-9\s\-&+\.@\(\):\/])+""".r
 
-  def elementNodes(nodes: NodeSeq) = nodes.headOption match {
+  def elementNodes(nodes: NodeSeq): List[Node] = nodes.headOption match {
     case Some(n: Node) => n.descendant.collect {
       case n@Node(_, _, child@_*) if child.size == 1 && child.head.isAtom => n
     }
@@ -36,22 +36,22 @@ class CharacterValidator {
     }
   }
 
-  def validateHeader(header: BatchHeader): Seq[Error] = {
+  def validateHeader(header: BAReportHeader): Seq[Error] = {
     val location = "Header"
     val elements = elementNodes(header.node)
 
     val errors = elements.collect {
-      case e: Node if (validateString(e.text) == false) => Error("1000", Seq(location, e.label, e.text))
+      case e: Node if !stringIsValid(e.text) => Error("1000", Seq(location, e.label, e.text))
     }
     Seq(errors: _*)
   }
 
-  def validateTrailer(trailer: BatchTrailer): Seq[Error] = {
+  def validateTrailer(trailer: BAReportTrailer): Seq[Error] = {
     val location = "Trailer"
     val elements = elementNodes(trailer.node)
 
     val errors = elements.collect {
-      case e: Node if (validateString(e.text) == false) => Error("1000", Seq(location, e.label, e.text))
+      case e: Node if !stringIsValid(e.text) => Error("1000", Seq(location, e.label, e.text))
     }
     Seq(errors: _*)
   }
@@ -70,7 +70,7 @@ class CharacterValidator {
     val elements = elementNodes(bAPropertyReport.node)
 
     val errors = elements.collect {
-      case e: Node if (validateString(e.text) == false) => Error("1000", Seq(reportNumber, e.label, e.text))
+      case e: Node if !stringIsValid(e.text) => Error("1000", Seq(reportNumber, e.label, e.text))
     }
 
     if (errors.isEmpty) Right(bAPropertyReport) else Left(errors)
@@ -78,21 +78,21 @@ class CharacterValidator {
 
   def getPropertyReportNumber(bAPropertyReport: BAPropertyReport): String = (bAPropertyReport.node \ "BAreportNumber").text
 
-  def validateString(input: String): Boolean = {
+  def stringIsValid(input: String): Boolean = {
     val result = validCharacterRegex.findAllIn(input).toList
     val resultLength = result.size
 
     resultLength match {
-      case length if (length > 1 || length == 0) => false
-      case length if (length == 1 && result.mkString.size != input.size) => false
+      case length if length > 1 || length == 0 => false
+      case length if length == 1 && result.mkString.size != input.size => false
       case _ => true
     }
   }
 
-  def charactersValidationStatus(batch: BatchSubmission) = {
-    val headerErrors: Seq[Error] = validateHeader(batch.batchHeader)
-    val trailerErrors: Seq[Error] = validateTrailer(batch.batchTrailer)
-    val reportsResult = validateBAPropertyReports(batch.baPropertyReports)
+  def charactersValidationStatus(batch: BABatchReport) = {
+    val headerErrors: Seq[Error] = validateHeader(batch.baReportHeader)
+    val trailerErrors: Seq[Error] = validateTrailer(batch.baReportTrailer)
+    val reportsResult = validateBAPropertyReports(batch.baPropertyReport)
 
     val remainingReports = reportsResult._1
     val reportsErrors = reportsResult._2
@@ -100,5 +100,18 @@ class CharacterValidator {
     val allErrors: Seq[Error] = (headerErrors :: trailerErrors :: reportsErrors :: Nil).flatten
 
     ValidationResult(remainingReports, allErrors)
+  }
+
+
+  def validateChars(node:Node): Set[Error] = {
+    val reportNumber = (node \\ "reportNumber").text
+    def validate(n: Node, errors: List[Error]): List[Error] = n match {
+      case e: Node if e.isAtom => errors
+      case f: Node if f.child.size == 1 && f.child.head.isAtom && !stringIsValid(f.text) =>
+        validate(f.child.head, Error("1000", Seq(reportNumber, f.label, f.text)) :: errors)
+      case g: Node => g.child.toList.flatMap(c => validate(c, errors))
+      case _ => throw new RuntimeException("Validation failed")
+    }
+    validate(node,List[Error]()).toSet
   }
 }

@@ -145,7 +145,7 @@
                 <OccupierContact>
                     <OccupierName>
                         <pdt:PersonNameTitle>MR</pdt:PersonNameTitle>
-                        <pdt:PersonGivenName>GIVEN</pdt:PersonGivenName>
+                        <pdt:PersonGivenName>GIVE</pdt:PersonGivenName>
                         <pdt:PersonFamilyName>SURNAME</pdt:PersonFamilyName>
                         <pdt:PersonRequestedName>MR GIVEN SURNAME</pdt:PersonRequestedName>
                     </OccupierName>

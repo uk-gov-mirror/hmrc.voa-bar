@@ -18,4 +18,4 @@ package uk.gov.hmrc.voabar.models
 
 import scala.xml.NodeSeq
 
-case class BatchTrailer(node: NodeSeq)
+case class BAReportTrailer(node:NodeSeq)

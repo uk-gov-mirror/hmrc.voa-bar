@@ -23,7 +23,7 @@ import uk.gov.hmrc.voabar.services.XmlParser
 class ValidationResultSpec extends PlaySpec {
 
   val xmlParser = new XmlParser
-  val reports = xmlParser.parseXml(IOUtils.toString(getClass.getResource("/xml/CTValid2.xml"))).baPropertyReports
+  val reports = xmlParser.fromXml(IOUtils.toString(getClass.getResource("/xml/CTValid2.xml"))).baPropertyReport
   val errors = Seq(Error("1", Seq("date", "£")))
 
 

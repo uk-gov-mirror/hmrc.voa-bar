@@ -18,4 +18,4 @@ package uk.gov.hmrc.voabar.models
 
 import scala.xml.NodeSeq
 
-case class BAPropertyReport(node: NodeSeq)
+case class BAPropertyReport(node:NodeSeq)

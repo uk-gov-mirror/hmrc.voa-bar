@@ -16,10 +16,6 @@
 
 package uk.gov.hmrc.voabar.models
 
-import play.api.libs.json.Json
+import scala.xml.NodeSeq
 
-case class LoginDetails(username:String, password:String)
-
-object LoginDetails {
-  implicit val format = Json.format[LoginDetails]
-}
+case class BAReports(node:NodeSeq)

@@ -16,21 +16,7 @@
 
 package uk.gov.hmrc.voabar.models
 
-import org.scalatestplus.play.PlaySpec
-import scala.xml.NodeSeq
-
-class BatchTrailerSpec extends PlaySpec {
-
-  val trailerNode: NodeSeq = <BAreportTrailer>
-    <RecordCount>8</RecordCount>
-    <EntryDateTime>2018-01-30T23:01:43</EntryDateTime>
-    <TotalNNDRreportCount>0</TotalNNDRreportCount>
-    <TotalCtaxReportCount>8</TotalCtaxReportCount>
-  </BAreportTrailer>
-
-  "Given a NodeSeq representing the trailer produce a BatchTrailer model" in {
-    val batchHeader = BatchTrailer(trailerNode)
-    batchHeader.node mustBe trailerNode
-  }
-
-}
+case class BABatchReport(baReports:BAReports,
+                         baReportHeader:BAReportHeader,
+                         baPropertyReport:Seq[BAPropertyReport],
+                         baReportTrailer:BAReportTrailer)
