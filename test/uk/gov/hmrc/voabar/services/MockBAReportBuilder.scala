@@ -26,7 +26,7 @@ class MockBAReportBuilder {
 
   private val baReportCodes:Map[String,String] = Map(
     "CR03" -> "New",
-    "CR04" -> "Change To Domestic Use",
+    "CR04" -> "Change to domestic use",
     "CR05" -> "Reconstituted Property",
     "CR08" -> "NOT IN USE",
     "CR11" -> "Boundary Change - NOT IN USE",
@@ -69,17 +69,18 @@ class MockBAReportBuilder {
   }
 
   private def concat(node:NodeSeq, existing:Int, proposed:Int):NodeSeq = existing match {
-    case 0 => proposed match {
-      case 0 => node
-      case _ => concat(node ++ proposedEntries, 0,proposed - 1)
+    case 0 => if (proposed == 0) {
+      node
+    } else {
+      concat(node ++ proposedEntries, 0, proposed -1)
     }
-    case _ => concat(node ++ existingEntries, existing -1,proposed)
+    case _ => concat(node ++ existingEntries, existing -1, proposed)
   }
 
   private def invalidate(existingVal:String,newValue:String) = new RewriteRule {
     override def transform(node:Node): Seq[Node] = node match {
-    case e:Elem if e.label == existingVal  => e.copy(label = newValue)
-    case e:Elem if e.text == existingVal => e.copy(child=Text(newValue))
+      case e:Elem if e.label == existingVal  => e.copy(label = newValue)
+      case e:Elem if e.text == existingVal => e.copy(child=Text(newValue))
       case other => other
     }
   }
@@ -89,11 +90,7 @@ class MockBAReportBuilder {
     transformer.transform(node)
   }
 
-
   def invalidateBatch(node:Node, key:String, newValue:String): Seq[Node] = invalidator(invalidate(key,newValue),node)
-
-
-
 
   private val existingEntries:NodeSeq =
 

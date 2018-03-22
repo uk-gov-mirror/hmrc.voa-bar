@@ -39,15 +39,15 @@ class BusinessRules {
     val lb = new ListBuffer[Error]
 
     repCode match {
-      case "CR03" => // (New) no existing- only 1 proposed
+      case "CR03" => // no existing- only 1 proposed
         if (proposedEntries != 1) lb += Error("1001", Seq(s"$reportNumber",s"$repCode"))
         if (existingEntries != 0) lb += Error("1002", Seq(s"$reportNumber",s"$repCode"))
-      case "CR04" => // (Change to Domestic Use) either 1 existing or 1 proposed
+      case "CR04" => // either 1 existing or 1 proposed
         if (((proposedEntries == 1) && (existingEntries ==0 )) ||
           ((proposedEntries == 0) && (existingEntries == 1))){}
         else
           lb += Error("1003",Seq(s"$reportNumber", s"$repCode"))
-      case "CR05" => // (Reconstituted Property) at least 1 existing and at least 1 proposed
+      case "CR05" => // at least 1 existing and at least 1 proposed
         if (proposedEntries == 0) lb += Error("1004", Seq(s"$reportNumber", s"$repCode"))
         if (existingEntries == 0) lb += Error("1005", Seq(s"$reportNumber", s"$repCode"))
       case "CR08" => lb += Error("1006", Seq(s"$reportNumber", s"$repCode"))

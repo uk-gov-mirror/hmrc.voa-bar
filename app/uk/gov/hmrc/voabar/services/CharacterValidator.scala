@@ -20,7 +20,6 @@ import play.api.Logger
 import uk.gov.hmrc.voabar.models.{Error, _}
 
 import scala.util.matching.Regex
-import scala.xml.transform.{RewriteRule, RuleTransformer}
 import scala.xml.{Node, NodeSeq}
 
 class CharacterValidator {
@@ -42,7 +41,7 @@ class CharacterValidator {
     val elements = elementNodes(header.node)
 
     val errors = elements.collect {
-      case e: Node if validateString(e.text) == false => Error("1000", Seq(location, e.label, e.text))
+      case e: Node if !stringIsValid(e.text) => Error("1000", Seq(location, e.label, e.text))
     }
     Seq(errors: _*)
   }
@@ -52,7 +51,7 @@ class CharacterValidator {
     val elements = elementNodes(trailer.node)
 
     val errors = elements.collect {
-      case e: Node if (validateString(e.text) == false) => Error("1000", Seq(location, e.label, e.text))
+      case e: Node if !stringIsValid(e.text) => Error("1000", Seq(location, e.label, e.text))
     }
     Seq(errors: _*)
   }
@@ -71,7 +70,7 @@ class CharacterValidator {
     val elements = elementNodes(bAPropertyReport.node)
 
     val errors = elements.collect {
-      case e: Node if (validateString(e.text) == false) => Error("1000", Seq(reportNumber, e.label, e.text))
+      case e: Node if !stringIsValid(e.text) => Error("1000", Seq(reportNumber, e.label, e.text))
     }
 
     if (errors.isEmpty) Right(bAPropertyReport) else Left(errors)
@@ -79,7 +78,7 @@ class CharacterValidator {
 
   def getPropertyReportNumber(bAPropertyReport: BAPropertyReport): String = (bAPropertyReport.node \ "BAreportNumber").text
 
-  def validateString(input: String): Boolean = {
+  def stringIsValid(input: String): Boolean = {
     val result = validCharacterRegex.findAllIn(input).toList
     val resultLength = result.size
 
@@ -103,13 +102,16 @@ class CharacterValidator {
     ValidationResult(remainingReports, allErrors)
   }
 
-  val charValidator = new RuleTransformer(new RewriteRule {
-    override def transform(node:Node): Seq[Node] = node match {
-      case n:Node if n.child.length == 1 && n.child.head.isAtom =>
-        // TODO run the character validator on the text node
 
-                n
-      case other => other
+  def validateChars(node:Node): Set[Error] = {
+    val reportNumber = (node \\ "reportNumber").text
+    def validate(n: Node, errors: List[Error]): List[Error] = n match {
+      case e: Node if e.isAtom => errors
+      case f: Node if f.child.size == 1 && f.child.head.isAtom && !stringIsValid(f.text) =>
+        validate(f.child.head, Error("1000", Seq(reportNumber, f.label, f.text)) :: errors)
+      case g: Node => g.child.toList.flatMap(c => validate(c, errors))
+      case _ => throw new RuntimeException("Validation failed")
     }
-  })
+    validate(node,List[Error]()).toSet
+  }
 }

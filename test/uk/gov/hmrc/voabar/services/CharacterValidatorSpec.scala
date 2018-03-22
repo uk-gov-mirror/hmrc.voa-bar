@@ -21,6 +21,7 @@ import java.lang.RuntimeException
 import org.apache.commons.io.IOUtils
 import org.scalatestplus.play.PlaySpec
 import uk.gov.hmrc.voabar.models.{BAPropertyReport, BAReportHeader, BAReportTrailer}
+import uk.gov.hmrc.voabar.models.Error
 
 import scala.xml.{Node, NodeSeq, XML}
 
@@ -66,6 +67,7 @@ class CharacterValidatorSpec extends PlaySpec {
   val xmlParser = new XmlParser
 
   val batchSubmission = xmlParser.fromXml(IOUtils.toString(getClass.getResource("/xml/CTValid2.xml")))
+  val invalidBatchReport = IOUtils.toString(getClass.getResource("/xml/CTInvalid2.xml"))
   val fakeBatch = xmlParser.fromXml(validTestBatchXml)
 
   "Character Validator" must {
@@ -84,11 +86,11 @@ class CharacterValidatorSpec extends PlaySpec {
     }
 
     "The validateString method should return true if the element has valid characters only" in {
-      characterValidator.validateString(validText) mustBe true
+      characterValidator.stringIsValid(validText) mustBe true
     }
 
     "The validateString method should return false if the element contains invalid characters" in {
-      val result = characterValidator.validateString(invalidText)
+      val result = characterValidator.stringIsValid(invalidText)
       result mustBe false
     }
 
@@ -167,12 +169,16 @@ class CharacterValidatorSpec extends PlaySpec {
       result.errors.size mustBe 0
     }
 
-    "The charValidator" should {
-      "detect bad chars" in {
-        val validator = new CharacterValidator
+    "The char validator" must {
+      "identify a single invalid char in a xml example" in {
+       val errors =  characterValidator.validateChars(invalidTrailer(0))
+        errors.size mustBe 1
+      }
 
-        val result = validator.charValidator.transform(XML.loadString(validTestBatchXml))
-
+      "identify invalid chars in CTInvalid2" in {
+        val xmlFile = XML.loadString(invalidBatchReport)
+        val errors = characterValidator.validateChars(xmlFile)
+        errors.size mustBe 11
       }
     }
   }
