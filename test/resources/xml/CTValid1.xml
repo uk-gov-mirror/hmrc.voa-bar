@@ -6,7 +6,7 @@
            SchemaId="VbBAtoVOA"
            SchemaVersion="4-0">
     <BAreportHeader>
-        <BillingAuthority>Valid Council</BillingAuthority>
+        <BillingAuthority>VALID COUNCIL</BillingAuthority>
         <BillingAuthorityIdentityCode>9999</BillingAuthorityIdentityCode>
         <ProcessDate>2018-01-30</ProcessDate>
         <EntryDateTime>2018-01-30T23:00:22</EntryDateTime>
@@ -19,7 +19,7 @@
         <TypeOfTax>
             <CtaxReasonForReport>
                 <ReasonForReportCode>CR03</ReasonForReportCode>
-                <ReasonForReportDescription>New</ReasonForReportDescription>
+                <ReasonForReportDescription>NEW</ReasonForReportDescription>
             </CtaxReasonForReport>
         </TypeOfTax>
         <ProposedEntries>

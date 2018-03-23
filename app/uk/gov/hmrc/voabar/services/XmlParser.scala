@@ -38,7 +38,7 @@ class XmlParser {
     case Elem(prefix,label,attrs,ns,child@_*) => Elem(prefix,label,attrs,ns,false,newNode: _*)
   }
 
-  def parseBatch(node:Node):Seq[Node] = {
+  def oneReportPerBatch(node:Node):Seq[Node] = {
     val batchHeader = node \ "BAreportHeader"
     val batchTrailer = node \ "BAreportTrailer"
     (node \ "BApropertyReport") map {report => addChild(node,batchHeader ++ report ++ batchTrailer)}

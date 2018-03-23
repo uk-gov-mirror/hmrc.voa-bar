@@ -103,15 +103,14 @@ class CharacterValidator {
   }
 
 
-  def validateChars(node:Node): Set[Error] = {
-    val reportNumber = (node \\ "reportNumber").text
+  def validateChars(node:Node, location:String): List[Error] = {
     def validate(n: Node, errors: List[Error]): List[Error] = n match {
       case e: Node if e.isAtom => errors
       case f: Node if f.child.size == 1 && f.child.head.isAtom && !stringIsValid(f.text) =>
-        validate(f.child.head, Error("1000", Seq(reportNumber, f.label, f.text)) :: errors)
+        validate(f.child.head, Error("1000", Seq(location, f.label, f.text)) :: errors)
       case g: Node => g.child.toList.flatMap(c => validate(c, errors))
       case _ => throw new RuntimeException("Validation failed")
     }
-    validate(node,List[Error]()).toSet
+    validate(node,List[Error]())
   }
 }

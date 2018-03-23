@@ -62,7 +62,7 @@ class XmlParserSpec extends PlaySpec {
     val batchHeader = batchSubmission.baReportHeader
 
     "contain a BillingAuthority element value" in {
-      (batchHeader.node \ "BillingAuthority").text mustBe "Valid Council"
+      (batchHeader.node \ "BillingAuthority").text mustBe "VALID COUNCIL"
     }
 
     "contain a BillingAuthorityIdentityCode element value" in {
@@ -108,7 +108,7 @@ class XmlParserSpec extends PlaySpec {
     }
 
     "contain a ReasonForReportDescription" in {
-      (batchSubmission.baPropertyReport.head.node \ "TypeOfTax" \\ "ReasonForReportDescription").text mustBe "New"
+      (batchSubmission.baPropertyReport.head.node \ "TypeOfTax" \\ "ReasonForReportDescription").text mustBe "NEW"
     }
 
     "contain a IndicatedDateOfChange" in {
@@ -162,7 +162,7 @@ class XmlParserSpec extends PlaySpec {
   "A BA batch submission" must  {
 
     val report:Node = XML.loadString(IOUtils.toString(getClass.getResource("/xml/CTValid2.xml")))
-    val result = xmlParser.parseBatch(report)
+    val result = xmlParser.oneReportPerBatch(report)
 
     "be parsed into multiple smaller batches" in {
 

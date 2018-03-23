@@ -63,8 +63,8 @@ class MockBAReportBuilderSpec extends PlaySpec{
       }
 
       "may be modified by replacing some existing data with some new data" in {
-        val result = reportBuilder.invalidateBatch(batchSubmission, "Some Valid Council", "Some New Council")
-        (result \\ "BillingAuthority").text mustBe "Some New Council"
+        val result = reportBuilder.invalidateBatch(batchSubmission, "SOME VALID COUNCIL", "SOME NEW COUNCIL")
+        (result \\ "BillingAuthority").text mustBe "SOME NEW COUNCIL"
       }
     }
   }
