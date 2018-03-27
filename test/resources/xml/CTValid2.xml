@@ -144,7 +144,7 @@
                         <bs7666:StreetDescription>SOME STREET</bs7666:StreetDescription>
                         <bs7666:UniqueStreetReferenceNumber>11456</bs7666:UniqueStreetReferenceNumber>
                         <bs7666:Town>SOME TOWN</bs7666:Town>
-                        <bs7666:AdministrativeArea>SOME AREA</bs7666:AdministrativeArea>
+                        <bs7666:AdministrativeArea>SOME ADMIN AREA</bs7666:AdministrativeArea>
                         <bs7666:PostTown>SOME POST TOWN</bs7666:PostTown>
                         <bs7666:PostCode>AA1 1AA</bs7666:PostCode>
                     </bs7666:BS7666Address>

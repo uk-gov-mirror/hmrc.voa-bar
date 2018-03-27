@@ -18,19 +18,21 @@ package uk.gov.hmrc.voabar.services
 
 
 import org.apache.commons.io.IOUtils
-import org.scalatest.WordSpec
-import org.scalatest.Matchers._
 import org.scalatestplus.play.PlaySpec
-import play.api.i18n.Messages
+import play.api.test.FakeRequest
 import uk.gov.hmrc.voabar.models.{BAPropertyReport, Error}
 
-import scala.xml.{Node, XML}
+import scala.xml.XML
 
 class BusinessRulesSpec extends PlaySpec {
 
-  val businessRules = new BusinessRules
   val reportBuilder = new MockBAReportBuilder
   val REPORTNUMBER = "118294"
+  val batchWith1Report = IOUtils.toString(getClass.getResource("/xml/CTValid1.xml"))
+  val batchWith4Reports = IOUtils.toString(getClass.getResource("/xml/CTValid2.xml"))
+  val businessRules = new BusinessRules()(FakeRequest("GET",""))
+  def businessRules(baCode:String):BusinessRules = new BusinessRules()(FakeRequest("GET","").
+    withHeaders("BA-Code" -> baCode))
 
 
   "A BA property report" must {
@@ -179,4 +181,42 @@ class BusinessRulesSpec extends PlaySpec {
         a [RuntimeException] mustBe thrownBy(businessRules.reasonForReportErrors(xmlNode))
        }
       }
+
+  "The BA identity code validator" must {
+    "return a empty list (no errors) when the BA code in the request header matches that in the report" in {
+      val validBatch = XML.loadString(batchWith1Report)
+      businessRules("9999").baIdentityCodeErrors(validBatch).isEmpty mustBe true
+    }
+
+    "return a list of 1 error when the BA code in the request header does not match that in the report" in {
+      val validBatch = XML.loadString(batchWith1Report)
+      businessRules("0000").baIdentityCodeErrors(validBatch.head) mustBe List(
+        Error("1010", Seq("BAIdentityCode", "BA code in request header does not match with that in the batch report")))
+    }
+
+    "return a list of 1 error when the BA code in the report is empty" in {
+      val validBatch = XML.loadString(batchWith1Report)
+      val invalidBatch = reportBuilder.invalidateBatch(validBatch.head,Map("BillingAuthorityIdentityCode" -> ""))
+      businessRules("9999").baIdentityCodeErrors(invalidBatch.head) mustBe List(
+        Error("1012", Seq("BAIdentityCode", "BA Code missing from batch submission")))
+    }
+
+    "return a list of 1 error when the BA code in the request header is empty" in {
+      val validBatch = XML.loadString(batchWith1Report)
+      businessRules.baIdentityCodeErrors(validBatch.head) mustBe List(
+        Error("1011", Seq("BAIdentityCode", "BA Code missing from request header")))
+    }
+
+    "return a list of 2 errors when the BA code is missing from the request header and the report" in {
+      val validBatch = XML.loadString(batchWith1Report)
+      val invalidBatch = reportBuilder.invalidateBatch(validBatch.head,Map("BillingAuthorityIdentityCode" -> ""))
+      businessRules.baIdentityCodeErrors(invalidBatch.head) mustBe List(
+        Error("1012", Seq("BAIdentityCode", "BA Code missing from batch submission")),
+        Error("1011", Seq("BAIdentityCode", "BA Code missing from request header"))
+      )
+    }
+  }
+
+
+
 }

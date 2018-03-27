@@ -52,19 +52,28 @@ class MockBAReportBuilderSpec extends PlaySpec{
       proposedEntries.size mustBe 0
     }
 
-    "a valid batch report may be made invalid" should {
+    "the mock BA report builder" must {
 
       val batchSubmission = XML.loadString(IOUtils.toString(getClass.getResource("/xml/CTValid2.xml")))
 
-      "may be modified by replacing an existing element label with a new label" in {
-        val result = reportBuilder.invalidateBatch(batchSubmission, "BAreportHeader", "invalidHeader")
+      "modify a given report by replacing an existing element label with a new label" in {
+        val result = reportBuilder.invalidateBatch(batchSubmission, Map("BAreportHeader" -> "invalidHeader"))
         (result \\ "BAreportHeader").size mustBe 0
         (result \\ "invalidHeader").size mustBe 1
       }
 
-      "may be modified by replacing some existing data with some new data" in {
-        val result = reportBuilder.invalidateBatch(batchSubmission, "SOME VALID COUNCIL", "SOME NEW COUNCIL")
-        (result \\ "BillingAuthority").text mustBe "SOME NEW COUNCIL"
+      "modify a given report by replacing existing data with some new data" in {
+        val result = reportBuilder.invalidateBatch(batchSubmission, Map("SOME VALID COUNCIL" -> "INVALID COUNCIL"))
+        (result \\ "BillingAuthority").text mustBe "INVALID COUNCIL"
+      }
+
+      "modify a given report in multiple ways at once" in {
+        val result = reportBuilder.invalidateBatch(batchSubmission,Map("SOME VALID COUNCIL" -> "INVALID COUNCIL",
+          "9999" -> "XXXX", "RecordCount" -> "InvalidElement"))
+        (result \\ "BillingAuthority").text mustBe "INVALID COUNCIL"
+        (result \\ "BillingAuthorityIdentityCode").text mustBe "XXXX"
+        (result \\ "InvalidElement").size mustBe 1
+
       }
     }
   }

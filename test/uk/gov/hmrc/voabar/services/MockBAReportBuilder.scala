@@ -17,6 +17,7 @@
 package uk.gov.hmrc.voabar.services
 
 import org.apache.commons.io.IOUtils
+import play.api.libs.iteratee.Input.Empty
 import uk.gov.hmrc.voabar.models.BAPropertyReport
 
 import scala.xml._
@@ -51,8 +52,7 @@ class MockBAReportBuilder {
         </CtaxReasonForReport>
       </TypeOfTax>
       <IndicatedDateOfChange>2017-03-17</IndicatedDateOfChange>
-      <Remarks>Some remarks that may include text that helps to
-        describe this property report submission</Remarks>
+      <Remarks>Some remarks that help to describe this property report submission</Remarks>
      </BApropertyReport>
 
     val newNode = concat(NodeSeq.Empty,existingEntries, proposedEntries)
@@ -78,7 +78,7 @@ class MockBAReportBuilder {
   }
 
   private def invalidate(existingVal:String,newValue:String) = new RewriteRule {
-    override def transform(node:Node): Seq[Node] = node match {
+    override def transform(node:Node): Node = node match {
       case e:Elem if e.label == existingVal  => e.copy(label = newValue)
       case e:Elem if e.text == existingVal => e.copy(child=Text(newValue))
       case other => other
@@ -90,7 +90,16 @@ class MockBAReportBuilder {
     transformer.transform(node)
   }
 
-  def invalidateBatch(node:Node, key:String, newValue:String): Seq[Node] = invalidator(invalidate(key,newValue),node)
+  private def invalidate(node:Node, key:String, newValue:String): Seq[Node] = invalidator(invalidate(key,newValue),node)
+
+  def invalidateBatch(node:Node, rules:Map[String,String]):NodeSeq = {
+    def inval(keys:List[String],n:NodeSeq):NodeSeq = keys match {
+      case Nil => n
+      case hd :: tl => inval(tl,invalidate(n.head,hd,rules(hd)))
+    }
+    inval(rules.keySet.toList,node.theSeq)
+  }
+
 
   private val existingEntries:NodeSeq =
 

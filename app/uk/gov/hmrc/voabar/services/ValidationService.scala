@@ -17,35 +17,49 @@
 package uk.gov.hmrc.voabar.services
 
 import javax.inject.{Inject, Singleton}
+import play.api.mvc.Request
 import uk.gov.hmrc.voabar.models.Error
 
 import scala.xml.Node
 
 @Singleton
-class ValidationService @Inject()(
-                                   xmlValidator: XmlValidator,
-                                   xmlParser:XmlParser,
-                                   charValidator:CharacterValidator) {
+class ValidationService @Inject()(xmlValidator: XmlValidator,
+                                  xmlParser:XmlParser,
+                                  charValidator:CharacterValidator,
+                                  businessRules:BusinessRules) {
+//
+//  def validate(xml:Node, baCode:String):List[Error] = {
+//    val billingAuthCode:String = (xml \\ "BillingAuthorityIdentityCode").text
+//    val baCodeResult:List[Error] = validationBACode(billingAuthCode,baCode)
+//    val parsedBatch:Seq[Node] = xmlParser.oneReportPerBatch(xml)
+//    val schemaErrors:List[Error] = parsedBatch.flatMap(b => validationSchema(b)).toList.distinct
+//    val charErrors:List[Error] = validationChars(xml)
+//    baCodeResult ::: schemaErrors ::: charErrors
+//  }
 
-  def validate(xml:Node, baCode:String):List[Error] = {
-    val billingAuthCode:String = (xml \\ "BillingAuthorityIdentityCode").text
-    val baCodeResult:List[Error] = validationBACode(billingAuthCode,baCode)
-    val parsedBatch:Seq[Node] = xmlParser.oneReportPerBatch(xml)
-    val schemaErrors:List[Error] = parsedBatch.flatMap(b => validationSchema(b)).toList.distinct
-    val charErrors:List[Error] = validationChars(xml).toList
-    baCodeResult ::: schemaErrors ::: charErrors
+
+  def validate(xml:Node):List[Error] = {
+    val f:List[(Node) => List[Error]] = List(
+      validationBACode,
+      validationSchema,
+      validationChars
+    )
+    f.flatMap(_.apply(xml))
   }
 
-  private def validationBACode(baCodeInReport:String, baCodeInHeader:String): List[Error] = {
-    if (baCodeInReport != baCodeInHeader) Error("1010",Seq()) :: List[Error]()
-    else Nil
+
+  // no replace with call to BR svc
+  private def validationBACode(xml:Node): List[Error] = {
+
+    businessRules.baIdentityCodeErrors(xml)
   }
 
-  private def validationSchema(xml:Node):Seq[Error] = {
-    xmlValidator.validate(xml.toString())
+
+  private def validationSchema(xml:Node):List[Error] = {
+    xmlValidator.validate(xml.toString()).toList
   }
 
-  private def validationChars(xml:Node):Seq[Error] = {
+  private def validationChars(xml:Node):List[Error] = {
     val header:Node = (xml \ "BAreportHeader").head
     val trailer:Node = (xml \ "BAreportTrailer").head
     val reports:Seq[Node] = xml \ "BApropertyReport"
@@ -55,10 +69,18 @@ class ValidationService @Inject()(
     headerErrors ::: reportErrors ::: trailerErrors
   }
 
-  private def validationBusinessRules(xml:Node):Seq[Error] = {
+  private def validationBusinessRules(xml:Node):List[Error] = {
     ???
+
   }
 
-
+// use?
+//  def validate(node:Node, f:List[((Node) => List[Error])]): List[Error] = {
+//    def reduce(errors:List[Error], xs:List[(Node) => List[Error]]): List[Error] = xs match {
+//      case Nil => errors
+//      case hd :: tl => reduce(hd(node) ::: errors,tl)
+//    }
+//    reduce(List[Error](),f)
+//  }
 
 }

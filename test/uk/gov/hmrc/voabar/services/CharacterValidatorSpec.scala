@@ -72,120 +72,27 @@ class CharacterValidatorSpec extends PlaySpec {
   val invalid2 = IOUtils.toString(getClass.getResource("/xml/CTInvalid2.xml"))
   val fakeBatch = xmlParser.fromXml(validTestBatchXml)
 
-  "Character Validator" must {
 
-    "The elementNodes should throw an exception if the NodeSeq is empty" in {
-      intercept[Exception] {
-        val result = characterValidator.elementNodes(NodeSeq.Empty)
-        result mustBe a[RuntimeException]
-      }
-    }
+    "The character validator" must {
 
-    "The elementNodes should return a sequence of distinct end point nodes given a non empty NodeSeq" in {
-      val result = characterValidator.elementNodes(validHeader)
-      result.isEmpty mustBe false
-      result.size mustBe 4
-    }
-
-    "The validateString method should return true if the element has valid characters only" in {
-      characterValidator.stringIsValid(validText) mustBe true
-    }
-
-    "The validateString method should return false if the element contains invalid characters" in {
-      val result = characterValidator.stringIsValid(invalidText)
-      result mustBe false
-    }
-
-    "The validateHeader method should return an empty sequence if the header doesn't contain any invalid elements" in {
-      val batchHeader = BAReportHeader(validHeader)
-      val result = characterValidator.validateHeader(batchHeader)
-      result.isEmpty mustBe true
-    }
-
-    "The validateHeader method should return a sequence of errors if the header contains invalid elements" in {
-      val batchHeader = valid2.baReportHeader
-      val result = characterValidator.validateHeader(batchHeader)
-      result.isEmpty mustBe true
-    }
-
-    "The validateTrailer method should return an empty sequence if the header doesn't contain any invalid elements" in {
-      val batchTrailer = valid2.baReportTrailer
-      val result = characterValidator.validateTrailer(batchTrailer)
-      result.isEmpty mustBe true
-    }
-
-    "The validateTrailer method should return a sequence of errors if the header contains invalid elements" in {
-      val batchTrailer = BAReportTrailer(invalidTrailer)
-      val result = characterValidator.validateTrailer(batchTrailer)
-      result.size mustBe 1
-    }
-
-    "The validateBAPropertyReports method should return a sequence of errors if the reports contain invalid elements and " +
-      "no remaining reports if all contain errors" in {
-      val baPropertyReports:Seq[BAPropertyReport] = valid2.baPropertyReport
-      val result = characterValidator.validateBAPropertyReports(baPropertyReports)
-      val remainingReports = result._1.size mustBe 4
-      val errors = result._2.size mustBe 0
-    }
-
-    "The validateBAPropertyReports method should return an empty list of errors and a list of remaining reports if all reports are valid" in {
-      val baPropertyReports = fakeBatch.baPropertyReport
-      val result = characterValidator.validateBAPropertyReports(baPropertyReports)
-      result._1.size mustBe 1
-      result._2.size mustBe 0
-    }
-
-    "The validatePropertyReport method should return a BAPropertyReport when no errrors were found" in {
-      val baPropertyReport = valid2.baPropertyReport.head
-      val result = characterValidator.validatePropertyReport(baPropertyReport)
-      result.isRight mustBe true
-    }
-
-    "The validatePropertyReport method should return a Right(BAPropertyReport) for valid reports" in {
-      val baPropertyReport = fakeBatch.baPropertyReport.head
-      val result = characterValidator.validatePropertyReport(baPropertyReport)
-      result.isRight mustBe true
-    }
-
-    "The getPropertyReportNumber should return a report number for an existing BAPropertyReport" in {
-     val result = characterValidator.getPropertyReportNumber(valid2.baPropertyReport.head)
-      result mustBe "200000"
-    }
-
-    "The getPropertyReportNumber should return an empty string if the report number is missing" in {
-      val result = characterValidator.getPropertyReportNumber(BAPropertyReport(report))
-      result.isEmpty mustBe true
-    }
-
-    "The charactersValidationStatus should return a ValidationResult containing the remaining reports and all character errors if any" in {
-      val result = characterValidator.charactersValidationStatus(valid2)
-      result.baPropertyReports.size mustBe 4
-      result.errors.size mustBe 0
-    }
-
-    "The charactersValidationStatus should return a ValidationResult containing the remaining reports and no character errors for a valid batch" in {
-      val result = characterValidator.charactersValidationStatus(fakeBatch)
-      result.baPropertyReports.size mustBe 1
-      result.errors.size mustBe 0
-    }
-
-    "The char validator" must {
-
-      "identify a single invalid char in a xml example" in {
-       val errors =  characterValidator.validateChars(invalidTrailer(0), "Trailer")
-        errors.size mustBe 1
-      }
 
       "identify a single invalid char in a batch report containing 4 reports (CTValid2)" in {
-        val invalidatedReport:NodeSeq = reportBuilder.invalidateBatch(ctValid2,"Some Valid Council","Some Valid£Council")
-        val batch:NodeSeq = xmlParser.oneReportPerBatch(invalidatedReport.head)
-        val errors:Seq[Error] = batch.flatMap(b => characterValidator.validateChars(b, "test"))
+        val invalidatedReport:NodeSeq = reportBuilder.invalidateBatch(ctValid2,Map("SOME VALID COUNCIL" ->"SOME VALID£COUNCIL"))
+        val errors:Seq[Error] = characterValidator.validateChars(invalidatedReport.head, "test")
+        errors mustBe List[Error](Error("1000",Seq("test", "BillingAuthority","SOME VALID£COUNCIL")))
+      }
+
+      "identify multiple invalid chars in a batch report containing multiple reports (CTValid2)" in {
+        val invalid = reportBuilder.invalidateBatch(ctValid2, Map(
+          "SOME VALID COUNCIL" -> "SOME VALID£COUNCIL",
+          "SOME ADMIN AREA" -> "some admin area"))
+        val errors:Seq[Error] = characterValidator.validateChars(invalid.head, "test")
+        errors mustBe List[Error](Error("1000", Seq("test", "BillingAuthority", "SOME VALID£COUNCIL")),
+          Error("1000",Seq("test", "AdministrativeArea", "some admin area")))
       }
 
 
-
-
     }
-  }
+
 
 }

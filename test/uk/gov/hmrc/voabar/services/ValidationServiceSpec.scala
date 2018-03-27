@@ -18,60 +18,67 @@ package uk.gov.hmrc.voabar.services
 
 import org.apache.commons.io.IOUtils
 import org.scalatestplus.play.PlaySpec
+import play.api.mvc.{AnyContent, Request}
+import play.api.test.FakeRequest
 import uk.gov.hmrc.voabar.models.Error
 
 import scala.xml.{Node, NodeSeq, XML}
 
 class ValidationServiceSpec extends PlaySpec {
 
+  val batchWith1Report = IOUtils.toString(getClass.getResource("/xml/CTValid1.xml"))
   val batchWith4Reports = IOUtils.toString(getClass.getResource("/xml/CTValid2.xml"))
 
   val xmlParser = new XmlParser
   val xmlValidator = new XmlValidator
   val charValidator = new CharacterValidator
   val reportBuilder = new MockBAReportBuilder
-  val validationService = new ValidationService(xmlValidator, xmlParser, charValidator)
+  def businessRules(baCode:String):BusinessRules = new BusinessRules()(FakeRequest("GET","").
+    withHeaders("BA-Code" -> baCode))
+  def validationService(baCode:String): ValidationService = new ValidationService(
+    xmlValidator, xmlParser, charValidator, businessRules(baCode))
 
   "Validation service" must {
 
-    "return a list of 1 error when a batch report containing 4 reports and: " +
-      "-the BACode in the report header does not match that in the HTTP request header" in {
 
-      val validBatch = XML.loadString(batchWith4Reports)
-      validationService.validate(validBatch, "XXXX") mustBe List[Error](Error("1010", Seq()))
-
+    "return an empty list (no errors) when passed a valid batch" in {
+        val validBatch:Node = XML.loadString(batchWith1Report)
+        validationService("9999").validate(validBatch).isEmpty mustBe true
     }
 
-    "return a list of 2 errors when a batch report containing 4 reports and: " +
-      "-the BACode in the report header does not match that in the HTTP request header; " +
-      "-the report header contains 1 illegal element" in {
+    "return a list of 1 error when the BACode in the report header does " +
+      "not match that in the HTTP request header" in {
+      val validBatch = XML.loadString(batchWith1Report)
+      validationService("0000").validate(validBatch) mustBe List[Error](Error(
+        "1010", Seq("BAIdentityCode", "BA code in request header does not match with that in the batch report")))
+    }
 
-      val validBatch = XML.loadString(batchWith4Reports)
-      val invalidBatch = reportBuilder.invalidateBatch(validBatch.head, "BillingAuthority", "BadElement")
-      validationService.validate(invalidBatch.head, "XXXX") mustBe List[Error](
-        Error("1010", Seq()),
+
+    "return a list of 2 errors when the BACode in the report header does " +
+      "not match that in the HTTP request header and the report header contains 1 illegal element" in {
+      val validBatch = XML.loadString(batchWith1Report)
+      val invalidBatch = reportBuilder.invalidateBatch(validBatch.head, Map("BillingAuthority" -> "BadElement"))
+      validationService("0000").validate(invalidBatch.head) mustBe List[Error](
+        Error("1010", Seq("BAIdentityCode", "BA code in request header does not match with that in the batch report")),
         Error("cvc-complex-type.2.4.a", Seq("Invalid content was found starting with element 'BadElement'. " +
           "One of '{\"http://www.govtalk.gov.uk/LG/Valuebill\":BillingAuthority}' is expected."))
       )
-
     }
 
-    "return a list of 3 errors when a batch report containing 4 reports and: " +
-      "-the BACode in the report header does not match that in the HTTP request header; " +
-      "-the report header contains 1 illegal element;" +
-      "-each of the 4 reports contains 1 illegal element" in {
-
+    "return a list of 3 errors when the BACode in the report batch header of a batch of 4 reports does " +
+      "not match that in the HTTP request header, the report header contains 1 illegal element and each " +
+      "of the 4 reports contains 1 illegal element " in {
       val validBatch = XML.loadString(batchWith4Reports)
-      val b = reportBuilder.invalidateBatch(validBatch.head, "BillingAuthority", "BadElement")
-      val invalidBatch = reportBuilder.invalidateBatch(b.head, "DateSent", "BadElement")
-      validationService.validate(invalidBatch.head, "XXXX") mustBe List[Error](
-        Error("1010", Seq()),
-        Error("cvc-complex-type.2.4.a", Seq("Invalid content was found starting with element 'BadElement'. " +
-          "One of '{\"http://www.govtalk.gov.uk/LG/Valuebill\":BillingAuthority}' is expected.")),
-        Error("cvc-complex-type.2.4.a", Seq("Invalid content was found starting with element 'BadElement'. " +
-          "One of '{\"http://www.govtalk.gov.uk/LG/Valuebill\":DateSent}' is expected."))
-      )
+      val invalidBatch = reportBuilder.invalidateBatch(validBatch.head, Map(
+        "BillingAuthority" -> "IllegalElement", "ProcessDate" -> "WrongElement"))
+
+       val x = validationService("0000").validate(invalidBatch.head)
+
     }
+
+
+
+
 
   }
 }

@@ -75,7 +75,8 @@ class XmlValidatorSpec extends PlaySpec {
 
   "A batch submission containing 1 report and 1 illegal element within the header" must {
     "return with 1 error when parsed" in {
-      val invalidReport: Seq[Node] = reportBuilder.invalidateBatch(XML.loadString(valid1), "ProcessDate", "BadElement")
+      val invalidReport: Seq[Node] = reportBuilder.invalidateBatch(XML.loadString(valid1), Map(
+        "ProcessDate" -> "BadElement"))
       val batch = parser.oneReportPerBatch(invalidReport.head)
       batch.map(b => validator.validate(b.toString)).size mustBe 1
     }
@@ -83,7 +84,8 @@ class XmlValidatorSpec extends PlaySpec {
 
     "A batch submission containing 4 reports and 1 illegal element within the header" must {
       "return with 4 errors when parsed" in {
-        val invalidReport:Seq[Node] = reportBuilder.invalidateBatch(XML.loadString(valid2),"ProcessDate","BadElement")
+        val invalidReport:Seq[Node] = reportBuilder.invalidateBatch(XML.loadString(valid2), Map(
+          "ProcessDate" -> "BadElement"))
         val batch = parser.oneReportPerBatch(invalidReport.head)
         batch.map(b => validator.validate(b.toString)).size mustBe 4
 

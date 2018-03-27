@@ -15,12 +15,15 @@
  */
 
 package uk.gov.hmrc.voabar.services
+import javax.inject.{Inject, Singleton}
+import play.api.mvc.Request
 import uk.gov.hmrc.voabar.models.{BAPropertyReport, Error}
 
 import scala.collection.mutable.ListBuffer
 import scala.xml._
 
-class BusinessRules {
+@Singleton
+class BusinessRules @Inject()()(implicit request:Request[_]) {
 
   def reasonForReportErrors(baReport:BAPropertyReport):List[Error] = {
     (baReport.node \\ "TypeOfTax" \ "_").headOption match {
@@ -66,6 +69,19 @@ class BusinessRules {
 
   private def proposedEntries(implicit node:NodeSeq):Int = (node \\ "ProposedEntries").size
   private def existingEntries(implicit node:NodeSeq):Int = (node \\ "ExistingEntries").size
+
+
+  def baIdentityCodeErrors(xml:Node): List[Error] = {
+    val lb = new ListBuffer[String]()
+    val codeInReport:String = (xml \\ "BillingAuthorityIdentityCode").text
+      if (codeInReport.isEmpty) lb += "1012BA Code missing from batch submission"
+        request.headers.get("BA-Code") match {
+          case Some(code) => if (codeInReport.length > 0 && code != codeInReport) lb +=
+            "1010BA code in request header does not match with that in the batch report"
+          case None => lb += "1011BA Code missing from request header"
+        }
+    lb.toList.map{s => Error(s.take(4),Seq("BAIdentityCode",s.drop(4)))}
+  }
 
 
 }
