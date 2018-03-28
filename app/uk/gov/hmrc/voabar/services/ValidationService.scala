@@ -18,7 +18,7 @@ package uk.gov.hmrc.voabar.services
 
 import javax.inject.{Inject, Singleton}
 import play.api.mvc.Request
-import uk.gov.hmrc.voabar.models.Error
+import uk.gov.hmrc.voabar.models.{BAPropertyReport, Error}
 
 import scala.xml.Node
 
@@ -27,28 +27,20 @@ class ValidationService @Inject()(xmlValidator: XmlValidator,
                                   xmlParser:XmlParser,
                                   charValidator:CharacterValidator,
                                   businessRules:BusinessRules) {
-//
-//  def validate(xml:Node, baCode:String):List[Error] = {
-//    val billingAuthCode:String = (xml \\ "BillingAuthorityIdentityCode").text
-//    val baCodeResult:List[Error] = validationBACode(billingAuthCode,baCode)
-//    val parsedBatch:Seq[Node] = xmlParser.oneReportPerBatch(xml)
-//    val schemaErrors:List[Error] = parsedBatch.flatMap(b => validationSchema(b)).toList.distinct
-//    val charErrors:List[Error] = validationChars(xml)
-//    baCodeResult ::: schemaErrors ::: charErrors
-//  }
-
 
   def validate(xml:Node):List[Error] = {
+    val parsedBatch:Seq[Node] = xmlParser.oneReportPerBatch(xml)
+
     val f:List[(Node) => List[Error]] = List(
       validationBACode,
       validationSchema,
-      validationChars
+      validationChars,
+      validationBusinessRules
     )
-    f.flatMap(_.apply(xml))
+    parsedBatch.toList.flatMap{n => f.flatMap(_.apply(n))}.distinct
   }
 
 
-  // no replace with call to BR svc
   private def validationBACode(xml:Node): List[Error] = {
 
     businessRules.baIdentityCodeErrors(xml)
@@ -70,17 +62,8 @@ class ValidationService @Inject()(xmlValidator: XmlValidator,
   }
 
   private def validationBusinessRules(xml:Node):List[Error] = {
-    ???
-
+    val reports:Seq[Node] = xml \ "BApropertyReport"
+    reports.map(x => BAPropertyReport(x)).flatMap(r => businessRules.reasonForReportErrors(r)).toList
   }
-
-// use?
-//  def validate(node:Node, f:List[((Node) => List[Error])]): List[Error] = {
-//    def reduce(errors:List[Error], xs:List[(Node) => List[Error]]): List[Error] = xs match {
-//      case Nil => errors
-//      case hd :: tl => reduce(hd(node) ::: errors,tl)
-//    }
-//    reduce(List[Error](),f)
-//  }
 
 }

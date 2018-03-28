@@ -76,7 +76,7 @@ class CharacterValidatorSpec extends PlaySpec {
     "The character validator" must {
 
 
-      "identify a single invalid char in a batch report containing 4 reports (CTValid2)" in {
+      "identify a single invalid char in a batch report containing multiple reports (CTValid2)" in {
         val invalidatedReport:NodeSeq = reportBuilder.invalidateBatch(ctValid2,Map("SOME VALID COUNCIL" ->"SOME VALID£COUNCIL"))
         val errors:Seq[Error] = characterValidator.validateChars(invalidatedReport.head, "test")
         errors mustBe List[Error](Error("1000",Seq("test", "BillingAuthority","SOME VALID£COUNCIL")))
@@ -90,9 +90,5 @@ class CharacterValidatorSpec extends PlaySpec {
         errors mustBe List[Error](Error("1000", Seq("test", "BillingAuthority", "SOME VALID£COUNCIL")),
           Error("1000",Seq("test", "AdministrativeArea", "some admin area")))
       }
-
-
     }
-
-
 }
