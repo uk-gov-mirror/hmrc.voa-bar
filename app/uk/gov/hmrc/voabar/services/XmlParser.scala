@@ -16,29 +16,15 @@
 
 package uk.gov.hmrc.voabar.services
 
-import uk.gov.hmrc.voabar.models._
-
 import scala.xml._
 
 class XmlParser {
-
-  def fromXml(xmlString:String):BABatchReport = {
-
-    val xml:Node = XML.loadString(xmlString)
-
-    BABatchReport(
-      BAReports(addChild(xml,NodeSeq.Empty)),
-      BAReportHeader(xml \ "BAreportHeader"),
-      List[BAPropertyReport]((xml \ "BApropertyReport") map {i => BAPropertyReport(i)}: _*),
-      BAReportTrailer(xml \ "BAreportTrailer")
-    )
-  }
 
   private def addChild(node:Node,newNode:NodeSeq): Node = node match {
     case Elem(prefix,label,attrs,ns,child@_*) => Elem(prefix,label,attrs,ns,false,newNode: _*)
   }
 
-  def parseBatch(node:Node):Seq[Node] = {
+  def oneReportPerBatch(node:Node):Seq[Node] = {
     val batchHeader = node \ "BAreportHeader"
     val batchTrailer = node \ "BAreportTrailer"
     (node \ "BApropertyReport") map {report => addChild(node,batchHeader ++ report ++ batchTrailer)}

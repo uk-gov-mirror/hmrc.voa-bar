@@ -17,8 +17,6 @@
 package uk.gov.hmrc.voabar.services
 
 import org.apache.commons.io.IOUtils
-import org.scalatest.Matchers._
-import org.scalatest.WordSpec
 import org.scalatestplus.play.PlaySpec
 
 import scala.xml.{Node, XML}
@@ -66,7 +64,7 @@ class XmlValidatorSpec extends PlaySpec {
   "A valid batch submission containing 4 reports (valid2)" must {
     "validate successfully when parsed into smaller batches" in {
       val report:Node = XML.loadString(valid2)
-      val smallBatches = parser.parseBatch(report)
+      val smallBatches = parser.oneReportPerBatch(report)
 
       val errors = smallBatches.map{report => validator.validate(report.toString)}
       errors.forall(_.isEmpty) mustBe true
@@ -75,23 +73,19 @@ class XmlValidatorSpec extends PlaySpec {
 
   "A batch submission containing 1 report and 1 illegal element within the header" must {
     "return with 1 error when parsed" in {
-      val invalidReport: Seq[Node] = reportBuilder.invalidateBatch(XML.loadString(valid1), "ProcessDate", "BadElement")
-      val batch = parser.parseBatch(invalidReport.head)
+      val invalidReport: Seq[Node] = reportBuilder.invalidateBatch(XML.loadString(valid1), Map(
+        "ProcessDate" -> "BadElement"))
+      val batch = parser.oneReportPerBatch(invalidReport.head)
       batch.map(b => validator.validate(b.toString)).size mustBe 1
     }
   }
 
     "A batch submission containing 4 reports and 1 illegal element within the header" must {
       "return with 4 errors when parsed" in {
-        val invalidReport:Seq[Node] = reportBuilder.invalidateBatch(XML.loadString(valid2),"ProcessDate","BadElement")
-        val batch = parser.parseBatch(invalidReport.head)
+        val invalidReport:Seq[Node] = reportBuilder.invalidateBatch(XML.loadString(valid2), Map(
+          "ProcessDate" -> "BadElement"))
+        val batch = parser.oneReportPerBatch(invalidReport.head)
         batch.map(b => validator.validate(b.toString)).size mustBe 4
-
     }
   }
-
-
-
-
-
 }

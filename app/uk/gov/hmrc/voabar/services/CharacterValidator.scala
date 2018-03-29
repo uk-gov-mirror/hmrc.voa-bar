@@ -16,102 +16,38 @@
 
 package uk.gov.hmrc.voabar.services
 
-import play.api.Logger
 import uk.gov.hmrc.voabar.models.{Error, _}
 
 import scala.util.matching.Regex
-import scala.xml.{Node, NodeSeq}
+import scala.xml.Node
+import uk.gov.hmrc.voabar.util.ErrorCodes
+import play.api.Logger
 
 class CharacterValidator {
 
-  val validCharacterRegex:Regex = """(['A-Z0-9\s\-&+\.@\(\):\/])+""".r
+  private val validCharacterRegex:Regex = """(['A-Z0-9\s\-&+\.@\(\):\/])+""".r
 
-  def elementNodes(nodes: NodeSeq): List[Node] = nodes.headOption match {
-    case Some(n: Node) => n.descendant.collect {
-      case n@Node(_, _, child@_*) if child.size == 1 && child.head.isAtom => n
-    }
-    case None => {
-      Logger.warn("The parsed XML reached Character Validation with an empty NodeSeq")
-      throw new RuntimeException("The parsed XML reached Character Validation with an empty NodeSeq")
-    }
-  }
-
-  def validateHeader(header: BAReportHeader): Seq[Error] = {
-    val location = "Header"
-    val elements = elementNodes(header.node)
-
-    val errors = elements.collect {
-      case e: Node if !stringIsValid(e.text) => Error("1000", Seq(location, e.label, e.text))
-    }
-    Seq(errors: _*)
-  }
-
-  def validateTrailer(trailer: BAReportTrailer): Seq[Error] = {
-    val location = "Trailer"
-    val elements = elementNodes(trailer.node)
-
-    val errors = elements.collect {
-      case e: Node if !stringIsValid(e.text) => Error("1000", Seq(location, e.label, e.text))
-    }
-    Seq(errors: _*)
-  }
-
-  def validateBAPropertyReports(reports: Seq[BAPropertyReport]): (Seq[BAPropertyReport], Seq[Error]) = {
-    val result = reports.map(propertyReport => validatePropertyReport(propertyReport))
-
-    val errors: Seq[Error] = result.collect { case Left(l) => l }.flatten
-    val remainingReports: Seq[BAPropertyReport] = result.collect { case Right(l) => l }
-
-    (remainingReports, errors)
-  }
-
-  def validatePropertyReport(bAPropertyReport: BAPropertyReport): Either[Seq[Error], BAPropertyReport] = {
-    val reportNumber = getPropertyReportNumber(bAPropertyReport)
-    val elements = elementNodes(bAPropertyReport.node)
-
-    val errors = elements.collect {
-      case e: Node if !stringIsValid(e.text) => Error("1000", Seq(reportNumber, e.label, e.text))
-    }
-
-    if (errors.isEmpty) Right(bAPropertyReport) else Left(errors)
-  }
-
-  def getPropertyReportNumber(bAPropertyReport: BAPropertyReport): String = (bAPropertyReport.node \ "BAreportNumber").text
-
-  def stringIsValid(input: String): Boolean = {
+  private def stringIsValid(input: String): Boolean = {
     val result = validCharacterRegex.findAllIn(input).toList
-    val resultLength = result.size
+    val resultLength = result.length
 
     resultLength match {
       case length if length > 1 || length == 0 => false
-      case length if length == 1 && result.mkString.size != input.size => false
+      case length if length == 1 && result.mkString.length != input.length => false
       case _ => true
     }
   }
 
-  def charactersValidationStatus(batch: BABatchReport) = {
-    val headerErrors: Seq[Error] = validateHeader(batch.baReportHeader)
-    val trailerErrors: Seq[Error] = validateTrailer(batch.baReportTrailer)
-    val reportsResult = validateBAPropertyReports(batch.baPropertyReport)
-
-    val remainingReports = reportsResult._1
-    val reportsErrors = reportsResult._2
-
-    val allErrors: Seq[Error] = (headerErrors :: trailerErrors :: reportsErrors :: Nil).flatten
-
-    ValidationResult(remainingReports, allErrors)
-  }
-
-
-  def validateChars(node:Node): Set[Error] = {
-    val reportNumber = (node \\ "reportNumber").text
+  def validateChars(node:Node, location:String): List[Error] = {
     def validate(n: Node, errors: List[Error]): List[Error] = n match {
       case e: Node if e.isAtom => errors
       case f: Node if f.child.size == 1 && f.child.head.isAtom && !stringIsValid(f.text) =>
-        validate(f.child.head, Error("1000", Seq(reportNumber, f.label, f.text)) :: errors)
+        validate(f.child.head, Error(ErrorCodes.CHARACTER, Seq(location, f.label, f.text)) :: errors)
       case g: Node => g.child.toList.flatMap(c => validate(c, errors))
-      case _ => throw new RuntimeException("Validation failed")
+      case _ =>
+        Logger.warn("Fatal Error: character validation failed on an unknown data object")
+        Error(ErrorCodes.UNKNOWN_DATA_OBJECT, Seq()) :: List()
     }
-    validate(node,List[Error]()).toSet
+    validate(node,List[Error]())
   }
 }

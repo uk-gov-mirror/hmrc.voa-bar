@@ -36,6 +36,5 @@ class ResourceResolver extends LSResourceResolver {
         input
     }
   }
-
 }
 

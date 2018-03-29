@@ -14,9 +14,24 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.voabar.models
+package uk.gov.hmrc.voabar.util
 
-case class BABatchReport(baReports:BAReports,
-                         baReportHeader:BAReportHeader,
-                         baPropertyReport:Seq[BAPropertyReport],
-                         baReportTrailer:BAReportTrailer)
+object ErrorCodes {
+
+  val CHARACTER = "1000"
+  val ONE_PROPOSED = "1001"
+  val NONE_EXISTING = "1002"
+  val EITHER_ONE_EXISTING_OR_ONE_PROPOSED = "1003"
+  val ATLEAST_ONE_PROPOSED = "1004"
+  val ATLEAST_ONE_EXISTING = "1005"
+  val NOT_IN_USE = "1006"
+  val ONE_EXISTING = "1007"
+  val NONE_PROPOSED = "1008"
+  val BA_CODE_MATCH = "1010"
+  val BA_CODE_REQHDR = "1011"
+  val BA_CODE_REPORT = "1012"
+  val UNSUPPORTED_TAX_TYPE = "1020"
+  val UNKNOWN_TYPE_OF_TAX = "1021"
+  val UNKNOWN_DATA_OBJECT = "1022"
+
+}
