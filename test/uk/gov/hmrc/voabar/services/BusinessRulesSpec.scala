@@ -158,9 +158,9 @@ class BusinessRulesSpec extends PlaySpec {
 
       "A BA report without a TypeOfTax node" must {
 
-        "throw a runtime exception when an attempt is made to access the first child of a TypeOfTax node" in {
+        "return an error" in {
           val xmlNode = <xml></xml>
-        a [RuntimeException] mustBe thrownBy(businessRules.reasonForReportErrors(xmlNode))
+        businessRules.reasonForReportErrors(xmlNode) mustBe Error(ErrorCodes.UNKNOWN_TYPE_OF_TAX, Seq()) :: List()
         }
       }
 
@@ -168,7 +168,7 @@ class BusinessRulesSpec extends PlaySpec {
 
        "throw a runtime exception when the first child of the node is not cTaxReasonForReport" in {
          val xmlNode = <xml><TypeOfTax><NDR></NDR></TypeOfTax></xml>
-        a [RuntimeException] mustBe thrownBy(businessRules.reasonForReportErrors(xmlNode))
+         businessRules.reasonForReportErrors(xmlNode) mustBe Error(ErrorCodes.UNSUPPORTED_TAX_TYPE, Seq("NDR")) :: List()
        }
       }
 

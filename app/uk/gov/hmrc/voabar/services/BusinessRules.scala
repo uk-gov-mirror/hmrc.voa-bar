@@ -33,11 +33,11 @@ class BusinessRules @Inject()()(implicit request:Request[_]) {
         case "CtaxReasonForReport" => validateCTaxCode(baReport)
         case _ =>
           Logger.warn(s"Unsupported tax type: ${node.label}")
-          throw new RuntimeException(s"Unsupported tax type: ${node.label} ")
+          Error(ErrorCodes.UNSUPPORTED_TAX_TYPE, Seq(s"${node.label}")) :: List()
       }
       case None =>
         Logger.warn("Xml element not found: TypeOfTax")
-        throw new RuntimeException("Xml element not found: TypeOfTax")
+        Error(ErrorCodes.UNKNOWN_TYPE_OF_TAX, Seq()) :: List()
     }
   }
 

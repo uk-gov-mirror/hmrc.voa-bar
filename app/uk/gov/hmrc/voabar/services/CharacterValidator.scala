@@ -46,7 +46,7 @@ class CharacterValidator {
       case g: Node => g.child.toList.flatMap(c => validate(c, errors))
       case _ =>
         Logger.warn("Fatal Error: character validation failed on an unknown data object")
-        throw new RuntimeException("Fatal Error: character validation failed on an unknown data object")
+        Error(ErrorCodes.UNKNOWN_DATA_OBJECT, Seq()) :: List()
     }
     validate(node,List[Error]())
   }

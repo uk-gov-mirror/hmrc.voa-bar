@@ -30,5 +30,8 @@ object ErrorCodes {
   val BA_CODE_MATCH = "1010"
   val BA_CODE_REQHDR = "1011"
   val BA_CODE_REPORT = "1012"
+  val UNSUPPORTED_TAX_TYPE = "1020"
+  val UNKNOWN_TYPE_OF_TAX = "1021"
+  val UNKNOWN_DATA_OBJECT = "1022"
 
 }
