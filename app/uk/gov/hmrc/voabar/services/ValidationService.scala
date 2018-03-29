@@ -30,13 +30,13 @@ class ValidationService @Inject()(xmlValidator: XmlValidator,
   def validate(xml:Node):List[Error] = {
     val parsedBatch:Seq[Node] = xmlParser.oneReportPerBatch(xml)
 
-    val f:List[(Node) => List[Error]] = List(
+    val validations:List[(Node) => List[Error]] = List(
       validationBACode,
       validationSchema,
       validationChars,
       validationBusinessRules
     )
-    parsedBatch.toList.flatMap{n => f.flatMap(_.apply(n))}.distinct
+    parsedBatch.toList.flatMap{n => validations.flatMap(_.apply(n))}.distinct
   }
 
   private def validationBACode(xml:Node): List[Error] = {

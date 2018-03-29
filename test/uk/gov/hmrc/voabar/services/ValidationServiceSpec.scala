@@ -61,7 +61,7 @@ class ValidationServiceSpec extends PlaySpec {
       "not match that in the HTTP request header" in {
       val validBatch = XML.loadString(batchWith1Report)
       validationService("0000").validate(validBatch) mustBe List[Error](Error(
-        "1010", Seq("BAIdentityCode", "BA code in request header does not match with that in the batch report")))
+        "1010", Seq()))
     }
 
 
@@ -70,7 +70,7 @@ class ValidationServiceSpec extends PlaySpec {
       val validBatch = XML.loadString(batchWith1Report)
       val invalidBatch = reportBuilder.invalidateBatch(validBatch.head, Map("BillingAuthority" -> "BadElement"))
       validationService("0000").validate(invalidBatch.head) mustBe List[Error](
-        Error("1010", Seq("BAIdentityCode", "BA code in request header does not match with that in the batch report")),
+        Error("1010", Seq()),
         Error("cvc-complex-type.2.4.a", Seq("Invalid content was found starting with element 'BadElement'. " +
           "One of '{\"http://www.govtalk.gov.uk/LG/Valuebill\":BillingAuthority}' is expected."))
       )
@@ -85,7 +85,7 @@ class ValidationServiceSpec extends PlaySpec {
         "PropertyDescriptionText" -> "BadElement"))
 
        validationService("0000").validate(invalidBatch.head) mustBe List[Error](
-         Error("1010", Seq("BAIdentityCode", "BA code in request header does not match with that in the batch report")),
+         Error("1010", Seq()),
          Error("cvc-complex-type.2.4.a", Seq("Invalid content was found starting with element 'IllegalElement'. " +
            "One of '{\"http://www.govtalk.gov.uk/LG/Valuebill\":BillingAuthority}' is expected.")),
          Error("cvc-complex-type.2.4.a", Seq("Invalid content was found starting with element 'WrongElement'. " +
@@ -105,7 +105,7 @@ class ValidationServiceSpec extends PlaySpec {
         "PropertyDescriptionText" -> "BadElement", "SOME VALID COUNCIL" -> "Some Valid Council"))
 
       validationService("0000").validate(invalidBatch.head) mustBe List[Error](
-        Error("1010", Seq("BAIdentityCode", "BA code in request header does not match with that in the batch report")),
+        Error("1010", Seq()),
         Error("cvc-complex-type.2.4.a", Seq("Invalid content was found starting with element 'IllegalElement'. " +
           "One of '{\"http://www.govtalk.gov.uk/LG/Valuebill\":BillingAuthority}' is expected.")),
         Error("cvc-complex-type.2.4.a", Seq("Invalid content was found starting with element 'WrongElement'. " +
@@ -131,7 +131,7 @@ class ValidationServiceSpec extends PlaySpec {
     "return a list of errors when a batch containing 32 reports has multiple errors" in {
       val invalidBatch = XML.loadString(batchWith32ReportsWithErrors)
       validationService("8888").validate(invalidBatch.head) mustBe List(
-        Error("1010",List("BAIdentityCode", "BA code in request header does not match with that in the batch report")),
+        Error("1010",List()),
         Error("cvc-complex-type.2.4.a",List("Invalid content was found starting with element 'IllegalElement'. One of " +
           "'{\"http://www.govtalk.gov.uk/LG/Valuebill\":EntryDateTime}' is expected.")),
         Error("cvc-datatype-valid.1.2.1",List("'0£' is not a valid value for 'integer'.")),
