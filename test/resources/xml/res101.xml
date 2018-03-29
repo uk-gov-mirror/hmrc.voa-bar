@@ -1,10 +1,9 @@
 <BAreports SchemaVersion="4-0" SchemaId="BAtoVOA" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bs7666="http://www.govtalk.gov.uk/people/bs7666" xmlns:pdt="http://www.govtalk.gov.uk/people/PersonDescriptives" xmlns:apd="http://www.govtalk.gov.uk/people/AddressAndPersonalDetails" xmlns="http://www.govtalk.gov.uk/LG/Valuebill">
     <BAreportHeader>
         <BillingAuthority>WESTERN COUNCIL</BillingAuthority>
-        <BillingAuthorityIdentityCode>5443</BillingAuthorityIdentityCode>
+        <BillingAuthorityIdentityCode>5243</BillingAuthorityIdentityCode>
         <ProcessDate>2017-05-21</ProcessDate>
-        <EntryDateTime>2017-05-21£T22:40:34</EntryDateTime>
-        <BadElement>BAD ELEMENT DATA</BadElement>
+        <EntryDateTime>2017-05-21T22:40:34</EntryDateTime>
     </BAreportHeader>
     <BApropertyReport>
         <DateSent>2017-05-21</DateSent>
@@ -13,7 +12,7 @@
         <BAreportNumber>138166</BAreportNumber>
         <TypeOfTax>
             <CtaxReasonForReport>
-                <ReasonForReportCode>CR06</ReasonForReportCode>
+                <ReasonForReportCode>CR03</ReasonForReportCode>
                 <ReasonForReportDescription>NEW</ReasonForReportDescription>
             </CtaxReasonForReport>
         </TypeOfTax>
@@ -59,11 +58,10 @@
         </ProposedEntries>
         <IndicatedDateOfChange>2017-05-12</IndicatedDateOfChange>
         <PropertyPlanReferenceNumber>PP/2015/0533</PropertyPlanReferenceNumber>
-        <Remarks>SOME REMARKS THAT MAY ££ HELP TO
+        <Remarks>SOME REMARKS THAT MAY HELP TO
             DESCRIBE THIS PROPERTY REPORT SUBMISSION</Remarks>
     </BApropertyReport>
     <BApropertyReport>
-        <IllegalElement>SOME DATA WITHIN ELE</IllegalElement>
         <DateSent>2017-05-21</DateSent>
         <TransactionIdentityBA>00095340002000</TransactionIdentityBA>
         <BAidentityNumber>5243</BAidentityNumber>
@@ -104,7 +102,7 @@
                     <OccupierName>
                         <pdt:PersonNameTitle>MRS</pdt:PersonNameTitle>
                         <pdt:PersonGivenName>PETER</pdt:PersonGivenName>
-                        <pdt:PersonFamilyName>WAN£DLE</pdt:PersonFamilyName>
+                        <pdt:PersonFamilyName>WANDLE</pdt:PersonFamilyName>
                         <pdt:PersonRequestedName>MRS SALLY WIBBLE</pdt:PersonRequestedName>
                     </OccupierName>
                     <ContactAddress>
@@ -255,7 +253,7 @@
                                 <bs7666:Number>210</bs7666:Number>
                             </bs7666:StartRange>
                         </bs7666:PAON>
-                        <bs7666:StreetDescription>23 NEW ST</bs7666:StreetDescription>
+                        <bs7666:StreetDescription>23 NeW ST</bs7666:StreetDescription>
                         <bs7666:UniqueStreetReferenceNumber>11635</bs7666:UniqueStreetReferenceNumber>
                         <bs7666:Town>WIMBLETOWN</bs7666:Town>
                         <bs7666:PostTown>WINDLETOWN</bs7666:PostTown>
@@ -789,6 +787,7 @@
         <TransactionIdentityBA>00097340002000</TransactionIdentityBA>
         <BAidentityNumber>5243</BAidentityNumber>
         <BAreportNumber>138145</BAreportNumber>
+        <BadElement>TEXT IN BAD ELEMENT</BadElement>
         <TypeOfTax>
             <CtaxReasonForReport>
                 <ReasonForReportCode>CR03</ReasonForReportCode>
@@ -1122,7 +1121,6 @@
                     <ContactAddress>
                         <apd:Line>FAO MR PETER WOBBLE</apd:Line>
                         <apd:Line>77 MIDDLE ST</apd:Line>
-                        <WrongElement>Wrong data</WrongElement>
                         <apd:Line>WINDLEVILLAGE</apd:Line>
                         <apd:Line>WIMBLETOWN</apd:Line>
                         <apd:Line>WINDLE COUNTY</apd:Line>
@@ -1532,51 +1530,6 @@
                 </OccupierContact>
             </AssessmentProperties>
         </ProposedEntries>
-        <ProposedEntries>
-            <AssessmentProperties>
-                <PropertyIdentity>
-                    <bs7666:BS7666Address>
-                        <bs7666:PAON>
-                            <bs7666:StartRange>
-                                <bs7666:Number>74</bs7666:Number>
-                            </bs7666:StartRange>
-                        </bs7666:PAON>
-                        <bs7666:StreetDescription>23 NEW ST</bs7666:StreetDescription>
-                        <bs7666:UniqueStreetReferenceNumber>5386</bs7666:UniqueStreetReferenceNumber>
-                        <bs7666:Town>WIMBLETOWN</bs7666:Town>
-                        <bs7666:AdministrativeArea>WIMBLE COUNTY</bs7666:AdministrativeArea>
-                        <bs7666:PostTown>WINDLETOWN</bs7666:PostTown>
-                        <bs7666:PostCode>YY1 1YY</bs7666:PostCode>
-                    </bs7666:BS7666Address>
-                    <TextAddress>
-                        <AddressLine>44 OLD ST</AddressLine>
-                        <AddressLine>WANDLEVILLAGE</AddressLine>
-                        <AddressLine>WANDLETOWN</AddressLine>
-                        <Postcode>AA1 1AA</Postcode>
-                    </TextAddress>
-                    <BAreference>0006029007400A</BAreference>
-                </PropertyIdentity>
-                <PropertyDescription>
-                    <PropertyDescriptionText>NOT KNOWN</PropertyDescriptionText>
-                </PropertyDescription>
-                <OccupierContact>
-                    <OccupierName>
-                        <pdt:PersonNameTitle>MRS</pdt:PersonNameTitle>
-                        <pdt:PersonGivenName>PETER</pdt:PersonGivenName>
-                        <pdt:PersonFamilyName>WANDLE</pdt:PersonFamilyName>
-                        <pdt:PersonRequestedName>MRS SALLY WIBBLE</pdt:PersonRequestedName>
-                    </OccupierName>
-                    <ContactAddress>
-                        <apd:Line>FAO MR PETER WOBBLE</apd:Line>
-                        <apd:Line>77 MIDDLE ST</apd:Line>
-                        <apd:Line>WINDLEVILLAGE</apd:Line>
-                        <apd:Line>WIMBLETOWN</apd:Line>
-                        <apd:Line>WINDLE COUNTY</apd:Line>
-                        <apd:PostCode>XX1 1XX</apd:PostCode>
-                    </ContactAddress>
-                </OccupierContact>
-            </AssessmentProperties>
-        </ProposedEntries>
         <IndicatedDateOfChange>2017-05-03</IndicatedDateOfChange>
         <Remarks>SOME REMARKS THAT MAY HELP TO
             DESCRIBE THIS PROPERTY REPORT SUBMISSION</Remarks>
@@ -1604,7 +1557,7 @@
                         <bs7666:StreetDescription>23 NEW ST</bs7666:StreetDescription>
                         <bs7666:UniqueStreetReferenceNumber>6913</bs7666:UniqueStreetReferenceNumber>
                         <bs7666:Locality>NORTH LOCALITY</bs7666:Locality>
-                        <bs7666:Town>WIMBLETOWN</bs7666:Town>
+                        <bs7666:Town>WIMBLETOWN£</bs7666:Town>
                         <bs7666:AdministrativeArea>WIMBLE COUNTY</bs7666:AdministrativeArea>
                         <bs7666:PostTown>WINDLETOWN</bs7666:PostTown>
                         <bs7666:PostCode>YY1 1YY</bs7666:PostCode>
@@ -1682,7 +1635,7 @@
         <BAreportNumber>138155</BAreportNumber>
         <TypeOfTax>
             <CtaxReasonForReport>
-                <ReasonForReportCode>CR08</ReasonForReportCode>
+                <ReasonForReportCode>CR05</ReasonForReportCode>
                 <ReasonForReportDescription>RECONSTITUTION(INCLUDING SPLITS/MERGERS)</ReasonForReportDescription>
             </CtaxReasonForReport>
         </TypeOfTax>
@@ -1952,6 +1905,58 @@
                 </OccupierContact>
             </AssessmentProperties>
         </ExistingEntries>
+        <ExistingEntries>
+            <AssessmentProperties>
+                <PropertyIdentity>
+                    <bs7666:BS7666Address>
+                        <bs7666:PAON>
+                            <bs7666:StartRange>
+                                <bs7666:Number>8</bs7666:Number>
+                            </bs7666:StartRange>
+                        </bs7666:PAON>
+                        <bs7666:StreetDescription>23 NEW ST</bs7666:StreetDescription>
+                        <bs7666:UniqueStreetReferenceNumber>12715</bs7666:UniqueStreetReferenceNumber>
+                        <bs7666:Town>WIMBLETOWN</bs7666:Town>
+                        <bs7666:PostTown>WINDLETOWN</bs7666:PostTown>
+                        <bs7666:PostCode>YY1 1YY</bs7666:PostCode>
+                    </bs7666:BS7666Address>
+                    <TextAddress>
+                        <AddressLine>44 OLD ST</AddressLine>
+                        <AddressLine>WANDLEVILLAGE</AddressLine>
+                        <AddressLine>WANDLETOWN</AddressLine>
+                        <Postcode>AA1 1AA</Postcode>
+                    </TextAddress>
+                    <BAreference>00047850217080</BAreference>
+                </PropertyIdentity>
+                <PropertyDescription>
+                    <PropertyDescriptionText>NOT KNOWN</PropertyDescriptionText>
+                </PropertyDescription>
+                <CurrentTax>
+                    <CouncilTaxBand>E</CouncilTaxBand>
+                </CurrentTax>
+                <OccupierContact>
+                    <OccupierName>
+                        <pdt:PersonNameTitle>MRS</pdt:PersonNameTitle>
+                        <pdt:PersonGivenName>PETER</pdt:PersonGivenName>
+                        <pdt:PersonFamilyName>WANDLE</pdt:PersonFamilyName>
+                        <pdt:PersonRequestedName>MRS SALLY WIBBLE</pdt:PersonRequestedName>
+                    </OccupierName>
+                    <ContactAddress>
+                        <apd:Line>FAO MR PETER WOBBLE</apd:Line>
+                        <apd:Line>77 MIDDLE ST</apd:Line>
+                        <apd:Line>WINDLEVILLAGE</apd:Line>
+                        <apd:Line>WIMBLETOWN</apd:Line>
+                        <apd:Line>WINDLE COUNTY</apd:Line>
+                        <apd:PostCode>XX1 1XX</apd:PostCode>
+                    </ContactAddress>
+                    <OccupierContactNos>
+                        <Email>
+                            <apd:EmailAddress>ANON@SOMECONTACT.CO.UK</apd:EmailAddress>
+                        </Email>
+                    </OccupierContactNos>
+                </OccupierContact>
+            </AssessmentProperties>
+        </ExistingEntries>
         <IndicatedDateOfChange>2017-03-09</IndicatedDateOfChange>
         <Remarks>SOME REMARKS THAT MAY HELP TO
             DESCRIBE THIS PROPERTY REPORT SUBMISSION</Remarks>
@@ -2067,7 +2072,7 @@
         <BAreportNumber>138151</BAreportNumber>
         <TypeOfTax>
             <CtaxReasonForReport>
-                <ReasonForReportCode>CR03</ReasonForReportCode>
+                <ReasonForReportCode>CR12</ReasonForReportCode>
                 <ReasonForReportDescription>CHANGE OF ADDRESS</ReasonForReportDescription>
             </CtaxReasonForReport>
         </TypeOfTax>
@@ -2083,7 +2088,7 @@
                                 <bs7666:Number>153</bs7666:Number>
                             </bs7666:StartRange>
                         </bs7666:PAON>
-                        <bs7666:StreetDescription>23 £ NEW ST</bs7666:StreetDescription>
+                        <bs7666:StreetDescription>23 NEW ST</bs7666:StreetDescription>
                         <bs7666:UniqueStreetReferenceNumber>1847</bs7666:UniqueStreetReferenceNumber>
                         <bs7666:Town>WIMBLETOWN</bs7666:Town>
                         <bs7666:PostTown>WINDLETOWN</bs7666:PostTown>
@@ -2227,9 +2232,10 @@
             DESCRIBE THIS PROPERTY REPORT SUBMISSION</Remarks>
     </BApropertyReport>
     <BAreportTrailer>
-        <RecordCount>32£</RecordCount>
+        <RecordCount>32</RecordCount>
+        <IllegalElement>Some text</IllegalElement>
         <EntryDateTime>2017-05-21T22:40:34</EntryDateTime>
-        <TotalNNDRreportCount>0</TotalNNDRreportCount>
+        <TotalNNDRreportCount>0£</TotalNNDRreportCount>
         <TotalCtaxReportCount>32</TotalCtaxReportCount>
     </BAreportTrailer>
 </BAreports>
