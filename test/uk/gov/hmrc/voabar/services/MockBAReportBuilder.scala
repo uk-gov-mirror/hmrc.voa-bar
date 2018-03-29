@@ -40,20 +40,20 @@ class MockBAReportBuilder {
 
     val node =
 
-    <BApropertyReport>
-      <DateSent>2017-03-18</DateSent>
-      <TransactionIdentityBA>16286449061000</TransactionIdentityBA>
-      <BAidentityNumber>{baCode}</BAidentityNumber>
-      <BAreportNumber>118294</BAreportNumber>
-      <TypeOfTax>
-        <CtaxReasonForReport>
-          <ReasonForReportCode>{reasonCode}</ReasonForReportCode>
-          <ReasonForReportDescription>{baReportCodes(reasonCode)}</ReasonForReportDescription>
-        </CtaxReasonForReport>
-      </TypeOfTax>
-      <IndicatedDateOfChange>2017-03-17</IndicatedDateOfChange>
-      <Remarks>Some remarks that help to describe this property report submission</Remarks>
-     </BApropertyReport>
+      <BApropertyReport>
+        <DateSent>2017-03-18</DateSent>
+        <TransactionIdentityBA>16286449061000</TransactionIdentityBA>
+        <BAidentityNumber>{baCode}</BAidentityNumber>
+        <BAreportNumber>118294</BAreportNumber>
+        <TypeOfTax>
+          <CtaxReasonForReport>
+            <ReasonForReportCode>{reasonCode}</ReasonForReportCode>
+            <ReasonForReportDescription>{baReportCodes(reasonCode)}</ReasonForReportDescription>
+          </CtaxReasonForReport>
+        </TypeOfTax>
+        <IndicatedDateOfChange>2017-03-17</IndicatedDateOfChange>
+        <Remarks>Some remarks that help to describe this property report submission</Remarks>
+      </BApropertyReport>
 
     val newNode = concat(NodeSeq.Empty,existingEntries, proposedEntries)
 
@@ -62,8 +62,9 @@ class MockBAReportBuilder {
 
     val root = <BApropertyReport></BApropertyReport>
 
-    def addNode(orig:Node,childs:NodeSeq) = orig match {
-      case Elem(prefix,label,attributes,scope,child@_*) => Elem(prefix,label,attributes,scope,false,child ++ childs: _*)
+     def addNode(root:Node,children:NodeSeq) = root match {
+      case Elem(prefix,label,attributes,scope,child@_*) =>
+        Elem(prefix,label,attributes,scope,false,child ++ children: _*)
     }
     BAPropertyReport(addNode(root,newChilds))
   }
@@ -99,7 +100,6 @@ class MockBAReportBuilder {
     }
     inval(rules.keySet.toList,node.theSeq)
   }
-
 
   private val existingEntries:NodeSeq =
 

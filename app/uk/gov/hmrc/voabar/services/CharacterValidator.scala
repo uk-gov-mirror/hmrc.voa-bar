@@ -16,11 +16,10 @@
 
 package uk.gov.hmrc.voabar.services
 
-import play.api.Logger
 import uk.gov.hmrc.voabar.models.{Error, _}
 
 import scala.util.matching.Regex
-import scala.xml.{Node, NodeSeq}
+import scala.xml.Node
 
 class CharacterValidator {
 

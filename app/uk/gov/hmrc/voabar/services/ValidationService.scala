@@ -17,7 +17,6 @@
 package uk.gov.hmrc.voabar.services
 
 import javax.inject.{Inject, Singleton}
-import play.api.mvc.Request
 import uk.gov.hmrc.voabar.models.{BAPropertyReport, Error}
 
 import scala.xml.Node
@@ -40,12 +39,10 @@ class ValidationService @Inject()(xmlValidator: XmlValidator,
     parsedBatch.toList.flatMap{n => f.flatMap(_.apply(n))}.distinct
   }
 
-
   private def validationBACode(xml:Node): List[Error] = {
 
     businessRules.baIdentityCodeErrors(xml)
   }
-
 
   private def validationSchema(xml:Node):List[Error] = {
     xmlValidator.validate(xml.toString()).toList
@@ -65,5 +62,4 @@ class ValidationService @Inject()(xmlValidator: XmlValidator,
     val reports:Seq[Node] = xml \ "BApropertyReport"
     reports.map(x => BAPropertyReport(x)).flatMap(r => businessRules.reasonForReportErrors(r)).toList
   }
-
 }

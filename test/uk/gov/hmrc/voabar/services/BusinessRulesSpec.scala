@@ -198,21 +198,21 @@ class BusinessRulesSpec extends PlaySpec {
       val validBatch = XML.loadString(batchWith1Report)
       val invalidBatch = reportBuilder.invalidateBatch(validBatch.head,Map("BillingAuthorityIdentityCode" -> ""))
       businessRules("9999").baIdentityCodeErrors(invalidBatch.head) mustBe List(
-        Error("1012", Seq("BAIdentityCode", "BA Code missing from batch submission")))
+        Error("1012", Seq("BAIdentityCode", "BA code missing from batch submission")))
     }
 
     "return a list of 1 error when the BA code in the request header is empty" in {
       val validBatch = XML.loadString(batchWith1Report)
       businessRules.baIdentityCodeErrors(validBatch.head) mustBe List(
-        Error("1011", Seq("BAIdentityCode", "BA Code missing from request header")))
+        Error("1011", Seq("BAIdentityCode", "BA code missing from request header")))
     }
 
     "return a list of 2 errors when the BA code is missing from the request header and the report" in {
       val validBatch = XML.loadString(batchWith1Report)
       val invalidBatch = reportBuilder.invalidateBatch(validBatch.head,Map("BillingAuthorityIdentityCode" -> ""))
       businessRules.baIdentityCodeErrors(invalidBatch.head) mustBe List(
-        Error("1012", Seq("BAIdentityCode", "BA Code missing from batch submission")),
-        Error("1011", Seq("BAIdentityCode", "BA Code missing from request header"))
+        Error("1012", Seq("BAIdentityCode", "BA code missing from batch submission")),
+        Error("1011", Seq("BAIdentityCode", "BA code missing from request header"))
       )
     }
   }

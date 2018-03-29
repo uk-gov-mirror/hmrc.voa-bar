@@ -133,7 +133,7 @@ class ValidationServiceSpec extends PlaySpec {
       )
     }
 
-    "retuwn a ist of errors when a batch containing 32 reports has multiple errors" in {
+    "return a list of errors when a batch containing 32 reports has multiple errors" in {
       val invalidBatch = XML.loadString(batchWith32ReportsWithErrors)
       validationService("5243").validate(invalidBatch.head).size mustBe 19
     }

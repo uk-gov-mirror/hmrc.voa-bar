@@ -74,14 +74,12 @@ class BusinessRules @Inject()()(implicit request:Request[_]) {
   def baIdentityCodeErrors(xml:Node): List[Error] = {
     val lb = new ListBuffer[String]()
     val codeInReport:String = (xml \\ "BillingAuthorityIdentityCode").text
-      if (codeInReport.isEmpty) lb += "1012BA Code missing from batch submission"
+      if (codeInReport.isEmpty) lb += "1012BA code missing from batch submission"
         request.headers.get("BA-Code") match {
           case Some(code) => if (codeInReport.length > 0 && code != codeInReport) lb +=
             "1010BA code in request header does not match with that in the batch report"
-          case None => lb += "1011BA Code missing from request header"
+          case None => lb += "1011BA code missing from request header"
         }
     lb.toList.map{s => Error(s.take(4),Seq("BAIdentityCode",s.drop(4)))}
   }
-
-
 }
