@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.voabar.services
 import javax.inject.{Inject, Singleton}
+import play.api.Logger
 import play.api.mvc.Request
 import uk.gov.hmrc.voabar.models.Error
 import uk.gov.hmrc.voabar.util._
@@ -30,9 +31,13 @@ class BusinessRules @Inject()()(implicit request:Request[_]) {
     (baReport \\ "TypeOfTax" \ "_").headOption match {
       case Some(node) => node.label match {
         case "CtaxReasonForReport" => validateCTaxCode(baReport)
-        case _ => throw new RuntimeException(s"Unsupported tax type: ${node.label} ")
+        case _ =>
+          Logger.warn(s"Unsupported tax type: ${node.label}")
+          throw new RuntimeException(s"Unsupported tax type: ${node.label} ")
       }
-      case None => throw new RuntimeException("Xml element not found: TypeOfTax")
+      case None =>
+        Logger.warn("Xml element not found: TypeOfTax")
+        throw new RuntimeException("Xml element not found: TypeOfTax")
     }
   }
 
