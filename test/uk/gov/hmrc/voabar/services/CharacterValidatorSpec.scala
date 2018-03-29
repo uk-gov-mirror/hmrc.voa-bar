@@ -16,14 +16,12 @@
 
 package uk.gov.hmrc.voabar.services
 
-import java.lang.RuntimeException
 
 import org.apache.commons.io.IOUtils
 import org.scalatestplus.play.PlaySpec
-import uk.gov.hmrc.voabar.models.{BAPropertyReport, BAReportHeader, BAReportTrailer}
 import uk.gov.hmrc.voabar.models.Error
 
-import scala.xml.{Node, NodeSeq, XML}
+import scala.xml.{NodeSeq, XML}
 
 class CharacterValidatorSpec extends PlaySpec {
 
@@ -67,10 +65,8 @@ class CharacterValidatorSpec extends PlaySpec {
   val xmlParser = new XmlParser
   val reportBuilder = new MockBAReportBuilder
 
-  val valid2 = xmlParser.fromXml(IOUtils.toString(getClass.getResource("/xml/CTValid2.xml")))
   val ctValid2 = XML.loadString(IOUtils.toString(getClass.getResource("/xml/CTValid2.xml")))
   val invalid2 = IOUtils.toString(getClass.getResource("/xml/CTInvalid2.xml"))
-  val fakeBatch = xmlParser.fromXml(validTestBatchXml)
 
 
     "The character validator" must {

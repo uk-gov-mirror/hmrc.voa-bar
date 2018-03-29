@@ -17,7 +17,7 @@
 package uk.gov.hmrc.voabar.services
 import javax.inject.{Inject, Singleton}
 import play.api.mvc.Request
-import uk.gov.hmrc.voabar.models.{BAPropertyReport, Error}
+import uk.gov.hmrc.voabar.models.Error
 
 import scala.collection.mutable.ListBuffer
 import scala.xml._
@@ -25,10 +25,10 @@ import scala.xml._
 @Singleton
 class BusinessRules @Inject()()(implicit request:Request[_]) {
 
-  def reasonForReportErrors(baReport:BAPropertyReport):List[Error] = {
-    (baReport.node \\ "TypeOfTax" \ "_").headOption match {
+  def reasonForReportErrors(baReport:NodeSeq):List[Error] = {
+    (baReport \\ "TypeOfTax" \ "_").headOption match {
       case Some(node) => node.label match {
-        case "CtaxReasonForReport" => validateCTaxCode(baReport.node)
+        case "CtaxReasonForReport" => validateCTaxCode(baReport)
         case _ => throw new RuntimeException(s"Unsupported tax type: ${node.label} ")
       }
       case None => throw new RuntimeException("Xml element not found: TypeOfTax")

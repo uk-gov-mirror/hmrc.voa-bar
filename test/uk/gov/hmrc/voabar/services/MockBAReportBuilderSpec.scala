@@ -30,22 +30,22 @@ class MockBAReportBuilderSpec extends PlaySpec{
   "A mock BA property report" must {
 
     "contain the reason for report code specified" in {
-      val reasonCode: String = (reportBuilder("CR03", 1000, 1, 0).node \\ "ReasonForReportCode").text
+      val reasonCode: String = (reportBuilder("CR03", 1000, 1, 0) \\ "ReasonForReportCode").text
       reasonCode mustBe "CR03"
     }
 
     "contain the corresponding reason for report description for a given reason code" in {
-      val reasonDescription: String = (reportBuilder("CR05", 1000, 1, 1).node \\ "ReasonForReportDescription").text
+      val reasonDescription: String = (reportBuilder("CR05", 1000, 1, 1) \\ "ReasonForReportDescription").text
       reasonDescription mustBe "Reconstituted Property"
     }
 
     "contain the BA code specified" in {
-      val baCode: String = (reportBuilder("CR03", 1000, 1, 0).node \\ "BAidentityNumber").text
+      val baCode: String = (reportBuilder("CR03", 1000, 1, 0) \\ "BAidentityNumber").text
       baCode mustBe "1000"
     }
 
     "contain the number of existing entries and proposed entries specified" in {
-      val baPropertyReport: NodeSeq = reportBuilder("CR03", 1000, 3, 0).node
+      val baPropertyReport: NodeSeq = reportBuilder("CR03", 1000, 3, 0)
       val existingEntries = baPropertyReport \\ "ExistingEntries"
       val proposedEntries = baPropertyReport \\ "ProposedEntries"
       existingEntries.size mustBe 3

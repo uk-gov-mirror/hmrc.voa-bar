@@ -16,10 +16,6 @@
 
 package uk.gov.hmrc.voabar.services
 
-import org.apache.commons.io.IOUtils
-import play.api.libs.iteratee.Input.Empty
-import uk.gov.hmrc.voabar.models.BAPropertyReport
-
 import scala.xml._
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 
@@ -36,7 +32,7 @@ class MockBAReportBuilder {
     "CR99" -> "NOT A VOA CODE - USED FOR TEST PURPOSES"
   )
 
-  def apply(reasonCode:String, baCode:Int, existingEntries:Int, proposedEntries:Int):BAPropertyReport = {
+  def apply(reasonCode:String, baCode:Int, existingEntries:Int, proposedEntries:Int):NodeSeq = {
 
     val node =
 
@@ -66,7 +62,7 @@ class MockBAReportBuilder {
       case Elem(prefix,label,attributes,scope,child@_*) =>
         Elem(prefix,label,attributes,scope,false,child ++ children: _*)
     }
-    BAPropertyReport(addNode(root,newChilds))
+    addNode(root,newChilds)
   }
 
   private def concat(node:NodeSeq, existing:Int, proposed:Int):NodeSeq = existing match {

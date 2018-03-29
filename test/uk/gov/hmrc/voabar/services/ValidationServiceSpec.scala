@@ -18,7 +18,6 @@ package uk.gov.hmrc.voabar.services
 
 import org.apache.commons.io.IOUtils
 import org.scalatestplus.play.PlaySpec
-import play.api.mvc.{AnyContent, Request}
 import play.api.test.FakeRequest
 import uk.gov.hmrc.voabar.models.Error
 
@@ -43,7 +42,6 @@ class ValidationServiceSpec extends PlaySpec {
 
   "Validation service" must {
 
-
     "return an empty list (no errors) when passed a valid batch with one report" in {
         val validBatch:Node = XML.loadString(batchWith1Report)
         validationService("9999").validate(validBatch).isEmpty mustBe true
@@ -58,8 +56,6 @@ class ValidationServiceSpec extends PlaySpec {
       val validBatch:Node = XML.loadString(batchWith32Reports)
       validationService("5243").validate(validBatch).isEmpty mustBe true
     }
-
-
 
     "return a list of 1 error when the BACode in the report header does " +
       "not match that in the HTTP request header" in {
@@ -121,7 +117,6 @@ class ValidationServiceSpec extends PlaySpec {
       )
     }
 
-
     "return a list of 1 error when a batch containing 1 report has an illegal char within the property report" in {
       val validBatch = XML.loadString(batchWith1Report)
       val invalidBatch = reportBuilder.invalidateBatch(validBatch.head, Map(
@@ -137,6 +132,5 @@ class ValidationServiceSpec extends PlaySpec {
       val invalidBatch = XML.loadString(batchWith32ReportsWithErrors)
       validationService("5243").validate(invalidBatch.head).size mustBe 19
     }
-
   }
 }

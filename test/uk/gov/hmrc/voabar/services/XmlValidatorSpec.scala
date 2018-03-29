@@ -17,8 +17,6 @@
 package uk.gov.hmrc.voabar.services
 
 import org.apache.commons.io.IOUtils
-import org.scalatest.Matchers._
-import org.scalatest.WordSpec
 import org.scalatestplus.play.PlaySpec
 
 import scala.xml.{Node, XML}
@@ -88,12 +86,6 @@ class XmlValidatorSpec extends PlaySpec {
           "ProcessDate" -> "BadElement"))
         val batch = parser.oneReportPerBatch(invalidReport.head)
         batch.map(b => validator.validate(b.toString)).size mustBe 4
-
     }
   }
-
-
-
-
-
 }

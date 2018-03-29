@@ -18,7 +18,6 @@ package uk.gov.hmrc.voabar.services
 
 import java.io.Reader
 
-import org.mockito.Mockito
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 
