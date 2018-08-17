@@ -19,7 +19,7 @@ package uk.gov.hmrc.voabar.services
 import org.apache.commons.io.IOUtils
 import org.scalatestplus.play.PlaySpec
 
-import scala.xml.{Node, XML}
+import scala.xml.{Node, SAXParseException, XML}
 
 class XmlValidatorSpec extends PlaySpec {
 
@@ -31,6 +31,9 @@ class XmlValidatorSpec extends PlaySpec {
   val valid2 = IOUtils.toString(getClass.getResource("/xml/CTValid2.xml"))
   val invalid1 = IOUtils.toString(getClass.getResource("/xml/CTInvalid1.xml"))
   val invalid2 = IOUtils.toString(getClass.getResource("/xml/CTInvalid2.xml"))
+
+  val invalidXXE = IOUtils.toString(getClass.getResource("/xml/CTValidWithXXE.xml"))
+  val invalidXXE2 = IOUtils.toString(getClass.getResource("/xml/WithXXE.xml"))
 
   "A valid ba batch submission xml file (valid1)" must {
     "validate successfully" in {
@@ -61,6 +64,19 @@ class XmlValidatorSpec extends PlaySpec {
     }
   }
 
+  "An invalid ba batch submission xml file" must {
+    "not validate successfully when it vulnerable to XXE" in {
+      val errors = validator.validate(invalidXXE)
+      errors.size mustBe 1
+      assert(errors.toString.contains("DOCTYPE is disallowed"))
+    }
+    "Show that XML tries to access file system with malicious payload" in {
+      intercept[SAXParseException] {
+        XML.loadString(invalidXXE2)
+      }
+    }
+  }
+
   "A valid batch submission containing 4 reports (valid2)" must {
     "validate successfully when parsed into smaller batches" in {
       val report:Node = XML.loadString(valid2)
@@ -88,4 +104,5 @@ class XmlValidatorSpec extends PlaySpec {
         batch.map(b => validator.validate(b.toString)).size mustBe 4
     }
   }
+
 }

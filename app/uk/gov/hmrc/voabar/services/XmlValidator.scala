@@ -34,13 +34,9 @@ class XmlValidator {
   val schema = factory.newSchema(schemaFile1)
 
   def validate(xml: String):Seq[Error] = {
-    val documentBuilderFactory = DocumentBuilderFactory.newInstance
-    documentBuilderFactory.setNamespaceAware(true)
-    val parser = documentBuilderFactory.newDocumentBuilder
-
     val errors = scala.collection.mutable.Buffer.empty[Error]
 
-    val errorHandler = new ErrorHandler {
+    val errorHandler: ErrorHandler = new ErrorHandler {
       private def addError(exception: SAXParseException) {
         val split = exception.getMessage.split(":", 2) map (_.trim)
         errors += Error(split(0), Seq(split(1)))
@@ -59,16 +55,28 @@ class XmlValidator {
       }
     }
 
-    parser.setErrorHandler(errorHandler)
+    try {
+      val documentBuilderFactory = DocumentBuilderFactory.newInstance
+      documentBuilderFactory.setNamespaceAware(true)
+      documentBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
+      documentBuilderFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false)
+      documentBuilderFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
+      documentBuilderFactory.setFeature("http://xml.org/sax/features/external-general-entities",false)
+      documentBuilderFactory.setExpandEntityReferences(false) //XXE vulnerable fix
 
-    val document = parser.parse(new ByteArrayInputStream(xml.getBytes))
+      val parser = documentBuilderFactory.newDocumentBuilder
 
-    val validator = schema.newValidator
+      parser.setErrorHandler(errorHandler)
+      val document = parser.parse(new ByteArrayInputStream(xml.getBytes))
 
-    validator.setErrorHandler(errorHandler)
+      val validator = schema.newValidator
 
-    validator.validate(new DOMSource(document))
+      validator.setErrorHandler(errorHandler)
 
-    Seq(errors: _*)
+      validator.validate(new DOMSource(document))
+    } catch {
+      case _: Throwable => None
+    }
+    errors
   }
 }
