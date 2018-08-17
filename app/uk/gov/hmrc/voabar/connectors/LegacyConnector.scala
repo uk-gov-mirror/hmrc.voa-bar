@@ -55,7 +55,7 @@ class LegacyConnector @Inject()(val http: HttpClient,
   def validate(loginDetails: LoginDetails)(implicit ec: ExecutionContext): Future[Try[Int]] = {
     implicit val authHc = generateHeader(loginDetails)
 
-    http.GET("https://batransandbareports.voa.gov.uk/ebars_dmz_pres_ApplicationWeb/Welcome.do").map { response =>
+    http.GET("http://localhost:8892/autobars-legacy-ebars/ebars_dmz_pres_ApplicationWeb/Welcome.do").map { response =>
       response.status match {
         case(200) => Success(200)
         case status => Failure(new RuntimeException("Login attempt fails with username = " + loginDetails.username + ", password = " + loginDetails.password))
