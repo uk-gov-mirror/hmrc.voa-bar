@@ -16,8 +16,8 @@
 
 package uk.gov.hmrc.voabar.connectors
 
+import com.typesafe.config.ConfigException
 import javax.inject.{Inject, Singleton}
-
 import org.apache.commons.codec.binary.Base64
 import play.api.Mode.Mode
 import play.api.{Configuration, Environment, Logger}
@@ -43,6 +43,12 @@ class LegacyConnector @Inject()(val http: HttpClient,
 
   lazy val crypto = ApplicationCrypto.JsonCrypto
 
+  val legacyConnectorUrlPath = "legacy-ebars-client.baseUrl"
+  val baseUrl = runModeConfiguration.getString(legacyConnectorUrlPath) match {
+    case Some(url) => url
+    case _ => throw new ConfigException.Missing(legacyConnectorUrlPath)
+  }
+
   def decryptPassword(password: String) : String = crypto.decrypt(Crypted(password)).value
 
 
@@ -55,7 +61,7 @@ class LegacyConnector @Inject()(val http: HttpClient,
   def validate(loginDetails: LoginDetails)(implicit ec: ExecutionContext): Future[Try[Int]] = {
     implicit val authHc = generateHeader(loginDetails)
 
-    http.GET("https://batransandbareports.voa.gov.uk/ebars_dmz_pres_ApplicationWeb/Welcome.do").map { response =>
+    http.GET(s"${baseUrl}/ebars_dmz_pres_ApplicationWeb/Welcome.do").map { response =>
       response.status match {
         case(200) => Success(200)
         case status => Failure(new RuntimeException("Login attempt fails with username = " + loginDetails.username + ", password = " + loginDetails.password))
