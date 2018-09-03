@@ -50,12 +50,14 @@ class LegacyConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with Mockito
   val configuration = injector.instanceOf[Configuration]
   val environment = injector.instanceOf[Environment]
   val crypto = new ApplicationCryptoDI(configuration).JsonCrypto
+  implicit val hc = mock[HeaderCarrier]
 
   val username = "ba0121"
   val password = "wibble"
   val encryptedPassword = crypto.encrypt(PlainText(password)).value
 
   val goodLogin = LoginDetails(username, encryptedPassword)
+  val baReport = "BAReport"
 
   def getHttpMock(returnedStatus: Int): HttpClient = {
     val httpMock = mock[HttpClient]
@@ -67,7 +69,7 @@ class LegacyConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with Mockito
 
   "decryptPassword" must {
     "Decrypt the  encrypted password and return it in plain text" in {
-      val httpMock = getHttpMock(200)
+      val httpMock = getHttpMock(Status.OK)
       val connector = new LegacyConnector(httpMock, configuration, environment)
       val decryptedPassword = connector.decryptPassword(encryptedPassword)
       decryptedPassword mustBe password
@@ -76,17 +78,36 @@ class LegacyConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with Mockito
 
   "LegacyConnector " must {
     "Send the contact details returning a 200 when it succeeds" in {
-      val httpMock = getHttpMock(200)
+      val httpMock = getHttpMock(Status.OK)
       val connector = new LegacyConnector(httpMock, configuration, environment)
       val result = await(connector.validate(goodLogin))
       result.isSuccess mustBe true
-      result.get mustBe 200
+      result.get mustBe Status.OK
     }
 
-    "return a failure representing the error when send method fails" in {
-      val httpMock = getHttpMock(500)
+    "return a failure representing the error when the send contact details method fails" in {
+      val httpMock = getHttpMock(Status.INTERNAL_SERVER_ERROR)
       val connector = new LegacyConnector(httpMock, configuration, environment)
       val result = await(connector.validate(goodLogin))
+
+      result.isFailure mustBe true
+    }
+
+    "return a 200 when an BA report upload request is successful" in {
+      val httpMock = getHttpMock(Status.OK)
+      val connector = new LegacyConnector(httpMock, configuration, environment)
+
+      val result = await(connector.sendBAReport(baReport))
+
+      result.isSuccess mustBe true
+      result.get mustBe Status.OK
+    }
+
+    "return an internal servererror when an BA report upload request fails" in {
+      val httpMock = getHttpMock(Status.INTERNAL_SERVER_ERROR)
+      val connector = new LegacyConnector(httpMock, configuration, environment)
+
+      val result = await(connector.sendBAReport(baReport))
 
       result.isFailure mustBe true
     }
@@ -96,7 +117,7 @@ class LegacyConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with Mockito
         implicit val headerCarrierNapper = ArgumentCaptor.forClass(classOf[HeaderCarrier])
         implicit val httpReadsNapper = ArgumentCaptor.forClass(classOf[HttpReads[Any]])
         val urlCaptor = ArgumentCaptor.forClass(classOf[String])
-        val httpMock = getHttpMock(200)
+        val httpMock = getHttpMock(Status.OK)
 
         val connector = new LegacyConnector(httpMock, configuration, environment)
         connector.validate(goodLogin)
@@ -106,14 +127,14 @@ class LegacyConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with Mockito
       }
 
       "return a 200 if the data transfer call is successful" in {
-        val connector = new LegacyConnector(getHttpMock(200), configuration, environment)
+        val connector = new LegacyConnector(getHttpMock(Status.OK), configuration, environment)
         val result = await(connector.validate(goodLogin))
         result.isSuccess mustBe true
-        result.get mustBe 200
+        result.get mustBe Status.OK
       }
 
       "throw an failure if the data transfer call fails" in {
-        val connector = new LegacyConnector(getHttpMock(500), configuration, environment)
+        val connector = new LegacyConnector(getHttpMock(Status.INTERNAL_SERVER_ERROR), configuration, environment)
         val result = await(connector.validate(goodLogin))
         assert(result.isFailure)
       }
@@ -131,7 +152,7 @@ class LegacyConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with Mockito
   "The generateHeaderCarrier method " must {
 
     "include some basic authorization in the header" in {
-      val httpMock = getHttpMock(200)
+      val httpMock = getHttpMock(Status.OK)
       val connector = new LegacyConnector(httpMock, configuration, environment)
       val hc = connector.generateHeader(goodLogin)
 

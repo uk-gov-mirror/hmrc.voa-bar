@@ -21,6 +21,7 @@ import javax.inject.{Inject, Singleton}
 import org.apache.commons.codec.binary.Base64
 import play.api.Mode.Mode
 import play.api.{Configuration, Environment, Logger}
+import play.mvc.Http.Status
 import uk.gov.hmrc.crypto.{ApplicationCrypto, Crypted}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
@@ -70,6 +71,19 @@ class LegacyConnector @Inject()(val http: HttpClient,
       case ex =>
         Logger.warn("Legacy validation fails with exception " + ex.getMessage)
         Failure(new RuntimeException("Legacy validation fails with exception " + ex.getMessage))
+    }
+  }
+
+  def sendBAReport(baReports: Any)(implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Try[Int]] = {
+    http.POST(s"${baseUrl}/ebars_dmz_pres_ApplicationWeb/UploadAction.do", "", Seq()).map{ response =>
+      response.status match {
+        case(Status.OK) => Success(Status.OK)
+      }
+    } recover {
+      case ex =>
+        val errorMsg = "Couldn't send BA Reports"
+        Logger.warn(s"$errorMsg\n${ex.getMessage}")
+        Failure(new RuntimeException(errorMsg))
     }
   }
 }
