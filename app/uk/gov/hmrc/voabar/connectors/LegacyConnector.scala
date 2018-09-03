@@ -27,7 +27,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.http.logging._
-import uk.gov.hmrc.voabar.models.LoginDetails
+import uk.gov.hmrc.voabar.models.{BAReport, LoginDetails}
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
@@ -42,10 +42,10 @@ class LegacyConnector @Inject()(val http: HttpClient,
 
   override protected def runModeConfiguration: Configuration = configuration
 
-  lazy val crypto = ApplicationCrypto.JsonCrypto
+  private lazy val crypto = ApplicationCrypto.JsonCrypto
 
-  val legacyConnectorUrlPath = "legacy-ebars-client.baseUrl"
-  val baseUrl = runModeConfiguration.getString(legacyConnectorUrlPath) match {
+  private val legacyConnectorUrlPath = "legacy-ebars-client.baseUrl"
+  private val baseUrl = runModeConfiguration.getString(legacyConnectorUrlPath) match {
     case Some(url) => url
     case _ => throw new ConfigException.Missing(legacyConnectorUrlPath)
   }
@@ -64,8 +64,8 @@ class LegacyConnector @Inject()(val http: HttpClient,
 
     http.GET(s"${baseUrl}/ebars_dmz_pres_ApplicationWeb/Welcome.do").map { response =>
       response.status match {
-        case(200) => Success(200)
-        case status => Failure(new RuntimeException("Login attempt fails with username = " + loginDetails.username + ", password = " + loginDetails.password))
+        case(Status.OK) => Success(Status.OK)
+        case _ => Failure(new RuntimeException("Login attempt fails with username = " + loginDetails.username + ", password = " + loginDetails.password))
       }
     } recover {
       case ex =>
@@ -74,8 +74,20 @@ class LegacyConnector @Inject()(val http: HttpClient,
     }
   }
 
-  def sendBAReport(baReports: Any)(implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Try[Int]] = {
-    http.POST(s"${baseUrl}/ebars_dmz_pres_ApplicationWeb/UploadAction.do", "", Seq()).map{ response =>
+  private val X_EBARS_USERNAME = "X-ebars-username"
+  private val X_EBARS_PASSWORD = "X-ebars-password"
+  private val X_EBARS_ATTEMPT = "X-ebars-attempt"
+  private val X_EBARS_UUID = "X-ebars-uuid"
+  def sendBAReport(baReport: BAReport)(implicit ec: ExecutionContext): Future[Try[Int]] = {
+    implicit val authHc = generateHeader(LoginDetails(baReport.username, baReport.password))
+    http.POST(s"${baseUrl}/ebars_dmz_pres_ApplicationWeb/UploadAction.do",
+      baReport.propertyReport,
+      Seq(
+        X_EBARS_USERNAME -> baReport.username,
+        X_EBARS_PASSWORD -> baReport.password,
+        X_EBARS_ATTEMPT -> s"${baReport.attempt}",
+        X_EBARS_UUID -> baReport.uuid)
+    ).map{ response =>
       response.status match {
         case(Status.OK) => Success(Status.OK)
       }
