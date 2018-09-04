@@ -23,25 +23,16 @@ import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.{Configuration, Environment}
-import uk.gov.hmrc.play.test.{UnitSpec, WithFakeApplication}
-import play.api.http.Status
-import play.api.test.FakeRequest
 import play.api.http.Status
 import play.api.inject.Injector
 import play.api.libs.json.{JsValue, Writes}
-import play.api.test.FakeRequest
 import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
-import uk.gov.hmrc.play.test.UnitSpec
-import uk.gov.hmrc.play.test.WithFakeApplication
-import uk.gov.hmrc.play.test.{UnitSpec, WithFakeApplication}
 import uk.gov.hmrc.voabar.models.LoginDetails
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
 import scala.concurrent.ExecutionContext.Implicits.global
 import play.api.test.Helpers._
-import org.apache.commons.codec.binary.Base64
 import uk.gov.hmrc.crypto.{ApplicationCryptoDI, PlainText}
 import uk.gov.hmrc.voabar.Utils
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
@@ -53,8 +44,8 @@ class LegacyConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with Mockito
   private def injector: Injector = app.injector
   private val configuration = injector.instanceOf[Configuration]
   private val environment = injector.instanceOf[Environment]
-  private val utils = injector.instanceOf[Utils]
   private val crypto = new ApplicationCryptoDI(configuration).JsonCrypto
+  private val utils = new Utils(crypto)
   private implicit val hc = mock[HeaderCarrier]
 
   private val username = "ba0121"
@@ -75,15 +66,6 @@ class LegacyConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with Mockito
     when(httpMock.GET(anyString)(any[HttpReads[Any]], any[HeaderCarrier], any())) thenReturn Future.successful(HttpResponse(returnedStatus, None))
     httpMock
   }
-
-//  "decryptPassword" must {
-//    "Decrypt the  encrypted password and return it in plain text" in {
-//      val httpMock = getHttpMock(Status.OK)
-//      val connector = new LegacyConnector(httpMock, configuration, utils, environment)
-//      val decryptedPassword = connector.decryptPassword(encryptedPassword)
-//      decryptedPassword mustBe password
-//    }
-//  }
 
   "LegacyConnector " must {
     "Send the contact details returning a 200 when it succeeds" in {
@@ -163,22 +145,4 @@ class LegacyConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with Mockito
       }
     }
   }
-
-//  "The generateHeaderCarrier method " must {
-
-//    "include some basic authorization in the header" in {
-//      val httpMock = getHttpMock(Status.OK)
-//      val connector = new LegacyConnector(httpMock, configuration, utils, environment)
-//      val hc = connector.generateHeader(goodLogin)
-//
-//      val encodedAuthHeader = Base64.encodeBase64String(s"${goodLogin.username}:${password}".getBytes("UTF-8"))
-//
-//      hc.authorization match {
-//        case Some(s) => hc.authorization.isDefined mustBe true
-//          s.toString.equals(s"Authorization(Basic ${encodedAuthHeader})") mustBe true
-//        case _ => assert(false)
-//      }
-//    }
-//  }
-
 }

@@ -22,7 +22,6 @@ import play.api.mvc.{Action, AnyContent, Request, Result}
 import services.EbarsValidator
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
-import uk.gov.hmrc.voabar.Utils
 import uk.gov.hmrc.voabar.connectors.LegacyConnector
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 import uk.gov.hmrc.voabar.services.{ReportStatusHistoryService}
@@ -33,8 +32,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class UploadController @Inject()(
                                   historyService: ReportStatusHistoryService,
                                   legacyConnector: LegacyConnector,
-                                  ebarsValidator: EbarsValidator,
-                                  utils: Utils
+                                  ebarsValidator: EbarsValidator
                                 )
                                 (implicit ec: ExecutionContext) extends BaseController {
 

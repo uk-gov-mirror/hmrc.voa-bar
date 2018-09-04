@@ -17,19 +17,17 @@
 package uk.gov.hmrc.voabar
 
 import org.apache.commons.codec.binary.Base64
-import uk.gov.hmrc.crypto.{ApplicationCrypto, Crypted}
+import uk.gov.hmrc.crypto.{CompositeSymmetricCrypto, Crypted}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.logging.Authorization
 import uk.gov.hmrc.voabar.models.LoginDetails
-import javax.inject.Singleton
+import javax.inject.{Inject, Singleton}
 
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class Utils {
-  private lazy val crypto = ApplicationCrypto.JsonCrypto
+class Utils @Inject() (crypto: CompositeSymmetricCrypto) {
   def decryptPassword(password: String) : String = crypto.decrypt(Crypted(password)).value
-
 
   def generateHeader(loginDetails: LoginDetails)(implicit ec: ExecutionContext): HeaderCarrier = {
     val decryptedPassword = decryptPassword(loginDetails.password)

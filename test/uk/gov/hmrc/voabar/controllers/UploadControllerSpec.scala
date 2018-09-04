@@ -25,7 +25,6 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers.{status, _}
 import play.mvc.Http.Status
 import services.EbarsValidator
-import uk.gov.hmrc.voabar.Utils
 import uk.gov.hmrc.voabar.connectors.LegacyConnector
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 import uk.gov.hmrc.voabar.models.{Error, ReportStatus}
@@ -75,8 +74,7 @@ class UploadControllerSpec extends PlaySpec with MockitoSugar {
   val fakeEbarsValidator = mock[EbarsValidator]
   when(fakeEbarsValidator.fromXml(any[String])) thenReturn(mock[BAreports])
   when(fakeEbarsValidator.toJson(any[BAreports])) thenReturn("")
-  val utils = new Utils()
-  val controller = new UploadController(fakeHistoryService, fakeLegacyConnector, fakeEbarsValidator, utils)
+  val controller = new UploadController(fakeHistoryService, fakeLegacyConnector, fakeEbarsValidator)
 
   def fakeRequestWithXML = {
     val xmlNode = """<xml>Wibble</xml>"""
