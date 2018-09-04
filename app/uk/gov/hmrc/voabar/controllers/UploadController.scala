@@ -90,13 +90,7 @@ class UploadController @Inject()(
 
     def ran = scala.util.Random.nextInt(chars.size)
 
-    s"$baCode-${
-      System.currentTimeMillis()
-    }-${
-      chars(ran)
-    }${
-      chars(ran)
-    }"
+    s"$baCode-${System.currentTimeMillis()}-${chars(ran)}${chars(ran)}"
   }
 
 }
