@@ -17,29 +17,34 @@
 package uk.gov.hmrc.voabar.controllers
 
 import javax.inject.{Inject, Singleton}
-import play.api.mvc.{Action, AnyContent}
+import play.api.Logger
+import play.api.mvc.{Action, AnyContent, Request, Result}
+import services.EbarsValidator
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import uk.gov.hmrc.voabar.Utils
 import uk.gov.hmrc.voabar.connectors.LegacyConnector
-import uk.gov.hmrc.voabar.models.BAReport
-import uk.gov.hmrc.voabar.services.ReportStatusHistoryService
+import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
+import uk.gov.hmrc.voabar.services.{ReportStatusHistoryService}
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class UploadController @Inject()(
                                   historyService: ReportStatusHistoryService,
-                                  legacyConnector: LegacyConnector
+                                  legacyConnector: LegacyConnector,
+                                  utils: Utils
                                 )
                                 (implicit ec: ExecutionContext) extends BaseController {
 
   def checkXml(node: String, baCode: String, password: String, submissionId: String): Future[Unit] = {
-    Thread.sleep(10)
-    historyService.reportCheckedWithNoErrorsFound(baCode, submissionId)
-    historyService.reportForwarded(baCode, submissionId)
-    Future.successful(())
+    for {
+      _ <- historyService.reportCheckedWithNoErrorsFound(baCode, submissionId)
+      _ <- historyService.reportForwarded(baCode, submissionId)
+    } yield ()
   }
 
-  def upload(): Action[AnyContent] = Action.async(parse.text) { implicit request =>
+  def upload(): Action[AnyContent] = Action.async(parse.anyContent) { implicit request =>
     val headers = request.headers
     headers.get("Content-Type") match {
       case Some(content) if content == "text/plain" =>
@@ -47,17 +52,7 @@ class UploadController @Inject()(
           case Some(baCode) =>
             headers.get("password") match {
               case Some(pass) => {
-                val xml = request.body
-                val id = generateSubmissionID(baCode)
-                for {
-                  _ <- historyService.reportSubmitted(baCode, id)
-                  _ <- checkXml(xml, baCode, pass, id)
-                } yield (
-                legacyConnector.sendBAReport(BAReport(id, xml, baCode, pass, 1))
-                  .map(_ => Ok(id))
-                  .recover {
-                    case ex: Throwable => InternalServerError()
-                  })
+                process(request, baCode, pass)
               }
               case None => Future(Unauthorized)
             }
@@ -65,6 +60,30 @@ class UploadController @Inject()(
         }
       case Some(_) => Future(UnsupportedMediaType)
       case None => Future(BadRequest)
+    }
+  }
+
+  private lazy val ebarsValidator = new EbarsValidator()
+  private def process(request: Request[AnyContent], baCode: String, pass: String)(implicit hc: HeaderCarrier): Future[Result] = {
+    request.body.asText match {
+      case Some(xml) => {
+        val id = generateSubmissionID(baCode)
+          .replace("\\n", "")
+        for {
+          _ <- historyService.reportSubmitted(baCode, id)
+          _ <- checkXml(xml, baCode, pass, id)
+          result <-
+            legacyConnector.sendBAReport(BAReportRequest(id, ebarsValidator.toJson(ebarsValidator.fromXml(xml)), baCode, pass))
+              .map(_ => Ok(id))
+              .recover {
+                case ex: Throwable => {
+                  Logger.warn(s"Error while processing xml: \n$xml", ex)
+                  InternalServerError
+                }
+              }
+        } yield result
+      }
+      case _ => Future(BadRequest)
     }
   }
 

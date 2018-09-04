@@ -19,13 +19,11 @@ package uk.gov.hmrc.voabar.controllers
 import javax.inject.{Inject, Singleton}
 import play.api.Logger
 import play.api.mvc.{Action, AnyContent}
-import play.api.mvc.Results._
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
 
 import scala.concurrent.Future
 import uk.gov.hmrc.voabar.models.LoginDetails
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
-import uk.gov.hmrc.play.HeaderCarrierConverter
 import uk.gov.hmrc.voabar.connectors.LegacyConnector
 
 import scala.util.{Failure, Success}
@@ -63,9 +61,4 @@ class LoginController @Inject()(val legacyConnector: LegacyConnector) extends Ba
       }
     }
   }
-
-//  def upload(): Action[AnyContent] = Action.async { implicit request =>
-//    implicit val hc = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
-//    NoContent
-//  }
 }

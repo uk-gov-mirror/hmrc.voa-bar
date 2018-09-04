@@ -13,9 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package uk.gov.hmrc.voabar.models
 
 import uk.gov.hmrc.http.HeaderCarrier
 
+object EbarsRequests {
+  case class BAReportRequest(
+                              uuid: String,
+                              propertyReport: String,
+                              username: String,
+                              password: String,
+                              attempt: Int = 1)
+                            (implicit val hc: HeaderCarrier)
 
-case class BAReport(uuid: String, propertyReport: String, username: String, password: String, attempt: Int)(implicit val hc: HeaderCarrier)
+}
