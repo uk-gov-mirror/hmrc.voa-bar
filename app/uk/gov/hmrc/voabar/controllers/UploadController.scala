@@ -33,6 +33,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class UploadController @Inject()(
                                   historyService: ReportStatusHistoryService,
                                   legacyConnector: LegacyConnector,
+                                  ebarsValidator: EbarsValidator,
                                   utils: Utils
                                 )
                                 (implicit ec: ExecutionContext) extends BaseController {
@@ -63,7 +64,6 @@ class UploadController @Inject()(
     }
   }
 
-  private lazy val ebarsValidator = new EbarsValidator()
   private def process(request: Request[AnyContent], baCode: String, pass: String)(implicit hc: HeaderCarrier): Future[Result] = {
     request.body.asText match {
       case Some(xml) => {

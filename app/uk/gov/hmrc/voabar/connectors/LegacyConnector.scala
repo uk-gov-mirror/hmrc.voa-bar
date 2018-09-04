@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.voabar.connectors
 
+import com.google.inject.ImplementedBy
 import com.typesafe.config.ConfigException
 import javax.inject.{Inject, Singleton}
 import play.api.Mode.Mode
@@ -25,14 +26,14 @@ import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.voabar.Utils
 import uk.gov.hmrc.voabar.models.EbarsRequests._
-import uk.gov.hmrc.voabar.models.{LoginDetails}
+import uk.gov.hmrc.voabar.models.LoginDetails
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class LegacyConnector @Inject()(val http: HttpClient,
+class DefaultLegacyConnector @Inject()(val http: HttpClient,
                                 val configuration: Configuration,
                                 utils: Utils,
                                 environment: Environment) extends ServicesConfig {
@@ -89,3 +90,8 @@ class LegacyConnector @Inject()(val http: HttpClient,
   }
 }
 
+@ImplementedBy(classOf[DefaultLegacyConnector])
+trait LegacyConnector {
+  def validate(loginDetails: LoginDetails)(implicit ec: ExecutionContext): Future[Try[Int]]
+  def sendBAReport(baReport: BAReportRequest)(implicit ec: ExecutionContext): Future[Try[Int]]
+}

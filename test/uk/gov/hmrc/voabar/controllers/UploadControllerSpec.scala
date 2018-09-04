@@ -16,14 +16,24 @@
 
 package uk.gov.hmrc.voabar.controllers
 
+import ebars.xml.BAreports
+import org.mockito.Mockito.when
+import org.mockito.Matchers.any
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status, _}
+import play.mvc.Http.Status
+import services.EbarsValidator
+import uk.gov.hmrc.voabar.Utils
+import uk.gov.hmrc.voabar.connectors.LegacyConnector
+import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 import uk.gov.hmrc.voabar.models.{Error, ReportStatus}
 import uk.gov.hmrc.voabar.services.ReportStatusHistoryService
 
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.Success
 
 
 class UploadControllerSpec extends PlaySpec with MockitoSugar {
@@ -60,7 +70,13 @@ class UploadControllerSpec extends PlaySpec with MockitoSugar {
     }
   }
 
-  val controller = new UploadController(fakeHistoryService)
+  val fakeLegacyConnector = mock[LegacyConnector]
+  when(fakeLegacyConnector.sendBAReport(any[BAReportRequest])(any())).thenReturn(Future(Success(Status.OK)))
+  val fakeEbarsValidator = mock[EbarsValidator]
+  when(fakeEbarsValidator.fromXml(any[String])) thenReturn(mock[BAreports])
+  when(fakeEbarsValidator.toJson(any[BAreports])) thenReturn("")
+  val utils = new Utils()
+  val controller = new UploadController(fakeHistoryService, fakeLegacyConnector, fakeEbarsValidator, utils)
 
   def fakeRequestWithXML = {
     val xmlNode = """<xml>Wibble</xml>"""
