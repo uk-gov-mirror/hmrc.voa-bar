@@ -53,12 +53,12 @@ class UploadController @Inject()(
               case Some(pass) => {
                 process(request, baCode, pass)
               }
-              case None => Future(Unauthorized)
+              case None => Future.successful(Unauthorized)
             }
-          case None => Future(Unauthorized)
+          case None => Future.successful(Unauthorized)
         }
-      case Some(_) => Future(UnsupportedMediaType)
-      case None => Future(BadRequest)
+      case Some(_) => Future.successful(UnsupportedMediaType)
+      case None => Future.successful(BadRequest)
     }
   }
 
@@ -81,7 +81,7 @@ class UploadController @Inject()(
               }
         } yield result
       }
-      case _ => Future(BadRequest)
+      case _ => Future.successful(BadRequest)
     }
   }
 
