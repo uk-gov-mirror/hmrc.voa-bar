@@ -65,9 +65,7 @@ class UploadController @Inject()(
   private def process(request: Request[AnyContent], baCode: String, pass: String)(implicit hc: HeaderCarrier): Future[Result] = {
     request.body.asText match {
       case Some(xml) => {
-        //TODO: to replace with referenceID
-        val id = generateSubmissionID(baCode)
-          .replace("\\n", "")
+        val id = request.getQueryString("reference").get
         for {
           _ <- historyService.reportSubmitted(baCode, id)
           _ <- checkXml(xml, baCode, pass, id)
