@@ -17,15 +17,15 @@
 package uk.gov.hmrc.voabar.controllers
 
 import javax.inject.{Inject, Singleton}
-
 import play.api.Logger
 import play.api.mvc.{Action, AnyContent}
-import play.api.mvc.Results._
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
+
 import scala.concurrent.Future
 import uk.gov.hmrc.voabar.models.LoginDetails
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import uk.gov.hmrc.voabar.connectors.LegacyConnector
+
 import scala.util.{Failure, Success}
 import scala.concurrent.ExecutionContext.Implicits.global
 
