@@ -19,6 +19,7 @@ package uk.gov.hmrc.voabar.services
 import java.io.StringReader
 
 import uk.gov.hmrc.voabar.connectors.LegacyConnector
+import uk.gov.hmrc.voabar.models.BarError
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
 
@@ -27,28 +28,31 @@ import scala.xml.{InputSource, Node, XML}
 
 class ReportUploadService(statusRepository: SubmissionStatusRepository,
                           validationService: ValidationService,
+                          xmlParser: XmlParser,
                           legacyConnector: LegacyConnector)(implicit executionContext: ExecutionContext) {
 
   def upload(username: String, password: String, xml: String, uploadReference: String) = {
 
     for {
-      _ <- statusRepository.updateStatus(uploadReference, "validating XML")
-      _ <- validateXml(xml)
-      _ <- statusRepository.updateStatus(uploadReference, "sending to ebars")
-      _ <- ebarsUpload(xml, username, password, uploadReference)
-
+      //TODO update status - "validation"
+      validationResult <- validationService.validate(xml)
+      //TODO update status  - "upload to eBars"
+      node <- xmlParser.xmlToNode(xml)
+      _ <- ebarsUpload(node, username, password, uploadReference)
+      //TODO update status - "done"
     }yield("ok")
+
+    //TODO handle failure -> add all errors + change status "failed"
 
   }
 
 
-  private def ebarsUpload(xml: String, username: String, password: String, submissionId: String): Future[String] = {
+  private def ebarsUpload(node: Node, username: String, password: String, submissionId: String): Either[BarError, Boolean] = {
 
-    val node = xmlToNode(xml)
-    val nodesToSubmit = new XmlParser().oneReportPerBatch(node)
+    val nodesToSubmit = xmlParser.oneReportPerBatch(node)
     val uploadResults = Future.sequence(nodesToSubmit.map(submitOneNode(_, username, password)))
 
-    uploadResults.flatMap { results =>
+    val uplodResult = uploadResults.flatMap { results =>
       if(results.find(_.isFailure).isDefined) {
         statusRepository.updateStatus(submissionId, "Failed").flatMap( x =>
           Future.failed(new RuntimeException("ebars failed"))
@@ -57,36 +61,15 @@ class ReportUploadService(statusRepository: SubmissionStatusRepository,
         statusRepository.updateStatus(submissionId, "done").map(_ => "ok")
       }
     }
+
+
   }
 
   def submitOneNode(node: Node, username: String, password: String) = {
     val req = BAReportRequest("uuid", node.toString(),username, password)(null)
 
     legacyConnector.sendBAReport(req)
-
   }
 
-  private def xmlToNode(xml: String) = {
-    val factory = javax.xml.parsers.SAXParserFactory.newInstance()
-    factory.setNamespaceAware(true)
-    factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
-    factory.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false)
-    factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
-    factory.setFeature("http://xml.org/sax/features/external-general-entities",false)
-
-    val saxParser = factory.newSAXParser()
-
-    XML.loadXML(new InputSource(new StringReader(xml)), factory.newSAXParser())
-
-  }
-
-  private def validateXml(xml: String) = Future {
-    val errors = validationService.validate(xml)
-    if(errors.isEmpty) {
-      "ok"
-    } else {
-      throw new RuntimeException("some errors" + errors.mkString(","))
-    }
-  }
 
 }

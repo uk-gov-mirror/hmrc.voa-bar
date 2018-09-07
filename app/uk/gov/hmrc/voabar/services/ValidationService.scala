@@ -19,7 +19,7 @@ package uk.gov.hmrc.voabar.services
 import java.io.StringReader
 
 import javax.inject.{Inject, Singleton}
-import uk.gov.hmrc.voabar.models.Error
+import uk.gov.hmrc.voabar.models.{BarError, BarValidationError, Error}
 
 import scala.xml.{InputSource, Node, XML}
 
@@ -29,50 +29,39 @@ class ValidationService @Inject()(xmlValidator: XmlValidator,
                                   charValidator:CharacterValidator,
                                   businessRules:BusinessRules) {
 
+  def validate(xml: String): Either[BarError, Boolean] = {
 
-
-  private def xmlToNode(xml: String) = {
-    val factory = javax.xml.parsers.SAXParserFactory.newInstance()
-    factory.setNamespaceAware(true)
-    factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
-    factory.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false)
-    factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
-    factory.setFeature("http://xml.org/sax/features/external-general-entities",false)
-
-    val saxParser = factory.newSAXParser()
-
-    XML.loadXML(new InputSource(new StringReader(xml)), factory.newSAXParser())
-
-  }
-
-  def validate(xml: String): List[Error] = {
-    val errors = xmlValidator.validate(xml).toList
-    if(errors.nonEmpty) {
-      val xmlNode = xmlToNode(xml)
-      validate(xmlNode)
-    }else {
-      errors
+    for {
+      domDocument <- xmlParser.parse(xml).right //parse XML
+      _ <- xmlValidator.validate(domDocument).right //validate against XML schema
+      scalaElement <- xmlParser.xmlToNode(xml).right
+      _ <- businessValidation(scalaElement)
+    }yield {
+      true
     }
   }
 
-  def validate(xml:Node):List[Error] = {
+  private def businessValidation(xml:Node):Either[BarError, Boolean] = {
+
     val parsedBatch:Seq[Node] = xmlParser.oneReportPerBatch(xml)
 
     val validations:List[(Node) => List[Error]] = List(
       validationBACode,
-      validationSchema,
       validationChars,
       validationBusinessRules
     )
-    parsedBatch.toList.flatMap{n => validations.flatMap(_.apply(n))}.distinct
+    val errors = parsedBatch.toList.flatMap{n => validations.flatMap(_.apply(n))}.distinct
+
+    if(errors.isEmpty) {
+      Right(true)
+    }else {
+      Left(BarValidationError(errors))
+    }
+
   }
 
   private def validationBACode(xml:Node): List[Error] = {
     businessRules.baIdentityCodeErrors(xml)
-  }
-
-  private def validationSchema(xml:Node):List[Error] = {
-    xmlValidator.validate(xml.toString()).toList
   }
 
   private def validationChars(xml:Node):List[Error] = {

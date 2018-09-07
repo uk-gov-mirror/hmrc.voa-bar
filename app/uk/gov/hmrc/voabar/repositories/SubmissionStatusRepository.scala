@@ -36,6 +36,8 @@ class SubmissionStatusRepositoryImpl @Inject() (mongo: () => DB)(implicit execut
 
   def idSelector(submissionId: String) = BSONDocument("_id" -> submissionId)
 
+
+  //TODO change response to Future[Either[BarError, ???]] - if update fail, return Left
   override def addError(submissionId: String, error: String): Future[WriteResult] = {
 
     val modifier = BSONDocument(
@@ -51,6 +53,7 @@ class SubmissionStatusRepositoryImpl @Inject() (mongo: () => DB)(implicit execut
 
   }
 
+  //TODO change response to Future[Either[BarError, ???]] - if update fail, return Left
   override def updateStatus(submissionId: String, status: String): Future[WriteResult] = {
 
     val modifier = BSONDocument(
