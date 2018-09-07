@@ -17,79 +17,41 @@
 package uk.gov.hmrc.voabar.controllers
 
 import javax.inject.{Inject, Singleton}
-import play.api.Logger
-import play.api.mvc.{Action, AnyContent, Request, Result}
-import services.EbarsValidator
-import uk.gov.hmrc.http.HeaderCarrier
+import play.api.mvc.{Action, AnyContent, Result}
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
-import uk.gov.hmrc.voabar.connectors.LegacyConnector
-import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
-import uk.gov.hmrc.voabar.services.{ReportStatusHistoryService}
+import uk.gov.hmrc.voabar.services.ReportUploadService
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 @Singleton
-class UploadController @Inject()(
-                                  historyService: ReportStatusHistoryService,
-                                  legacyConnector: LegacyConnector,
-                                  ebarsValidator: EbarsValidator
-                                )
+class UploadController @Inject()(reportUploadService: ReportUploadService)
                                 (implicit ec: ExecutionContext) extends BaseController {
 
-  def checkXml(node: String, baCode: String, password: String, submissionId: String): Future[Unit] = {
-    for {
-      _ <- historyService.reportCheckedWithNoErrorsFound(baCode, submissionId)
-      _ <- historyService.reportForwarded(baCode, submissionId)
-    } yield ()
-  }
-
-  def upload(): Action[AnyContent] = Action.async(parse.anyContent) { implicit request =>
+  def upload(): Action[AnyContent] = Action(parse.anyContent) { implicit request =>
     val headers = request.headers
-    headers.get("Content-Type") match {
-      case Some(content) if content == "text/plain" =>
-        headers.get("BA-Code") match {
-          case Some(baCode) =>
-            headers.get("password") match {
-              case Some(pass) => {
-                process(request, baCode, pass)
-              }
-              case None => Future.successful(Unauthorized)
-            }
-          case None => Future.successful(Unauthorized)
-        }
-      case Some(_) => Future.successful(UnsupportedMediaType)
-      case None => Future.successful(BadRequest)
+
+    val response = for {
+      contentType <- headers.get("Content-Type").toRight(UnsupportedMediaType).right //TODO check content type
+      _ <- checkContentType(contentType).right
+      baCode <- headers.get("BA-Code").toRight(Unauthorized("BA-Code missing")).right
+      password <- headers.get("password").toRight(Unauthorized("password missing")).right
+      reference <- request.getQueryString("reference").toRight(BadRequest("missing reference")).right
+      xml <- request.body.asText.toRight(BadRequest("missing xml playload")).right
+    } yield {
+      reportUploadService.upload(baCode, password, xml, reference)
+      Ok("")
     }
+
+    response.fold(x => x, x => x)
+
   }
 
-  private def process(request: Request[AnyContent], baCode: String, pass: String)(implicit hc: HeaderCarrier): Future[Result] = {
-    request.body.asText match {
-      case Some(xml) => {
-        val id = request.getQueryString("reference").get
-        for {
-          _ <- historyService.reportSubmitted(baCode, id)
-          _ <- checkXml(xml, baCode, pass, id)
-          result <-
-            legacyConnector.sendBAReport(BAReportRequest(id, ebarsValidator.toJson(ebarsValidator.fromXml(xml)), baCode, pass))
-              .map(_ => Ok(id))
-              .recover {
-                case ex: Throwable => {
-                  Logger.warn(s"Error while processing xml: \n$xml", ex)
-                  InternalServerError
-                }
-              }
-        } yield result
-      }
-      case _ => Future.successful(BadRequest)
+  private def checkContentType(contentType: String): Either[Result, Boolean] = {
+    if("text/plain".equals(contentType)) {
+      Right(true)
+    }else {
+      Left(UnsupportedMediaType("only text/plain is supported"))
     }
-  }
-
-  private def generateSubmissionID(baCode: String): String = {
-    val chars = 'A' to 'Z'
-
-    def ran = scala.util.Random.nextInt(chars.size)
-
-    s"$baCode-${System.currentTimeMillis()}-${chars(ran)}${chars(ran)}"
   }
 
 }

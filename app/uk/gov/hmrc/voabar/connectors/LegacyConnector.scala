@@ -36,7 +36,7 @@ import scala.concurrent.ExecutionContext
 class DefaultLegacyConnector @Inject()(val http: HttpClient,
                                 val configuration: Configuration,
                                 utils: Utils,
-                                environment: Environment) extends ServicesConfig {
+                                environment: Environment) extends LegacyConnector with  ServicesConfig {
 
   override protected def mode: Mode = environment.mode
 

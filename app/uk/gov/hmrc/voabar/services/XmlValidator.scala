@@ -75,7 +75,10 @@ class XmlValidator {
 
       validator.validate(new DOMSource(document))
     } catch {
-      case _: Throwable => None
+      case x: Throwable => {
+        x.printStackTrace()
+        None
+      }
     }
     errors
   }

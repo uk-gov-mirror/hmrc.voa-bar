@@ -88,6 +88,7 @@ class ReportStatusHistoryServiceImpl @Inject() (statusRepository: ReactiveMongoR
   }
 }
 
+@Deprecated
 @ImplementedBy(classOf[ReportStatusHistoryServiceImpl])
 trait ReportStatusHistoryService {
   def reportSubmitted(baCode: String, submissionId: String): Future[Boolean]

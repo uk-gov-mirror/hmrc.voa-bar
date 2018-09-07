@@ -16,16 +16,44 @@
 
 package uk.gov.hmrc.voabar.services
 
+import java.io.StringReader
+
 import javax.inject.{Inject, Singleton}
 import uk.gov.hmrc.voabar.models.Error
 
-import scala.xml.Node
+import scala.xml.{InputSource, Node, XML}
 
 @Singleton
 class ValidationService @Inject()(xmlValidator: XmlValidator,
                                   xmlParser:XmlParser,
                                   charValidator:CharacterValidator,
                                   businessRules:BusinessRules) {
+
+
+
+  private def xmlToNode(xml: String) = {
+    val factory = javax.xml.parsers.SAXParserFactory.newInstance()
+    factory.setNamespaceAware(true)
+    factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
+    factory.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false)
+    factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
+    factory.setFeature("http://xml.org/sax/features/external-general-entities",false)
+
+    val saxParser = factory.newSAXParser()
+
+    XML.loadXML(new InputSource(new StringReader(xml)), factory.newSAXParser())
+
+  }
+
+  def validate(xml: String): List[Error] = {
+    val errors = xmlValidator.validate(xml).toList
+    if(errors.nonEmpty) {
+      val xmlNode = xmlToNode(xml)
+      validate(xmlNode)
+    }else {
+      errors
+    }
+  }
 
   def validate(xml:Node):List[Error] = {
     val parsedBatch:Seq[Node] = xmlParser.oneReportPerBatch(xml)
