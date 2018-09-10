@@ -35,7 +35,7 @@ class ValidationService @Inject()(xmlValidator: XmlValidator,
       domDocument <- xmlParser.parse(xml).right //parse XML
       _ <- xmlValidator.validate(domDocument).right //validate against XML schema
       scalaElement <- xmlParser.xmlToNode(xml).right
-      _ <- businessValidation(scalaElement)
+      _ <- businessValidation(scalaElement).right
     }yield {
       true
     }

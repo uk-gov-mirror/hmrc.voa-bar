@@ -18,6 +18,7 @@ package uk.gov.hmrc.voabar.services
 
 
 import cats.data.EitherT
+import cats.implicits._
 import play.api.Logger
 import uk.gov.hmrc.voabar.connectors.LegacyConnector
 import uk.gov.hmrc.voabar.models._
@@ -35,18 +36,22 @@ class ReportUploadService(statusRepository: SubmissionStatusRepository,
 
   def upload(username: String, password: String, xml: String, uploadReference: String) = {
 
+
     val processingResutl = for {
       _ <- EitherT(statusRepository.updateStatus(uploadReference, "validation"))
-      validationResult <- EitherT.fromEither(validationService.validate(xml))
-      node <- xmlParser.xmlToNode(xml)
+      _ <- EitherT.fromEither[Future](validationService.validate(xml))
+      node <- EitherT.fromEither[Future](xmlParser.xmlToNode(xml))
       _ <- EitherT(statusRepository.updateStatus(uploadReference, "sending to eBARS"))
-      ebarsResult <- EitherT(ebarsUpload(node, username, password, uploadReference))
+      _ <- EitherT(ebarsUpload(node, username, password, uploadReference))
       _ <- EitherT(statusRepository.updateStatus(uploadReference, "done"))
     } yield ("ok")
 
     processingResutl.value.map {
-      case Right(v) => // do nothing, everything is awesome
-      case Left(a) => handleError(uploadReference, a)
+      case Right(v) => "ok"
+      case Left(a) => {
+        handleError(uploadReference, a)
+        "failed"
+      }
     }
 
   }

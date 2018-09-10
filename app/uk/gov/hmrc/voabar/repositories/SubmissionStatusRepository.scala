@@ -16,10 +16,8 @@
 
 package uk.gov.hmrc.voabar.repositories
 
-import com.google.inject.ImplementedBy
 import javax.inject.{Inject, Singleton}
 import reactivemongo.api.DB
-import reactivemongo.api.commands.WriteResult
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.collection.JSONCollection
 import reactivemongo.play.json.ImplicitBSONHandlers._

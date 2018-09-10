@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.voabar.repositories
 
-import org.scalatest.{AsyncFeatureSpec, AsyncFlatSpecLike, BeforeAndAfterAll}
+import org.scalatest.{AsyncFeatureSpec, AsyncFlatSpecLike, BeforeAndAfterAll, EitherValues}
 import org.scalatestplus.play.PlaySpec
 import reactivemongo.api.{DB, MongoConnection}
 import reactivemongo.bson.BSONDocument
@@ -26,7 +26,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import reactivemongo.play.json.ImplicitBSONHandlers._
 
-class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll {
+class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll with EitherValues {
 
   val mongoDriver = new reactivemongo.api.MongoDriver
 
@@ -46,8 +46,8 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll {
 
       val dbResult = Await.result(repo.addError("111", "error"), 500 millisecond)
 
-      dbResult.writeErrors mustBe empty
-      dbResult.n mustBe 1
+      dbResult must be('right)
+
 
     }
 
@@ -61,8 +61,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll {
 
       val dbResult = Await.result(repo.updateStatus("222", "new_status"), 500 millisecond)
 
-      dbResult.writeErrors mustBe empty
-      dbResult.n mustBe 1
+      dbResult must be('right)
 
     }
 

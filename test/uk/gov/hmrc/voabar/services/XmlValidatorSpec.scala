@@ -17,92 +17,46 @@
 package uk.gov.hmrc.voabar.services
 
 import org.apache.commons.io.IOUtils
+import org.scalatest.EitherValues
 import org.scalatestplus.play.PlaySpec
 
-import scala.xml.{Node, SAXParseException, XML}
-
-class XmlValidatorSpec extends PlaySpec {
+class XmlValidatorSpec extends PlaySpec with EitherValues {
 
   val validator = new XmlValidator
   val parser = new XmlParser
   val reportBuilder = new MockBAReportBuilder
+  val xmlParser = new XmlParser()
 
-  val valid1 = IOUtils.toString(getClass.getResource("/xml/CTValid1.xml"))
-  val valid2 = IOUtils.toString(getClass.getResource("/xml/CTValid2.xml"))
-  val invalid1 = IOUtils.toString(getClass.getResource("/xml/CTInvalid1.xml"))
-  val invalid2 = IOUtils.toString(getClass.getResource("/xml/CTInvalid2.xml"))
+  val valid1 = parser.parse(IOUtils.toString(getClass.getResource("/xml/CTValid1.xml"))).right.get
+  val valid2 = parser.parse(IOUtils.toString(getClass.getResource("/xml/CTValid2.xml"))).right.get
+  val invalid1 = parser.parse(IOUtils.toString(getClass.getResource("/xml/CTInvalid1.xml"))).right.get
+  val invalid2 = parser.parse(IOUtils.toString(getClass.getResource("/xml/CTInvalid2.xml"))).right.get
 
-  val invalidXXE = IOUtils.toString(getClass.getResource("/xml/CTValidWithXXE.xml"))
-  val invalidXXE2 = IOUtils.toString(getClass.getResource("/xml/WithXXE.xml"))
 
   "A valid ba batch submission xml file (valid1)" must {
     "validate successfully" in {
-      val errors = validator.validate(valid1)
-      errors.size mustBe 0
+      validator.validate(valid1) mustBe ('right)
     }
   }
 
   "An invalid ba batch submission xml file (invalid1)" must {
     "not validate successfully" in {
-      val errors = validator.validate(invalid1)
-      errors.size mustBe 4
+      validator.validate(invalid1) mustBe ('left)
+      //errors.size mustBe 4
     }
   }
 
   "A valid ba batch submission xml file (valid2)" must {
     "validate successfully" in {
-      val errors = validator.validate(valid2)
-      errors.size mustBe 0
+      validator.validate(valid2) mustBe ('right)
     }
   }
 
   "An invalid ba batch submission xml file (invalid2)" must {
     "not validate successfully and contain a CouncilTaxBand related error" in {
-      val errors = validator.validate(invalid2)
-      errors.size mustBe 18
-      assert(errors.toString.contains("CouncilTaxBand"))
+      validator.validate(invalid2) mustBe ('left)
+      //errors.size mustBe 18
+      //assert(errors.toString.contains("CouncilTaxBand"))
     }
   }
-
-  "An invalid ba batch submission xml file" must {
-    "not validate successfully when it vulnerable to XXE" in {
-      val errors = validator.validate(invalidXXE)
-      errors.size mustBe 1
-      assert(errors.toString.contains("DOCTYPE is disallowed"))
-    }
-    "Show that XML tries to access file system with malicious payload" in {
-      intercept[SAXParseException] {
-        XML.loadString(invalidXXE2)
-      }
-    }
-  }
-
-  "A valid batch submission containing 4 reports (valid2)" must {
-    "validate successfully when parsed into smaller batches" in {
-      val report:Node = XML.loadString(valid2)
-      val smallBatches = parser.oneReportPerBatch(report)
-
-      val errors = smallBatches.map{report => validator.validate(report.toString)}
-      errors.forall(_.isEmpty) mustBe true
-    }
-  }
-
-  "A batch submission containing 1 report and 1 illegal element within the header" must {
-    "return with 1 error when parsed" in {
-      val invalidReport: Seq[Node] = reportBuilder.invalidateBatch(XML.loadString(valid1), Map(
-        "ProcessDate" -> "BadElement"))
-      val batch = parser.oneReportPerBatch(invalidReport.head)
-      batch.map(b => validator.validate(b.toString)).size mustBe 1
-    }
-  }
-
-    "A batch submission containing 4 reports and 1 illegal element within the header" must {
-      "return with 4 errors when parsed" in {
-        val invalidReport:Seq[Node] = reportBuilder.invalidateBatch(XML.loadString(valid2), Map(
-          "ProcessDate" -> "BadElement"))
-        val batch = parser.oneReportPerBatch(invalidReport.head)
-        batch.map(b => validator.validate(b.toString)).size mustBe 4
-    }
-  }
-
 }
