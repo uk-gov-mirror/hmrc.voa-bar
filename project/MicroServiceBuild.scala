@@ -16,6 +16,7 @@ object MicroServiceBuild extends Build with MicroService {
   private val bootstrapVersion = "3.0.0"
   private val autobarsXsdVersion = "7.0.0"
   private val guiceUtilsVersion = "4.1.0"
+  private val catsCoreVersion = "1.3.1"
 
   override lazy val appDependencies: Seq[ModuleID] = compile ++ test()
 
@@ -26,7 +27,8 @@ object MicroServiceBuild extends Build with MicroService {
     "uk.gov.hmrc" %% "autobars-xsd"        % autobarsXsdVersion,
     "uk.gov.hmrc" %% "http-caching-client" % httpCachingClientVersion,
     "uk.gov.hmrc" %% "play-reactivemongo"  % playReactivemongoVersion,
-    "net.codingwell" %% "scala-guice"      % guiceUtilsVersion
+    "net.codingwell" %% "scala-guice"      % guiceUtilsVersion,
+    "org.typelevel" %% "cats-core" % catsCoreVersion
   )
 
   def test(scope: String = "test,it") = Seq(

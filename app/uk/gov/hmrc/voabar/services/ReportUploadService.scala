@@ -16,58 +16,74 @@
 
 package uk.gov.hmrc.voabar.services
 
-import java.io.StringReader
 
+import cats.data.EitherT
+import play.api.Logger
 import uk.gov.hmrc.voabar.connectors.LegacyConnector
-import uk.gov.hmrc.voabar.models.BarError
+import uk.gov.hmrc.voabar.models._
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.xml.{InputSource, Node, XML}
+import scala.xml.Node
 
 class ReportUploadService(statusRepository: SubmissionStatusRepository,
                           validationService: ValidationService,
                           xmlParser: XmlParser,
                           legacyConnector: LegacyConnector)(implicit executionContext: ExecutionContext) {
 
+
   def upload(username: String, password: String, xml: String, uploadReference: String) = {
 
-    for {
-      //TODO update status - "validation"
-      validationResult <- validationService.validate(xml)
-      //TODO update status  - "upload to eBars"
+    val processingResutl = for {
+      _ <- EitherT(statusRepository.updateStatus(uploadReference, "validation"))
+      validationResult <- EitherT.fromEither(validationService.validate(xml))
       node <- xmlParser.xmlToNode(xml)
-      _ <- ebarsUpload(node, username, password, uploadReference)
-      //TODO update status - "done"
-    }yield("ok")
+      _ <- EitherT(statusRepository.updateStatus(uploadReference, "sending to eBARS"))
+      ebarsResult <- EitherT(ebarsUpload(node, username, password, uploadReference))
+      _ <- EitherT(statusRepository.updateStatus(uploadReference, "done"))
+    } yield ("ok")
 
-    //TODO handle failure -> add all errors + change status "failed"
+    processingResutl.value.map {
+      case Right(v) => // do nothing, everything is awesome
+      case Left(a) => handleError(uploadReference, a)
+    }
 
   }
 
 
-  private def ebarsUpload(node: Node, username: String, password: String, submissionId: String): Either[BarError, Boolean] = {
-
-    val nodesToSubmit = xmlParser.oneReportPerBatch(node)
-    val uploadResults = Future.sequence(nodesToSubmit.map(submitOneNode(_, username, password)))
-
-    val uplodResult = uploadResults.flatMap { results =>
-      if(results.find(_.isFailure).isDefined) {
-        statusRepository.updateStatus(submissionId, "Failed").flatMap( x =>
-          Future.failed(new RuntimeException("ebars failed"))
-        )
-      } else {
-        statusRepository.updateStatus(submissionId, "done").map(_ => "ok")
-      }
+  private def handleError(submissionId: String, barError: BarError): Unit = barError match {
+    case BarXmlError(message) => {
+      statusRepository.updateStatus(submissionId, "xml vadation failed")  //TODO handle this errors ????
+    }
+    case BarValidationError(errors) => statusRepository.updateStatus(submissionId, "business rules vation failed")
+    case BarEbarError(ebarError) => statusRepository.updateStatus(submissionId, "eBARS submission failed")
+    case BarMongoError(error, updateWriteResult) => {
+      //Something really, really bad, bad bad, we don't have mongo :(
+      Logger.warn(s"Mongo exception while updating status, submissionId: ${submissionId}, detail : ${updateWriteResult}")
     }
 
+  }
 
+
+  private def ebarsUpload(node: Node, username: String, password: String, submissionId: String): Future[Either[BarError, Boolean]] = {
+
+    val nodesToSubmit = xmlParser.oneReportPerBatch(node)
+
+    //TODO - change to Akka Streams to properly limit concurency and back pressure.
+    val uploadResults = Future.sequence(nodesToSubmit.map(submitOneNode(_, username, password)))
+
+    uploadResults.map { results =>
+      if (results.find(_.isFailure).isDefined) {
+        Left(BarEbarError("failed to upload everything"))
+      } else {
+        Right(true)
+      }
+    }
   }
 
   def submitOneNode(node: Node, username: String, password: String) = {
-    val req = BAReportRequest("uuid", node.toString(),username, password)(null)
-
+    val req = BAReportRequest("uuid", node.toString(), username, password)(null)
     legacyConnector.sendBAReport(req)
   }
 

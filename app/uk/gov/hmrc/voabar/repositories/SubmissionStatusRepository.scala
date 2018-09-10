@@ -23,22 +23,19 @@ import reactivemongo.api.commands.WriteResult
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.collection.JSONCollection
 import reactivemongo.play.json.ImplicitBSONHandlers._
+import uk.gov.hmrc.voabar.models.{BarError, BarMongoError}
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
 @Singleton
-class SubmissionStatusRepositoryImpl @Inject() (mongo: () => DB)(implicit executionContext: ExecutionContext) extends SubmissionStatusRepository {
-
+class SubmissionStatusRepositoryImpl @Inject()(mongo: () => DB)(implicit executionContext: ExecutionContext) extends SubmissionStatusRepository {
 
   lazy val collection = mongo().collection[JSONCollection]("submission")
 
-
   def idSelector(submissionId: String) = BSONDocument("_id" -> submissionId)
 
-
-  //TODO change response to Future[Either[BarError, ???]] - if update fail, return Left
-  override def addError(submissionId: String, error: String): Future[WriteResult] = {
+  override def addError(submissionId: String, error: String): Future[Either[BarError, Boolean]] = {
 
     val modifier = BSONDocument(
       "$push" -> BSONDocument(
@@ -49,28 +46,41 @@ class SubmissionStatusRepositoryImpl @Inject() (mongo: () => DB)(implicit execut
       )
     )
 
-    collection.update(idSelector(submissionId), modifier)
+    collection.update(idSelector(submissionId), modifier).map { updateResult =>
+
+      if (updateResult.ok && updateResult.n == 1) {
+        Right(true)
+      } else {
+        Left(BarMongoError("unable record error message in mongo", Option(updateResult)))
+      }
+    }
 
   }
 
-  //TODO change response to Future[Either[BarError, ???]] - if update fail, return Left
-  override def updateStatus(submissionId: String, status: String): Future[WriteResult] = {
+  override def updateStatus(submissionId: String, status: String): Future[Either[BarError, Boolean]] = {
 
     val modifier = BSONDocument(
-        "$set" -> BSONDocument(
-          "status" -> status
-        )
+      "$set" -> BSONDocument(
+        "status" -> status
+      )
     )
 
-    collection.update(idSelector(submissionId), modifier)
+    collection.update(idSelector(submissionId), modifier).map { updateResult =>
+
+      if (updateResult.ok && updateResult.n == 1) {
+        Right(true)
+      } else {
+        Left(BarMongoError("unable to update status in mongo", Option(updateResult)))
+      }
+    }
   }
 }
 
 trait SubmissionStatusRepository {
 
-  def addError(submissionId: String, error: String): Future[WriteResult]
+  def addError(submissionId: String, error: String): Future[Either[BarError, Boolean]]
 
-  def updateStatus(submissionId: String, status: String): Future[WriteResult]
+  def updateStatus(submissionId: String, status: String): Future[Either[BarError, Boolean]]
 
 }
 
