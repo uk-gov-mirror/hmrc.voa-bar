@@ -23,13 +23,14 @@ import reactivemongo.api.DB
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.collection.JSONCollection
 import reactivemongo.play.json.ImplicitBSONHandlers._
+import uk.gov.hmrc.mongo.BSONBuilderHelpers
 import uk.gov.hmrc.voabar.models.{BarError, BarMongoError, ReportStatusError, ReportStatusType}
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
 @Singleton
-class SubmissionStatusRepositoryImpl @Inject()(mongo: ReactiveMongoComponent)(implicit executionContext: ExecutionContext) extends SubmissionStatusRepository {
+class SubmissionStatusRepositoryImpl @Inject()(mongo: ReactiveMongoComponent)(implicit executionContext: ExecutionContext) extends SubmissionStatusRepository with BSONBuilderHelpers {
 
   lazy val collection = mongo.mongoConnector.db().collection[JSONCollection]("submission")
 
@@ -44,14 +45,12 @@ class SubmissionStatusRepositoryImpl @Inject()(mongo: ReactiveMongoComponent)(im
     )
 
     collection.update(idSelector(submissionId), modifier).map { updateResult =>
-
       if (updateResult.ok && updateResult.n == 1) {
         Right(true)
       } else {
         Left(BarMongoError("unable record error message in mongo", Option(updateResult)))
       }
     }
-
   }
 
   private def errorToBson(error: ReportStatusError) = BSONDocument(
@@ -62,8 +61,7 @@ class SubmissionStatusRepositoryImpl @Inject()(mongo: ReactiveMongoComponent)(im
 
   override def updateStatus(submissionId: String, status: ReportStatusType): Future[Either[BarError, Boolean]] = {
 
-    val modifier = BSONDocument(
-      "$set" -> BSONDocument(
+    val modifier = set(BSONDocument(
         "status" -> status.value
       )
     )

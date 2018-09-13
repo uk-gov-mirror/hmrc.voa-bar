@@ -25,7 +25,7 @@ import scala.collection.mutable.ListBuffer
 import scala.xml._
 
 @Singleton
-class BusinessRules @Inject()()(implicit request:Request[_]) {
+class BusinessRules @Inject()() {
 
   def reasonForReportErrors(baReport:NodeSeq):List[Error] = {
     (baReport \\ "TypeOfTax" \ "_").headOption match {
@@ -77,7 +77,7 @@ class BusinessRules @Inject()()(implicit request:Request[_]) {
   private def existingEntries(implicit node:NodeSeq):Int = (node \\ "ExistingEntries").size
 
 
-  def baIdentityCodeErrors(xml:Node): List[Error] = {
+  def baIdentityCodeErrors(xml:Node)(implicit request:Request[_]): List[Error] = {
     val lb = new ListBuffer[String]()
     val codeInReport:String = (xml \\ "BillingAuthorityIdentityCode").text
       if (codeInReport.isEmpty) lb += ErrorCodes.BA_CODE_REPORT

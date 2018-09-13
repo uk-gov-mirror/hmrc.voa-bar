@@ -23,22 +23,56 @@ import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
 
 import scala.concurrent.{ExecutionContext, Future}
 import org.mockito.Mockito.when
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.verifyZeroInteractions
 import org.mockito.Matchers.anyString
 import org.mockito.Matchers.any
+import org.mockito.Matchers.{eq => meq}
+import org.mockito.Mockito.times
 import uk.gov.hmrc.voabar.connectors.LegacyConnector
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
-import uk.gov.hmrc.voabar.models.{LoginDetails, ReportStatusError, ReportStatusType}
+import uk.gov.hmrc.voabar.models._
 
 import scala.util.Try
 
 class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  MustMatchers with OptionValues with WsScalaTestClient {
 
+  val uploadReference = "submissionID"
+
   "ReportUploadServiceSpec" must {
     "proces request " in {
       val reportUploadService = new ReportUploadService(aCorrectStatusRepository(), aValidationService(), aXmlParser(), aLegacyConnector())
-      val res = reportUploadService.upload("username", "password", "<xml>ble</xml>", "reference1")
+      val res = reportUploadService.upload("username", "password", "<xml>ble</xml>", uploadReference)
       res.map { result =>
         result mustBe "ok"
+      }
+    }
+
+    "record error for not valid XML" in {
+      val statusRepository = aCorrectStatusRepository()
+
+      val reportUploadService = new ReportUploadService(statusRepository, aValidationService(), aXmlParser(), aLegacyConnector())
+      val res = reportUploadService.upload("username", "password", "<xm>ble</xml>", uploadReference)
+      res.map { result =>
+        verify(statusRepository).updateStatus(meq(uploadReference), meq(Failed))
+        result mustBe "failed"
+      }
+    }
+
+    "stop any work after update error" in {
+      val statusRepository = mock[SubmissionStatusRepository]
+      when(statusRepository.updateStatus(anyString(), any(classOf[ReportStatusType])))
+        .thenReturn(Future.successful(Left(BarMongoError("mongo is broken", None))))
+      val validationService = aValidationService()
+      val legacyConnector = aLegacyConnector()
+      val xmlParser = mock[XmlParser]
+
+      val reportUploadService = new ReportUploadService(statusRepository, validationService, xmlParser, legacyConnector)
+      val res = reportUploadService.upload("username", "password", "<xm>ble</xml>", uploadReference)
+      res.map { result =>
+        verify(statusRepository, times(1)).updateStatus(meq(uploadReference), meq(Pending))
+        verifyZeroInteractions(validationService, legacyConnector, xmlParser)
+        result mustBe "failed"
       }
     }
   }

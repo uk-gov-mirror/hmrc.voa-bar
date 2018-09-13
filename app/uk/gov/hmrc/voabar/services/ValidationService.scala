@@ -26,8 +26,8 @@ import scala.xml.{InputSource, Node, XML}
 @Singleton
 class ValidationService @Inject()(xmlValidator: XmlValidator,
                                   xmlParser:XmlParser,
-                                  charValidator:CharacterValidator
-                                  //businessRules:BusinessRules TODO - Not yet. We have stupid implicit agument
+                                  charValidator:CharacterValidator,
+                                  businessRules:BusinessRules // TODO - Not yet. We have stupid implicit agument
                                  ) {
 
   def validate(xml: String): Either[BarError, Boolean] = {
@@ -43,6 +43,17 @@ class ValidationService @Inject()(xmlValidator: XmlValidator,
   }
 
   private def businessValidation(xml:Node):Either[BarError, Boolean] = {
+    val errors = xmlNodeValidation(xml)
+
+    if(errors.isEmpty) {
+      Right(true)
+    }else {
+      Left(BarValidationError(errors))
+    }
+
+  }
+
+  def xmlNodeValidation(xml:Node): List[Error] = {
 
     val parsedBatch:Seq[Node] = xmlParser.oneReportPerBatch(xml)
 
@@ -51,13 +62,7 @@ class ValidationService @Inject()(xmlValidator: XmlValidator,
       validationChars,
       validationBusinessRules
     )
-    val errors = parsedBatch.toList.flatMap{n => validations.flatMap(_.apply(n))}.distinct
-
-    if(errors.isEmpty) {
-      Right(true)
-    }else {
-      Left(BarValidationError(errors))
-    }
+    parsedBatch.toList.flatMap{n => validations.flatMap(_.apply(n))}.distinct
 
   }
 
@@ -77,8 +82,7 @@ class ValidationService @Inject()(xmlValidator: XmlValidator,
   }
 
   private def validationBusinessRules(xml:Node):List[Error] = {
-//    val reports:Seq[Node] = xml \ "BApropertyReport"
-//    reports.flatMap(r => businessRules.reasonForReportErrors(r)).toList
-    List.empty[Error]
+    val reports:Seq[Node] = xml \ "BApropertyReport"
+    reports.flatMap(r => businessRules.reasonForReportErrors(r)).toList
   }
 }
