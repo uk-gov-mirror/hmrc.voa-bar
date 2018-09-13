@@ -22,12 +22,11 @@ import org.scalatest.{BeforeAndAfterAll, EitherValues}
 import org.scalatestplus.play.PlaySpec
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.MongoConnection
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import uk.gov.hmrc.mongo.MongoConnector
-import uk.gov.hmrc.voabar.models.{BarMongoError, Failed, ReportStatusError, Submitted}
-import uk.gov.hmrc.voabar.repositories.{ReactiveMongoRepository, SubmissionStatusRepositoryImpl}
+import uk.gov.hmrc.voabar.models.{BarMongoError, ReportStatusError, Submitted}
+import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepositoryImpl
 
 import scala.concurrent.ExecutionContext.Implicits.global
 

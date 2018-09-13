@@ -16,18 +16,15 @@
 
 package uk.gov.hmrc.voabar.services
 
-import org.scalatest.{AsyncWordSpec, AsyncWordSpecLike, MustMatchers, OptionValues}
+import org.scalatest.{AsyncWordSpec, MustMatchers, OptionValues}
 import org.scalatest.mockito.MockitoSugar
-import org.scalatestplus.play.{PlaySpec, WsScalaTestClient}
+import org.scalatestplus.play.WsScalaTestClient
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
 
 import scala.concurrent.{ExecutionContext, Future}
 import org.mockito.Mockito.when
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.times
 import org.mockito.Matchers.anyString
 import org.mockito.Matchers.any
-import reactivemongo.api.commands.WriteResult
 import uk.gov.hmrc.voabar.connectors.LegacyConnector
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 import uk.gov.hmrc.voabar.models.{LoginDetails, ReportStatusError, ReportStatusType}
