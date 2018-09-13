@@ -38,7 +38,7 @@ class ValidationServiceSpec extends PlaySpec {
   def businessRules(baCode:String):BusinessRules = new BusinessRules()(FakeRequest("GET","").
     withHeaders("BA-Code" -> baCode))
   def validationService(baCode:String): ValidationService = new ValidationService(
-    xmlValidator, xmlParser, charValidator, businessRules(baCode))
+    xmlValidator, xmlParser, charValidator)
 /*
   "Validation service" must {
 

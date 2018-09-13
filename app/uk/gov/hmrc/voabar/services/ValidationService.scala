@@ -26,8 +26,9 @@ import scala.xml.{InputSource, Node, XML}
 @Singleton
 class ValidationService @Inject()(xmlValidator: XmlValidator,
                                   xmlParser:XmlParser,
-                                  charValidator:CharacterValidator,
-                                  businessRules:BusinessRules) {
+                                  charValidator:CharacterValidator
+                                  //businessRules:BusinessRules TODO - Not yet. We have stupid implicit agument
+                                 ) {
 
   def validate(xml: String): Either[BarError, Boolean] = {
 
@@ -61,7 +62,8 @@ class ValidationService @Inject()(xmlValidator: XmlValidator,
   }
 
   private def validationBACode(xml:Node): List[Error] = {
-    businessRules.baIdentityCodeErrors(xml)
+    //businessRules.baIdentityCodeErrors(xml)(null)
+    List.empty[Error]
   }
 
   private def validationChars(xml:Node):List[Error] = {
@@ -75,7 +77,8 @@ class ValidationService @Inject()(xmlValidator: XmlValidator,
   }
 
   private def validationBusinessRules(xml:Node):List[Error] = {
-    val reports:Seq[Node] = xml \ "BApropertyReport"
-    reports.flatMap(r => businessRules.reasonForReportErrors(r)).toList
+//    val reports:Seq[Node] = xml \ "BApropertyReport"
+//    reports.flatMap(r => businessRules.reasonForReportErrors(r)).toList
+    List.empty[Error]
   }
 }

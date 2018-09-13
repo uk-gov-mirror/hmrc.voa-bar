@@ -30,7 +30,7 @@ import org.mockito.Matchers.any
 import reactivemongo.api.commands.WriteResult
 import uk.gov.hmrc.voabar.connectors.LegacyConnector
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
-import uk.gov.hmrc.voabar.models.LoginDetails
+import uk.gov.hmrc.voabar.models.{LoginDetails, ReportStatusError, ReportStatusType}
 
 import scala.util.Try
 
@@ -48,8 +48,8 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
 
   def aCorrectStatusRepository(): SubmissionStatusRepository = {
     val repository = mock[SubmissionStatusRepository]
-    when(repository.updateStatus(anyString(), anyString())).thenReturn(Future.successful(Right(true)))
-    when(repository.addError(anyString(), anyString())).thenReturn(Future.successful(Right(true)))
+    when(repository.updateStatus(anyString(), any(classOf[ReportStatusType]))).thenReturn(Future.successful(Right(true)))
+    when(repository.addError(anyString(), any(classOf[ReportStatusError]))).thenReturn(Future.successful(Right(true)))
     repository
   }
 

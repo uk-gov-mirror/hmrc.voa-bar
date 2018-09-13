@@ -19,6 +19,7 @@ package uk.gov.hmrc.voabar.services
 
 import cats.data.EitherT
 import cats.implicits._
+import javax.inject.Inject
 import play.api.Logger
 import uk.gov.hmrc.voabar.connectors.LegacyConnector
 import uk.gov.hmrc.voabar.models._
@@ -28,7 +29,7 @@ import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
 import scala.concurrent.{ExecutionContext, Future}
 import scala.xml.Node
 
-class ReportUploadService(statusRepository: SubmissionStatusRepository,
+class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository,
                           validationService: ValidationService,
                           xmlParser: XmlParser,
                           legacyConnector: LegacyConnector)(implicit executionContext: ExecutionContext) {
@@ -38,12 +39,12 @@ class ReportUploadService(statusRepository: SubmissionStatusRepository,
 
 
     val processingResutl = for {
-      _ <- EitherT(statusRepository.updateStatus(uploadReference, "validation"))
+      _ <- EitherT(statusRepository.updateStatus(uploadReference, Pending))
       _ <- EitherT.fromEither[Future](validationService.validate(xml))
       node <- EitherT.fromEither[Future](xmlParser.xmlToNode(xml))
-      _ <- EitherT(statusRepository.updateStatus(uploadReference, "sending to eBARS"))
+      _ <- EitherT(statusRepository.updateStatus(uploadReference, Verified))
       _ <- EitherT(ebarsUpload(node, username, password, uploadReference))
-      _ <- EitherT(statusRepository.updateStatus(uploadReference, "done"))
+      _ <- EitherT(statusRepository.updateStatus(uploadReference, Done))
     } yield ("ok")
 
     processingResutl.value.map {
@@ -53,19 +54,18 @@ class ReportUploadService(statusRepository: SubmissionStatusRepository,
         "failed"
       }
     }
-
   }
 
 
   private def handleError(submissionId: String, barError: BarError): Unit = barError match {
     case BarXmlError(message) => {
-      statusRepository.updateStatus(submissionId, "xml vadation failed")  //TODO handle this errors ????
+      statusRepository.updateStatus(submissionId, Failed)
     }
-    case BarValidationError(errors) => statusRepository.updateStatus(submissionId, "business rules vation failed")
-    case BarEbarError(ebarError) => statusRepository.updateStatus(submissionId, "eBARS submission failed")
+    case BarValidationError(errors) => statusRepository.updateStatus(submissionId, Failed)
+    case BarEbarError(ebarError) => statusRepository.updateStatus(submissionId, Failed)
     case BarMongoError(error, updateWriteResult) => {
       //Something really, really bad, bad bad, we don't have mongo :(
-      Logger.warn(s"Mongo exception while updating status, submissionId: ${submissionId}, detail : ${updateWriteResult}")
+      Logger.warn(s"Mongo exception, cannot updating status or record error, submissionId: ${submissionId}, detail : ${updateWriteResult}")
     }
 
   }

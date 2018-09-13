@@ -16,10 +16,8 @@
 
 package uk.gov.hmrc.voabar.services
 
-import java.io.ByteArrayInputStream
 
 import javax.xml.XMLConstants
-import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.transform.dom.DOMSource
 import javax.xml.transform.stream.StreamSource
 import javax.xml.validation.SchemaFactory

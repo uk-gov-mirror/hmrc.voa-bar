@@ -16,31 +16,30 @@
 
 package uk.gov.hmrc.voabar.repositories
 
+import com.google.inject.ImplementedBy
 import javax.inject.{Inject, Singleton}
+import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.DB
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.collection.JSONCollection
 import reactivemongo.play.json.ImplicitBSONHandlers._
-import uk.gov.hmrc.voabar.models.{BarError, BarMongoError}
+import uk.gov.hmrc.voabar.models.{BarError, BarMongoError, ReportStatusError, ReportStatusType}
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
 @Singleton
-class SubmissionStatusRepositoryImpl @Inject()(mongo: () => DB)(implicit executionContext: ExecutionContext) extends SubmissionStatusRepository {
+class SubmissionStatusRepositoryImpl @Inject()(mongo: ReactiveMongoComponent)(implicit executionContext: ExecutionContext) extends SubmissionStatusRepository {
 
-  lazy val collection = mongo().collection[JSONCollection]("submission")
+  lazy val collection = mongo.mongoConnector.db().collection[JSONCollection]("submission")
 
   def idSelector(submissionId: String) = BSONDocument("_id" -> submissionId)
 
-  override def addError(submissionId: String, error: String): Future[Either[BarError, Boolean]] = {
+  override def addError(submissionId: String, error: ReportStatusError): Future[Either[BarError, Boolean]] = {
 
     val modifier = BSONDocument(
       "$push" -> BSONDocument(
-        "errors" -> BSONDocument(
-          "error_code" -> 10,
-          "error_message" -> error
-        )
+        "errors" -> errorToBson(error)
       )
     )
 
@@ -55,11 +54,17 @@ class SubmissionStatusRepositoryImpl @Inject()(mongo: () => DB)(implicit executi
 
   }
 
-  override def updateStatus(submissionId: String, status: String): Future[Either[BarError, Boolean]] = {
+  private def errorToBson(error: ReportStatusError) = BSONDocument(
+    "detial" -> error.detail,
+    "errorCode" -> error.errorCode,
+    "message" -> error.message
+  )
+
+  override def updateStatus(submissionId: String, status: ReportStatusType): Future[Either[BarError, Boolean]] = {
 
     val modifier = BSONDocument(
       "$set" -> BSONDocument(
-        "status" -> status
+        "status" -> status.value
       )
     )
 
@@ -74,11 +79,12 @@ class SubmissionStatusRepositoryImpl @Inject()(mongo: () => DB)(implicit executi
   }
 }
 
+@ImplementedBy(classOf[SubmissionStatusRepositoryImpl])
 trait SubmissionStatusRepository {
 
-  def addError(submissionId: String, error: String): Future[Either[BarError, Boolean]]
+  def addError(submissionId: String, error: ReportStatusError): Future[Either[BarError, Boolean]]
 
-  def updateStatus(submissionId: String, status: String): Future[Either[BarError, Boolean]]
+  def updateStatus(submissionId: String, status: ReportStatusType): Future[Either[BarError, Boolean]]
 
 }
 
