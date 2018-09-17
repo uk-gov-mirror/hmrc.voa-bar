@@ -23,7 +23,6 @@ import cats.data.EitherT
 import cats.implicits._
 import javax.inject.Inject
 import play.api.Logger
-import services.EbarsValidator
 import uk.gov.hmrc.voabar.connectors.LegacyConnector
 import uk.gov.hmrc.voabar.models._
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
@@ -37,7 +36,6 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
                           validationService: ValidationService,
                           xmlParser: XmlParser,
                           legacyConnector: LegacyConnector)(implicit executionContext: ExecutionContext) {
-  val ebarsValidator = new EbarsValidator()
 
   def upload(username: String, password: String, xml: String, uploadReference: String) = {
 
@@ -99,10 +97,8 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       val buff = new StringWriter()
       XML.write(buff, node, "UTF-8", true, null)
       val xmlString = buff.toString
-      val jaxbElement = ebarsValidator.fromXml(xmlString)
-      val jsonString = ebarsValidator.toJson(jaxbElement)
 
-      val req = BAReportRequest("uuid", jsonString, username, password)(null) //TODO Fix uuid
+      val req = BAReportRequest("uuid", xmlString, username, password)(null) //TODO Fix uuid
       legacyConnector.sendBAReport(req)
     }
 

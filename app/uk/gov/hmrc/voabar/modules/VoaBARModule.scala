@@ -18,12 +18,10 @@ package uk.gov.hmrc.voabar.modules
 
 import com.google.inject.Provides
 import net.codingwell.scalaguice.ScalaModule
-import services.EbarsValidator
 import uk.gov.hmrc.crypto.{ApplicationCrypto, CompositeSymmetricCrypto}
 
 class VoaBARModule extends ScalaModule {
   override def configure() = {
-    bind[EbarsValidator].toInstance(new EbarsValidator)
   }
 
   @Provides

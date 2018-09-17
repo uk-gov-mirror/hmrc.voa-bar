@@ -14,7 +14,6 @@ object MicroServiceBuild extends Build with MicroService {
   private val playReactivemongoVersion = "6.0.0"
   private val reactiveMongoVersion = "6.2.0"
   private val bootstrapVersion = "3.0.0"
-  private val autobarsXsdVersion = "8.0.0"
   private val guiceUtilsVersion = "4.1.0"
   private val catsCoreVersion = "1.3.1"
 
@@ -24,7 +23,6 @@ object MicroServiceBuild extends Build with MicroService {
     "uk.gov.hmrc" %% "play-reactivemongo"  % reactiveMongoVersion,
     ws,
     "uk.gov.hmrc" %% "bootstrap-play-25"   % bootstrapVersion,
-    "uk.gov.hmrc" %% "autobars-xsd"        % autobarsXsdVersion,
     "uk.gov.hmrc" %% "http-caching-client" % httpCachingClientVersion,
     "uk.gov.hmrc" %% "play-reactivemongo"  % playReactivemongoVersion,
     "net.codingwell" %% "scala-guice"      % guiceUtilsVersion,
