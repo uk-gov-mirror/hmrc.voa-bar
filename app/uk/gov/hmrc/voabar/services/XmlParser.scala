@@ -29,7 +29,7 @@ import scala.xml._
 class XmlParser {
 
   val saxFactory = javax.xml.parsers.SAXParserFactory.newInstance()
-  saxFactory.setNamespaceAware(true)
+  saxFactory.setNamespaceAware(false) // Scala parser is little naive. Must be false! Otherwise all namespace information is lost.
   saxFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
   saxFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false)
   saxFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)

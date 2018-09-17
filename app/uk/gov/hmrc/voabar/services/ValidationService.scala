@@ -27,7 +27,7 @@ import scala.xml.{InputSource, Node, XML}
 class ValidationService @Inject()(xmlValidator: XmlValidator,
                                   xmlParser:XmlParser,
                                   charValidator:CharacterValidator,
-                                  businessRules:BusinessRules // TODO - Not yet. We have stupid implicit agument
+                                  businessRules:BusinessRules
                                  ) {
 
   def validate(xml: String): Either[BarError, Boolean] = {

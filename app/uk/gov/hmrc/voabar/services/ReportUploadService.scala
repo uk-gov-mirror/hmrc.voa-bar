@@ -17,23 +17,27 @@
 package uk.gov.hmrc.voabar.services
 
 
+import java.io.StringWriter
+
 import cats.data.EitherT
 import cats.implicits._
 import javax.inject.Inject
 import play.api.Logger
+import services.EbarsValidator
 import uk.gov.hmrc.voabar.connectors.LegacyConnector
 import uk.gov.hmrc.voabar.models._
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.xml.Node
+import scala.util.Try
+import scala.xml.{Node, XML}
 
 class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository,
                           validationService: ValidationService,
                           xmlParser: XmlParser,
                           legacyConnector: LegacyConnector)(implicit executionContext: ExecutionContext) {
-
+  val ebarsValidator = new EbarsValidator()
 
   def upload(username: String, password: String, xml: String, uploadReference: String) = {
 
@@ -57,17 +61,20 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
   }
 
 
-  private def handleError(submissionId: String, barError: BarError): Unit = barError match {
-    case BarXmlError(message) => {
-      statusRepository.updateStatus(submissionId, Failed)
-    }
-    case BarValidationError(errors) => statusRepository.updateStatus(submissionId, Failed)
-    case BarEbarError(ebarError) => statusRepository.updateStatus(submissionId, Failed)
-    case BarMongoError(error, updateWriteResult) => {
-      //Something really, really bad, bad bad, we don't have mongo :(
-      Logger.warn(s"Mongo exception, cannot updating status or record error, submissionId: ${submissionId}, detail : ${updateWriteResult}")
-    }
+  private def handleError(submissionId: String, barError: BarError): Unit = {
+    Logger.warn(s"handling error, submissionID: ${submissionId}, Error: ${barError}")
 
+    barError match {
+      case BarXmlError(message) => {
+        statusRepository.updateStatus(submissionId, Failed)
+      }
+      case BarValidationError(errors) => statusRepository.updateStatus(submissionId, Failed)
+      case BarEbarError(ebarError) => statusRepository.updateStatus(submissionId, Failed)
+      case BarMongoError(error, updateWriteResult) => {
+        //Something really, really bad, bad bad, we don't have mongo :(
+        Logger.warn(s"Mongo exception, cannot updating status or record error, submissionId: ${submissionId}, detail : ${updateWriteResult}")
+      }
+    }
   }
 
 
@@ -76,7 +83,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
     val nodesToSubmit = xmlParser.oneReportPerBatch(node)
 
     //TODO - change to Akka Streams to properly limit concurency and back pressure.
-    val uploadResults = Future.sequence(nodesToSubmit.map(submitOneNode(_, username, password)))
+    val uploadResults = Future.sequence(nodesToSubmit.map( oneNode => submitOneNode(oneNode, username, password)))
 
     uploadResults.map { results =>
       if (results.find(_.isFailure).isDefined) {
@@ -88,8 +95,19 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
   }
 
   def submitOneNode(node: Node, username: String, password: String) = {
-    val req = BAReportRequest("uuid", node.toString(), username, password)(null)
-    legacyConnector.sendBAReport(req)
+    val result = Try {
+      val buff = new StringWriter()
+      XML.write(buff, node, "UTF-8", true, null)
+      val xmlString = buff.toString
+      val jaxbElement = ebarsValidator.fromXml(xmlString)
+      val jsonString = ebarsValidator.toJson(jaxbElement)
+
+      val req = BAReportRequest("uuid", jsonString, username, password)(null) //TODO Fix uuid
+      legacyConnector.sendBAReport(req)
+    }
+
+    result.get
+
   }
 
 

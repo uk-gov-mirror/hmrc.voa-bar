@@ -16,6 +16,9 @@
 
 package uk.gov.hmrc.voabar.services
 
+import java.io.FileInputStream
+
+import org.apache.commons.io.IOUtils
 import org.scalatest.{AsyncWordSpec, MustMatchers, OptionValues}
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.WsScalaTestClient
@@ -73,6 +76,15 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
         verify(statusRepository, times(1)).updateStatus(meq(uploadReference), meq(Pending))
         verifyZeroInteractions(validationService, legacyConnector, xmlParser)
         result mustBe "failed"
+      }
+    }
+
+    "handle full XML" in {
+      val baReport = IOUtils.toString(new FileInputStream("test/resources/xml/CTValid2.xml"))
+      val reportUploadService = new ReportUploadService(aCorrectStatusRepository(), aValidationService(), aXmlParser(), aLegacyConnector())
+      val res = reportUploadService.upload("username", "password", baReport, uploadReference)
+      res.map { result =>
+        result mustBe "ok"
       }
     }
   }

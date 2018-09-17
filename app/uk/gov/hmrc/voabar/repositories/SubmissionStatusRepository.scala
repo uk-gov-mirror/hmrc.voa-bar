@@ -32,7 +32,7 @@ import scala.concurrent.Future
 @Singleton
 class SubmissionStatusRepositoryImpl @Inject()(mongo: ReactiveMongoComponent)(implicit executionContext: ExecutionContext) extends SubmissionStatusRepository with BSONBuilderHelpers {
 
-  lazy val collection = mongo.mongoConnector.db().collection[JSONCollection]("submission")
+  lazy val collection = mongo.mongoConnector.db().collection[JSONCollection]("reportstatus")
 
   def idSelector(submissionId: String) = BSONDocument("_id" -> submissionId)
 

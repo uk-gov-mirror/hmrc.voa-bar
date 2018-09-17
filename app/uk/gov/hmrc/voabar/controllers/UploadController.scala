@@ -31,7 +31,7 @@ class UploadController @Inject()(reportUploadService: ReportUploadService)
     val headers = request.headers
 
     val response = for {
-      contentType <- headers.get("Content-Type").toRight(UnsupportedMediaType).right //TODO check content type
+      contentType <- headers.get("Content-Type").toRight(UnsupportedMediaType).right
       _ <- checkContentType(contentType).right
       baCode <- headers.get("BA-Code").toRight(Unauthorized("BA-Code missing")).right
       password <- headers.get("password").toRight(Unauthorized("password missing")).right
