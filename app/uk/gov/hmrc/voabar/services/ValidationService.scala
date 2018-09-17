@@ -16,35 +16,59 @@
 
 package uk.gov.hmrc.voabar.services
 
-import javax.inject.{Inject, Singleton}
-import uk.gov.hmrc.voabar.models.Error
+import java.io.StringReader
 
-import scala.xml.Node
+import javax.inject.{Inject, Singleton}
+import uk.gov.hmrc.voabar.models.{BarError, BarValidationError, Error}
+
+import scala.xml.{InputSource, Node, XML}
 
 @Singleton
 class ValidationService @Inject()(xmlValidator: XmlValidator,
                                   xmlParser:XmlParser,
                                   charValidator:CharacterValidator,
-                                  businessRules:BusinessRules) {
+                                  businessRules:BusinessRules
+                                 ) {
 
-  def validate(xml:Node):List[Error] = {
+  def validate(xml: String): Either[BarError, Boolean] = {
+
+    for {
+      domDocument <- xmlParser.parse(xml).right //parse XML
+      _ <- xmlValidator.validate(domDocument).right //validate against XML schema
+      scalaElement <- xmlParser.xmlToNode(xml).right
+      _ <- businessValidation(scalaElement).right
+    }yield {
+      true
+    }
+  }
+
+  private def businessValidation(xml:Node):Either[BarError, Boolean] = {
+    val errors = xmlNodeValidation(xml)
+
+    if(errors.isEmpty) {
+      Right(true)
+    }else {
+      Left(BarValidationError(errors))
+    }
+
+  }
+
+  def xmlNodeValidation(xml:Node): List[Error] = {
+
     val parsedBatch:Seq[Node] = xmlParser.oneReportPerBatch(xml)
 
     val validations:List[(Node) => List[Error]] = List(
       validationBACode,
-      validationSchema,
       validationChars,
       validationBusinessRules
     )
     parsedBatch.toList.flatMap{n => validations.flatMap(_.apply(n))}.distinct
+
   }
 
   private def validationBACode(xml:Node): List[Error] = {
-    businessRules.baIdentityCodeErrors(xml)
-  }
-
-  private def validationSchema(xml:Node):List[Error] = {
-    xmlValidator.validate(xml.toString()).toList
+    //businessRules.baIdentityCodeErrors(xml)(null)
+    List.empty[Error]
   }
 
   private def validationChars(xml:Node):List[Error] = {

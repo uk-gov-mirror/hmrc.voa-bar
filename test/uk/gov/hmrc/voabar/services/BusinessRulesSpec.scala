@@ -31,10 +31,7 @@ class BusinessRulesSpec extends PlaySpec {
   val REPORTNUMBER = "118294"
   val batchWith1Report = IOUtils.toString(getClass.getResource("/xml/CTValid1.xml"))
   val batchWith4Reports = IOUtils.toString(getClass.getResource("/xml/CTValid2.xml"))
-  val businessRules = new BusinessRules()(FakeRequest("GET",""))
-  def businessRules(baCode:String):BusinessRules = new BusinessRules()(FakeRequest("GET","").
-    withHeaders("BA-Code" -> baCode))
-
+  val businessRules = new BusinessRules()
 
   "A BA property report" must {
 
@@ -175,23 +172,27 @@ class BusinessRulesSpec extends PlaySpec {
   "The BA identity code validator" must {
     "return a empty list (no errors) when the BA code in the request header matches that in the report" in {
       val validBatch = XML.loadString(batchWith1Report)
-      businessRules("9999").baIdentityCodeErrors(validBatch).isEmpty mustBe true
+      implicit val request = FakeRequest("GET","").withHeaders("BA-Code" -> "9999")
+      businessRules.baIdentityCodeErrors(validBatch).isEmpty mustBe true
     }
 
     "return a list of 1 error when the BA code in the request header does not match that in the report" in {
       val validBatch = XML.loadString(batchWith1Report)
-      businessRules("0000").baIdentityCodeErrors(validBatch.head) mustBe List(
+      implicit val request = FakeRequest("GET","").withHeaders("BA-Code" -> "0000")
+      businessRules.baIdentityCodeErrors(validBatch.head) mustBe List(
         Error(ErrorCodes.BA_CODE_MATCH, Seq()))
     }
 
     "return a list of 1 error when the BA code in the report is empty" in {
       val validBatch = XML.loadString(batchWith1Report)
+      implicit val request = FakeRequest("GET","").withHeaders("BA-Code" -> "9999")
       val invalidBatch = reportBuilder.invalidateBatch(validBatch.head,Map("BillingAuthorityIdentityCode" -> ""))
-      businessRules("9999").baIdentityCodeErrors(invalidBatch.head) mustBe List(
+      businessRules.baIdentityCodeErrors(invalidBatch.head) mustBe List(
         Error(ErrorCodes.BA_CODE_REPORT, Seq()))
     }
 
     "return a list of 1 error when the BA code in the request header is empty" in {
+      implicit val request = FakeRequest("GET","")
       val validBatch = XML.loadString(batchWith1Report)
       businessRules.baIdentityCodeErrors(validBatch.head) mustBe List(
         Error(ErrorCodes.BA_CODE_REQHDR, Seq()))
@@ -199,6 +200,7 @@ class BusinessRulesSpec extends PlaySpec {
 
     "return a list of 2 errors when the BA code is missing from the request header and the report" in {
       val validBatch = XML.loadString(batchWith1Report)
+      implicit val request = FakeRequest("GET","")
       val invalidBatch = reportBuilder.invalidateBatch(validBatch.head,Map("BillingAuthorityIdentityCode" -> ""))
       businessRules.baIdentityCodeErrors(invalidBatch.head) mustBe List(
         Error("1012", Seq()),

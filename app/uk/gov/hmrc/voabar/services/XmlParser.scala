@@ -16,9 +16,45 @@
 
 package uk.gov.hmrc.voabar.services
 
+import java.io.{ByteArrayInputStream, StringReader}
+
+import javax.xml.parsers.DocumentBuilderFactory
+import org.apache.commons.io.input.ReaderInputStream
+import org.w3c.dom.Document
+import uk.gov.hmrc.voabar.models.{BarError, BarXmlError}
+
+import scala.util.{Failure, Success, Try}
 import scala.xml._
 
 class XmlParser {
+
+  val saxFactory = javax.xml.parsers.SAXParserFactory.newInstance()
+  saxFactory.setNamespaceAware(false) // Scala parser is little naive. Must be false! Otherwise all namespace information is lost.
+  saxFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
+  saxFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false)
+  saxFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
+  saxFactory.setFeature("http://xml.org/sax/features/external-general-entities", false)
+
+
+  val documentBuilderFactory = DocumentBuilderFactory.newInstance
+  documentBuilderFactory.setNamespaceAware(true)
+  documentBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
+  documentBuilderFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false)
+  documentBuilderFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
+  documentBuilderFactory.setFeature("http://xml.org/sax/features/external-general-entities",false)
+  documentBuilderFactory.setExpandEntityReferences(false) //XXE vulnerable fix
+
+
+  def parse(xml: String): Either[BarError, Document] = {
+    Try {
+      val docBuilder = documentBuilderFactory.newDocumentBuilder()
+      docBuilder.parse(new ReaderInputStream(new StringReader(xml)))
+    } match {
+      case Success(value) => Right(value)
+      case Failure(_) => Left(BarXmlError("sax parse error"))
+    }
+  }
+
 
   private def addChild(node:Node,newNode:NodeSeq): Node = node match {
     case Elem(prefix,label,attrs,ns,child@_*) => Elem(prefix,label,attrs,ns,false,newNode: _*)
@@ -28,5 +64,15 @@ class XmlParser {
     val batchHeader = node \ "BAreportHeader"
     val batchTrailer = node \ "BAreportTrailer"
     (node \ "BApropertyReport") map {report => addChild(node,batchHeader ++ report ++ batchTrailer)}
+  }
+
+
+  def xmlToNode(xml: String): Either[BarError, Elem] = {
+    Try {
+      XML.withSAXParser(saxFactory.newSAXParser()).loadString(xml)
+    } match {
+      case Success(value) => Right(value)
+      case Failure(exception) => Left(BarXmlError(exception.getMessage))
+    }
   }
 }

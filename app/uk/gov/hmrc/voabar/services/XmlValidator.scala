@@ -16,15 +16,16 @@
 
 package uk.gov.hmrc.voabar.services
 
-import java.io.ByteArrayInputStream
+
 import javax.xml.XMLConstants
-import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.transform.dom.DOMSource
 import javax.xml.transform.stream.StreamSource
 import javax.xml.validation.SchemaFactory
-
+import org.w3c.dom.Document
 import org.xml.sax.{ErrorHandler, SAXParseException}
-import uk.gov.hmrc.voabar.models.Error
+import uk.gov.hmrc.voabar.models.{BarError, BarXmlError, Error}
+
+import scala.util.{Failure, Success, Try}
 
 class XmlValidator {
 
@@ -33,7 +34,7 @@ class XmlValidator {
   factory.setResourceResolver(new ResourceResolver)
   val schema = factory.newSchema(schemaFile1)
 
-  def validate(xml: String):Seq[Error] = {
+  def validate(xmlDocument: Document):Either[BarError, Boolean] = {
     val errors = scala.collection.mutable.Buffer.empty[Error]
 
     val errorHandler: ErrorHandler = new ErrorHandler {
@@ -55,28 +56,25 @@ class XmlValidator {
       }
     }
 
-    try {
-      val documentBuilderFactory = DocumentBuilderFactory.newInstance
-      documentBuilderFactory.setNamespaceAware(true)
-      documentBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
-      documentBuilderFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false)
-      documentBuilderFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
-      documentBuilderFactory.setFeature("http://xml.org/sax/features/external-general-entities",false)
-      documentBuilderFactory.setExpandEntityReferences(false) //XXE vulnerable fix
-
-      val parser = documentBuilderFactory.newDocumentBuilder
-
-      parser.setErrorHandler(errorHandler)
-      val document = parser.parse(new ByteArrayInputStream(xml.getBytes))
+    Try {
 
       val validator = schema.newValidator
-
       validator.setErrorHandler(errorHandler)
+      validator.validate(new DOMSource(xmlDocument))
 
-      validator.validate(new DOMSource(document))
-    } catch {
-      case _: Throwable => None
+      //TODO
+      // validate name of root element and namespace of root element
+
+
+    } match {
+      case Success(value) => {
+        if(errors.isEmpty) {
+          Right(true)
+        }else {
+          Left(BarXmlError("XML Schema validation error"))
+        }
+      }
+      case Failure(exception) => Left(BarXmlError("XML Schema validation error"))
     }
-    errors
   }
 }

@@ -17,16 +17,43 @@
 package uk.gov.hmrc.voabar.services
 
 import org.apache.commons.io.IOUtils
+import org.scalatest.EitherValues
 import org.scalatest.Matchers._
 import org.scalatestplus.play.PlaySpec
+import uk.gov.hmrc.voabar.models.BarXmlError
 
 import scala.xml._
 
-class XmlParserSpec extends PlaySpec {
+class XmlParserSpec extends PlaySpec with EitherValues {
 
   val xmlParser = new XmlParser()
 
-  val batchSubmission: Node = XML.loadString(IOUtils.toString(getClass.getResource("/xml/CTValid1.xml")))
+  val xmlBatchSubmissionAsString = IOUtils.toString(getClass.getResource("/xml/CTValid1.xml"))
+  val validWithXXE = IOUtils.toString(getClass.getResource("/xml/CTValidWithXXE.xml"))
+  val invalidWithXXE2 = IOUtils.toString(getClass.getResource("/xml/WithXXE.xml"))
+
+  val batchSubmission: Node = XML.loadString(xmlBatchSubmissionAsString)
+
+  "Xml parser " must {
+    "successfuly parse xml to DOM" in {
+      val document = xmlParser.parse(xmlBatchSubmissionAsString)
+      document mustBe('right)
+      document.right.value.getDocumentElement().getNodeName mustBe("BAreports")
+    }
+    "fail for valid XML with XXS xml" in {
+      val document = xmlParser.parse(validWithXXE)
+      document mustBe('left)
+      document.left.value mustBe(BarXmlError("sax parse error"))
+    }
+    "fail for xml with DTD embedded entity" in {
+      val document = xmlParser.parse(validWithXXE)
+      document mustBe('left)
+      document.left.value mustBe(BarXmlError("sax parse error"))
+    }
+
+  }
+
+
 
   "A BatchSubmission" must {
 
