@@ -14,7 +14,7 @@ object MicroServiceBuild extends Build with MicroService {
   private val playReactivemongoVersion = "6.0.0"
   private val reactiveMongoVersion = "6.2.0"
   private val bootstrapVersion = "3.0.0"
-  private val autobarsXsdVersion = "7.0.0"
+  private val autobarsXsdVersion = "8.0.0"
   private val guiceUtilsVersion = "4.1.0"
   private val catsCoreVersion = "1.3.1"
 
