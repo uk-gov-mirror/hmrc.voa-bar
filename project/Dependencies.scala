@@ -1,13 +1,9 @@
 import sbt._
 import play.sbt.PlayImport._
 import play.core.PlayVersion
-import uk.gov.hmrc.SbtAutoBuildPlugin
-import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin
-import uk.gov.hmrc.versioning.SbtGitVersioning
 
-object MicroServiceBuild extends Build with MicroService {
+object Dependencies {
 
-  val appName = "voa-bar"
   private val mockitoAllVersion = "1.10.19"
   private val scalaTestPlusPlayVersion = "2.0.1"
   private val httpCachingClientVersion = "7.1.0"
@@ -18,7 +14,7 @@ object MicroServiceBuild extends Build with MicroService {
   private val guiceUtilsVersion = "4.1.0"
   private val catsCoreVersion = "1.3.1"
 
-  override lazy val appDependencies: Seq[ModuleID] = compile ++ test()
+  lazy val appDependencies: Seq[ModuleID] = compile ++ test()
 
   val compile = Seq(
     "uk.gov.hmrc" %% "play-reactivemongo"  % reactiveMongoVersion,
