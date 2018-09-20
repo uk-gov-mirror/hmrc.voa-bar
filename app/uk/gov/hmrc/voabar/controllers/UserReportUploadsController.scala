@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package uk.gov.hmrc.voabar.controllers
 
 import cats.data.EitherT
 import cats.implicits._
 import javax.inject.{Inject, Singleton}
 import play.api.Logger
-import play.api.libs.json.{JsSuccess, JsValue}
-import play.api.mvc.{Action, Request}
+import play.api.libs.json.{JsSuccess, JsValue, Json}
+import play.api.mvc.{Action, Request, Result}
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
 import uk.gov.hmrc.voabar.repositories.{UserReportUpload, UserReportUploadsRepository}
 
@@ -33,7 +34,7 @@ class UserReportUploadsController @Inject() (
   def getById(id: String) = Action.async(parse.empty) { implicit request =>
     userReportUploadsRepository.getById(id).map(_.fold(
       _ => InternalServerError,
-      userReportUpload => Ok(userReportUpload)
+      userReportUpload => Ok(Json.toJson(userReportUpload))
     ))
   }
 
@@ -47,10 +48,17 @@ class UserReportUploadsController @Inject() (
     }
   }
 
+  private def saveUserReportUpload(userReportUpload: UserReportUpload): Future[Either[Result, Unit]] = {
+    userReportUploadsRepository.save(userReportUpload).map(_.fold(
+      _ => Left(InternalServerError),
+      _ => Right(Unit)
+    ))
+  }
+
   def save() = Action.async(parse.tolerantJson) { implicit request =>
     (for {
       userReportUpload <- EitherT.fromEither[Future](parseUserReportUpload(request))
-      _ <- EitherT(userReportUploadsRepository.save(userReportUpload))
+      _ <- EitherT(saveUserReportUpload(userReportUpload))
     } yield NoContent)
       .valueOr(_ => InternalServerError)
   }

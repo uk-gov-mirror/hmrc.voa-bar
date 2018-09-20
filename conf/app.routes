@@ -6,7 +6,7 @@ POST        /upload                     @uk.gov.hmrc.voabar.controllers.UploadCo
 
 GET         /submissions                @uk.gov.hmrc.voabar.controllers.SubmissionStatusController.getByUser
 
-PUT         /submissions                @uk.gov.hmrc.voabar.controllers.SubmissionStatusController.save(upsert)
+PUT         /submissions                @uk.gov.hmrc.voabar.controllers.SubmissionStatusController.save(upsert: Boolean)
 
 PUT         /submissions/user-info      @uk.gov.hmrc.voabar.controllers.SubmissionStatusController.saveUserInfo
 

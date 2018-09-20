@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package uk.gov.hmrc.voabar.controllers
 
 import cats.data.EitherT
@@ -24,6 +25,7 @@ import uk.gov.hmrc.play.bootstrap.controller.BaseController
 import uk.gov.hmrc.voabar.models.ReportStatus
 import uk.gov.hmrc.voabar.models.ReportStatus._
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
+import play.api.libs.json.Json
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -31,11 +33,18 @@ import scala.concurrent.{ExecutionContext, Future}
 class SubmissionStatusController @Inject() (
                                            submissionStatusRepository: SubmissionStatusRepository
                                            )(implicit ec: ExecutionContext) extends BaseController {
-  def getByUser() = Action.async(parse.empty) { implicit request =>
+  private def getReportStatuses(userId: String): Future[Either[Result, Seq[ReportStatus]]] = {
+    submissionStatusRepository.getByUser(userId).map(_.fold(
+      _ => Left(InternalServerError),
+      reportStatuses => Right(reportStatuses)
+    ))
+  }
+
+  def getByUser() = Action.async { implicit request =>
     (for {
       userId <- EitherT.fromOption[Future](request.headers.get("BA-Code"), Unauthorized("BA-Code missing"))
-      reportStatuses <- EitherT(submissionStatusRepository.getByUser(userId))
-    } yield (Ok(reportStatuses)))
+      reportStatuses <- EitherT(getReportStatuses(userId))
+    } yield (Ok(Json.toJson(reportStatuses))))
         .valueOr(_ => InternalServerError)
   }
 
@@ -46,10 +55,26 @@ class SubmissionStatusController @Inject() (
     }
   }
 
+  private def saveSubmission(reportStatus: ReportStatus, upsert: Boolean): Future[Either[Result, Unit.type]] = {
+    submissionStatusRepository.saveOrUpdate(reportStatus, upsert).map(_.fold(
+      _ => Left(InternalServerError),
+      _ => Right(Unit)
+    ))
+  }
+
+
+  private def saveSubmissionUserInfo(userId: String, reference: String, upsert: Boolean)
+    : Future[Either[Result, Unit.type]] = {
+    submissionStatusRepository.saveOrUpdate(userId, reference, upsert).map(_.fold(
+      _ => Left(InternalServerError),
+      _ => Right(Unit)
+    ))
+  }
+
   def save(upsert: Boolean = false) = Action.async(parse.tolerantJson) { request =>
     (for {
       reportStatus <- EitherT.fromEither[Future](parseReportStatus(request))
-      _ <- EitherT(submissionStatusRepository.saveOrUpdate(reportStatus, upsert))
+      _ <- EitherT(saveSubmission(reportStatus, upsert))
     } yield NoContent)
       .valueOr(_ => InternalServerError)
   }
@@ -57,7 +82,7 @@ class SubmissionStatusController @Inject() (
   def saveUserInfo() = Action.async(parse.tolerantJson) { request =>
     (for {
       reportStatus <- EitherT.fromEither[Future](parseReportStatus(request))
-      _ <- EitherT(submissionStatusRepository.saveOrUpdate(reportStatus.userId.get, reportStatus._id, true))
+      _ <- EitherT(saveSubmissionUserInfo(reportStatus.userId.get, reportStatus._id, true))
     } yield NoContent)
       .valueOr(_ => InternalServerError)
   }

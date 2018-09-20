@@ -74,7 +74,6 @@ class SubmissionStatusRepositoryImpl @Inject()(
   }
 
   def saveOrUpdate(reportStatus: ReportStatus, upsert: Boolean)
-                        (implicit ec: ExecutionContext)
   : Future[Either[Error, Unit.type]] = {
     val finder = BSONDocument(ReportStatus.key -> reportStatus._id)
     val modifierBson = set(BSONDocument(
@@ -94,7 +93,6 @@ class SubmissionStatusRepositoryImpl @Inject()(
   }
 
   def saveOrUpdate(userId: String, reference: String, upsert: Boolean)
-                        (implicit ec: ExecutionContext)
   : Future[Either[Error, Unit.type]] = {
     val finder = BSONDocument(ReportStatus.key -> reference)
     val modifierBson = set(BSONDocument(
@@ -105,7 +103,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
     atomicSaveOrUpdate(reference, upsert, finder, modifierBson)
   }
 
-  override def getByUser(userId: String)(implicit ec: ExecutionContext)
+  override def getByUser(userId: String)
   : Future[Either[Error, Seq[ReportStatus]]] = {
     val finder = BSONDocument("userId" -> userId)
     collection.find(finder).sort(Json.obj("date" -> -1)).cursor[ReportStatus](ReadPreference.primary)
@@ -191,11 +189,11 @@ trait SubmissionStatusRepository {
 
   def updateStatus(submissionId: String, status: ReportStatusType): Future[Either[BarError, Boolean]]
 
-  def getByUser(userId: String)(implicit ec: ExecutionContext) : Future[Either[Error, Seq[ReportStatus]]]
+  def getByUser(userId: String) : Future[Either[Error, Seq[ReportStatus]]]
 
-  def saveOrUpdate(reportStatus: ReportStatus, upsert: Boolean)(implicit ec: ExecutionContext): Future[Either[Error, Unit.type]]
+  def saveOrUpdate(reportStatus: ReportStatus, upsert: Boolean): Future[Either[Error, Unit.type]]
 
-  def saveOrUpdate(userId: String, reference: String, upsert: Boolean)(implicit ec: ExecutionContext): Future[Either[Error, Unit.type]]
+  def saveOrUpdate(userId: String, reference: String, upsert: Boolean): Future[Either[Error, Unit.type]]
 }
 
 

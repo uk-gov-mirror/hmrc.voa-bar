@@ -76,7 +76,7 @@ class DefaultUserReportUploadsRepository @Inject() (
         case e: Throwable => {
           val errorMsg = s"Error saving user report upload entry"
           Logger.error(errorMsg)
-          Left(Error("", errorMsg)
+          Left(Error("", errorMsg))
         }
       }
   }
@@ -94,7 +94,7 @@ class DefaultUserReportUploadsRepository @Inject() (
   }
 }
 
-@ImplementedBy[DefaultUserReportUploadsRepository]
+@ImplementedBy(classOf[DefaultUserReportUploadsRepository])
 trait UserReportUploadsRepository {
   def getById(id: String): Future[Either[Error, Option[UserReportUpload]]]
   def save(userReportUpload: UserReportUpload): Future[Either[Error, Unit.type]]
