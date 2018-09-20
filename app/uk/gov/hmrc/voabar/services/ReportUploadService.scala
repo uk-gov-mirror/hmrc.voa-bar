@@ -30,7 +30,7 @@ import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 import scala.xml.{Node, XML}
 
 class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository,
@@ -80,35 +80,18 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
 
   private def ebarsUpload(node: Node, username: String, password: String, submissionId: String): Future[Either[BarError, Boolean]] = {
 
-    val nodesToSubmit = xmlParser.oneReportPerBatch(node)
+    val buff = new StringWriter()
+    XML.write(buff, node, "UTF-8", true, null)
+    val xmlString = buff.toString
+    val jaxbElement = ebarsValidator.fromXml(xmlString)
+    val jsonString = ebarsValidator.toJson(jaxbElement)
 
-    //TODO - change to Akka Streams to properly limit concurency and back pressure.
-    val uploadResults = Future.sequence(nodesToSubmit.map( oneNode => submitOneNode(oneNode, username, password)))
-
-    uploadResults.map { results =>
-      if (results.find(_.isFailure).isDefined) {
-        Left(BarEbarError("failed to upload everything"))
-      } else {
-        Right(true)
-      }
-    }
-  }
-
-  def submitOneNode(node: Node, username: String, password: String) = {
-    val result = Try {
-      val buff = new StringWriter()
-      XML.write(buff, node, "UTF-8", true, null)
-      val xmlString = buff.toString
-      val jaxbElement = ebarsValidator.fromXml(xmlString)
-      val jsonString = ebarsValidator.toJson(jaxbElement)
-
-      val req = BAReportRequest("uuid", jsonString, username, password)(null) //TODO Fix uuid
-      legacyConnector.sendBAReport(req)
+    val req = BAReportRequest(submissionId, jsonString, username, password)(null) //TODO Fix uuid
+    legacyConnector.sendBAReport(req).map {
+      case Success(value) => Right(true)
+      case Failure(exception) => Left(BarEbarError("Upload failed."))
     }
 
-    result.get
-
   }
-
 
 }
