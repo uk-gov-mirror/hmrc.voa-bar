@@ -35,7 +35,8 @@ object Dependencies {
     "org.scalatestplus.play" %% "scalatestplus-play" % scalaTestPlusPlayVersion % scope,
     "org.pegdown" % "pegdown" % "1.6.0" % scope,
     "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
-    "org.mockito" % "mockito-all" % mockitoAllVersion % scope
+    "org.mockito" % "mockito-all" % mockitoAllVersion % scope,
+    "org.scalacheck" %% "scalacheck" % "1.14.0" % scope
   )
 
 }
