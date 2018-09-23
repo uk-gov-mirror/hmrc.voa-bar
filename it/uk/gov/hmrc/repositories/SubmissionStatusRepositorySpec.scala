@@ -18,8 +18,12 @@ package uk.gov.hmrc.repositories
 
 import java.util.UUID
 
+import org.scalatest.mockito.MockitoSugar
+import play.api.inject.Injector
 import org.scalatest.{BeforeAndAfterAll, EitherValues}
 import org.scalatestplus.play.PlaySpec
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.Configuration
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.bson.BSONDocument
@@ -31,7 +35,7 @@ import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepositoryImpl
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
-  with EitherValues with DefaultAwaitTimeout with FutureAwaits {
+  with EitherValues with DefaultAwaitTimeout with FutureAwaits  with GuiceOneAppPerSuite with MockitoSugar {
 
   val mongoConponent = new ReactiveMongoComponent {
     override def mongoConnector: MongoConnector = new MongoConnector(
@@ -40,7 +44,8 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
 
   "repository" should {
 
-    val repo = new SubmissionStatusRepositoryImpl(mongoConponent)
+    val config = app.injector.instanceOf(classOf[Configuration])
+    val repo = new SubmissionStatusRepositoryImpl(mongoConponent, config)
 
     "add error" in {
       await(repo.collection.insert(BSONDocument(

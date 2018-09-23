@@ -19,7 +19,7 @@ package uk.gov.hmrc.voabar.repositories
 import com.google.inject.ImplementedBy
 import com.typesafe.config.ConfigException
 import javax.inject.{Inject, Singleton}
-import models.Error
+import uk.gov.hmrc.voabar.models.Error
 import play.api.libs.json.{Format, Json}
 import play.api.{Configuration, Logger}
 import play.modules.reactivemongo.ReactiveMongoComponent
@@ -76,7 +76,7 @@ class DefaultUserReportUploadsRepository @Inject() (
         case e: Throwable => {
           val errorMsg = s"Error saving user report upload entry"
           Logger.error(errorMsg)
-          Left(Error("", errorMsg))
+          Left(Error("", Seq(errorMsg)))
         }
       }
   }
@@ -88,7 +88,7 @@ class DefaultUserReportUploadsRepository @Inject() (
         case e: Throwable => {
           val errorMsg = s"Error getting user report upload entry for $id"
           Logger.error(errorMsg)
-          Left(Error("", errorMsg))
+          Left(Error("", Seq(errorMsg)))
         }
       }
   }
