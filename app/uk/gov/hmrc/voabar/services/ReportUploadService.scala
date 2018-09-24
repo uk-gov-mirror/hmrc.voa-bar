@@ -28,6 +28,7 @@ import uk.gov.hmrc.voabar.connectors.LegacyConnector
 import uk.gov.hmrc.voabar.models._
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
+import uk.gov.hmrc.voabar.util.ErrorCode
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
@@ -66,13 +67,27 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
 
     barError match {
       case BarXmlError(message) => {
+        statusRepository.addError(submissionId, Error(ErrorCode.INVALID_XML, Seq(message)))
         statusRepository.updateStatus(submissionId, Failed)
       }
-      case BarValidationError(errors) => statusRepository.updateStatus(submissionId, Failed)
-      case BarEbarError(ebarError) => statusRepository.updateStatus(submissionId, Failed)
+
+      case BarXmlValidationError(errors) => {
+        Future.sequence(errors.map(x => statusRepository.addError(submissionId, x)))
+        statusRepository.updateStatus(submissionId, Failed)
+      }
+
+      case BarValidationError(errors) => {
+        Future.sequence(errors.map(x => statusRepository.addError(submissionId, x)))
+        statusRepository.updateStatus(submissionId, Failed)
+      }
+
+      case BarEbarError(ebarError) => {
+        statusRepository.addError(submissionId, Error(ErrorCode.INVALID_XML, Seq(ebarError)))
+        statusRepository.updateStatus(submissionId, Failed)
+      }
       case BarMongoError(error, updateWriteResult) => {
         //Something really, really bad, bad bad, we don't have mongo :(
-        Logger.warn(s"Mongo exception, cannot updating status or record error, submissionId: ${submissionId}, detail : ${updateWriteResult}")
+        Logger.warn(s"Mongo exception, unable to update status of submission, submissionId: ${submissionId}, detail : ${updateWriteResult}")
       }
     }
   }

@@ -18,10 +18,11 @@ package uk.gov.hmrc.voabar.models.errors
 
 import org.scalatestplus.play.PlaySpec
 import uk.gov.hmrc.voabar.models.Error
+import uk.gov.hmrc.voabar.util.ErrorCode
 
 class ErrorSpec extends PlaySpec {
 
-  val code = "code1"
+  val code = ErrorCode.CHARACTER
   val errorValue = Seq("testing error")
 
   val error = Error(code, errorValue)

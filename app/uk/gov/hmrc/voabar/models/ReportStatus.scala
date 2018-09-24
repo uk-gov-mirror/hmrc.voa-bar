@@ -16,10 +16,6 @@
 
 package uk.gov.hmrc.voabar.models
 
-import org.joda.time.{DateTime, DateTimeZone}
-import play.api.libs.json._
-import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
-
 sealed trait ReportStatusType {
   val value: String = getClass.asSubclass(getClass).getSimpleName.replace("$", "")
 }
@@ -31,16 +27,3 @@ case object Unknown extends ReportStatusType
 case object Submitted extends ReportStatusType
 case object Cancelled extends ReportStatusType
 case object Done extends ReportStatusType
-
-final case class ReportStatusError(
-                                    errorCode: String,
-                                    message: String,
-                                    detail: String
-                                  )
-
-case class ReportStatus(baCode: String, submissionId: String, status: String, errors: Seq[Error] = Seq(), created: DateTime = DateTime.now(DateTimeZone.UTC))
-
-object ReportStatus {
-  implicit val dateFormat = ReactiveMongoFormats.dateTimeFormats
-  implicit val format = Json.format[ReportStatus]
-}

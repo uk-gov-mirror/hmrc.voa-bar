@@ -20,6 +20,7 @@ package uk.gov.hmrc.voabar.services
 import org.apache.commons.io.IOUtils
 import org.scalatestplus.play.PlaySpec
 import uk.gov.hmrc.voabar.models.Error
+import uk.gov.hmrc.voabar.util.ErrorCode
 
 import scala.xml.{NodeSeq, XML}
 
@@ -75,7 +76,7 @@ class CharacterValidatorSpec extends PlaySpec {
       "identify a single invalid char in a batch report containing multiple reports (CTValid2)" in {
         val invalidatedReport:NodeSeq = reportBuilder.invalidateBatch(ctValid2,Map("SOME VALID COUNCIL" ->"SOME VALID£COUNCIL"))
         val errors:Seq[Error] = characterValidator.validateChars(invalidatedReport.head, "test")
-        errors mustBe List[Error](Error("1000",Seq("test", "BillingAuthority","SOME VALID£COUNCIL")))
+        errors mustBe List[Error](Error(ErrorCode.CHARACTER ,Seq("test", "BillingAuthority","SOME VALID£COUNCIL")))
       }
 
       "identify multiple invalid chars in a batch report containing multiple reports (CTValid2)" in {
@@ -83,8 +84,8 @@ class CharacterValidatorSpec extends PlaySpec {
           "SOME VALID COUNCIL" -> "SOME VALID£COUNCIL",
           "SOME ADMIN AREA" -> "some admin area"))
         val errors:Seq[Error] = characterValidator.validateChars(invalid.head, "test")
-        errors mustBe List[Error](Error("1000", Seq("test", "BillingAuthority", "SOME VALID£COUNCIL")),
-          Error("1000",Seq("test", "AdministrativeArea", "some admin area")))
+        errors mustBe List[Error](Error(ErrorCode.CHARACTER, Seq("test", "BillingAuthority", "SOME VALID£COUNCIL")),
+          Error(ErrorCode.CHARACTER,Seq("test", "AdministrativeArea", "some admin area")))
       }
     }
 }

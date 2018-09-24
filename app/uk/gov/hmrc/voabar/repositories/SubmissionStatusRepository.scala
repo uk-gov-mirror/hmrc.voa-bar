@@ -19,12 +19,13 @@ package uk.gov.hmrc.voabar.repositories
 import com.google.inject.ImplementedBy
 import javax.inject.{Inject, Singleton}
 import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.DB
-import reactivemongo.bson.BSONDocument
+import reactivemongo.bson.{BSONArray, BSONDocument}
 import reactivemongo.play.json.collection.JSONCollection
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import uk.gov.hmrc.mongo.BSONBuilderHelpers
-import uk.gov.hmrc.voabar.models.{BarError, BarMongoError, ReportStatusError, ReportStatusType}
+import uk.gov.hmrc.voabar.models.{BarError, BarMongoError, Error, ReportStatusType}
+import reactivemongo.bson._
+import uk.gov.hmrc.voabar.util.ErrorCode
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
@@ -36,11 +37,11 @@ class SubmissionStatusRepositoryImpl @Inject()(mongo: ReactiveMongoComponent)(im
 
   def idSelector(submissionId: String) = BSONDocument("_id" -> submissionId)
 
-  override def addError(submissionId: String, error: ReportStatusError): Future[Either[BarError, Boolean]] = {
+  override def addError(submissionId: String, error: Error): Future[Either[BarError, Boolean]] = {
 
     val modifier = BSONDocument(
       "$push" -> BSONDocument(
-        "errors" -> errorToBson(error)
+        "errors" -> error
       )
     )
 
@@ -53,11 +54,6 @@ class SubmissionStatusRepositoryImpl @Inject()(mongo: ReactiveMongoComponent)(im
     }
   }
 
-  private def errorToBson(error: ReportStatusError) = BSONDocument(
-    "detial" -> error.detail,
-    "errorCode" -> error.errorCode,
-    "message" -> error.message
-  )
 
   override def updateStatus(submissionId: String, status: ReportStatusType): Future[Either[BarError, Boolean]] = {
 
@@ -80,7 +76,7 @@ class SubmissionStatusRepositoryImpl @Inject()(mongo: ReactiveMongoComponent)(im
 @ImplementedBy(classOf[SubmissionStatusRepositoryImpl])
 trait SubmissionStatusRepository {
 
-  def addError(submissionId: String, error: ReportStatusError): Future[Either[BarError, Boolean]]
+  def addError(submissionId: String, error: Error): Future[Either[BarError, Boolean]]
 
   def updateStatus(submissionId: String, status: ReportStatusType): Future[Either[BarError, Boolean]]
 

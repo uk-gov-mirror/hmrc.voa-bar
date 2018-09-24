@@ -116,7 +116,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
   def aCorrectStatusRepository(): SubmissionStatusRepository = {
     val repository = mock[SubmissionStatusRepository]
     when(repository.updateStatus(anyString(), any(classOf[ReportStatusType]))).thenReturn(Future.successful(Right(true)))
-    when(repository.addError(anyString(), any(classOf[ReportStatusError]))).thenReturn(Future.successful(Right(true)))
+    when(repository.addError(anyString(), any(classOf[Error]))).thenReturn(Future.successful(Right(true)))
     repository
   }
 

@@ -33,11 +33,11 @@ class BusinessRules @Inject()() {
         case "CtaxReasonForReport" => validateCTaxCode(baReport)
         case _ =>
           Logger.warn(s"Unsupported tax type: ${node.label}")
-          Error(ErrorCodes.UNSUPPORTED_TAX_TYPE, Seq(s"${node.label}")) :: List()
+          Error(ErrorCode.UNSUPPORTED_TAX_TYPE, Seq(s"${node.label}")) :: List()
       }
       case None =>
         Logger.warn("Xml element not found: TypeOfTax")
-        Error(ErrorCodes.UNKNOWN_TYPE_OF_TAX, Seq()) :: List()
+        Error(ErrorCode.UNKNOWN_TYPE_OF_TAX, Seq()) :: List()
     }
   }
 
@@ -49,26 +49,26 @@ class BusinessRules @Inject()() {
 
     repCode match {
       case "CR03" => // no existing- only 1 proposed
-        if (proposedEntries != 1) lb += Error(ErrorCodes.ONE_PROPOSED, Seq(s"$reportNumber",s"$repCode"))
-        if (existingEntries != 0) lb += Error(ErrorCodes.NONE_EXISTING, Seq(s"$reportNumber",s"$repCode"))
+        if (proposedEntries != 1) lb += Error(ErrorCode.ONE_PROPOSED, Seq(s"$reportNumber",s"$repCode"))
+        if (existingEntries != 0) lb += Error(ErrorCode.NONE_EXISTING, Seq(s"$reportNumber",s"$repCode"))
       case "CR04" => // either 1 existing or 1 proposed
         if (((proposedEntries == 1) && (existingEntries ==0 )) ||
           ((proposedEntries == 0) && (existingEntries == 1))){}
         else
-          lb += Error("1003",Seq(s"$reportNumber", s"$repCode"))
+          lb += Error(ErrorCode.EITHER_ONE_EXISTING_OR_ONE_PROPOSED,Seq(s"$reportNumber", s"$repCode"))
       case "CR05" => // at least 1 existing and at least 1 proposed
-        if (proposedEntries == 0) lb += Error(ErrorCodes.ATLEAST_ONE_PROPOSED, Seq(s"$reportNumber", s"$repCode"))
-        if (existingEntries == 0) lb += Error(ErrorCodes.ATLEAST_ONE_EXISTING, Seq(s"$reportNumber", s"$repCode"))
-      case "CR08" => lb += Error(ErrorCodes.NOT_IN_USE, Seq(s"$reportNumber", s"$repCode"))
-      case "CR11" => lb += Error(ErrorCodes.NOT_IN_USE, Seq(s"$reportNumber", s"$repCode"))
+        if (proposedEntries == 0) lb += Error(ErrorCode.ATLEAST_ONE_PROPOSED, Seq(s"$reportNumber", s"$repCode"))
+        if (existingEntries == 0) lb += Error(ErrorCode.ATLEAST_ONE_EXISTING, Seq(s"$reportNumber", s"$repCode"))
+      case "CR08" => lb += Error(ErrorCode.NOT_IN_USE, Seq(s"$reportNumber", s"$repCode"))
+      case "CR11" => lb += Error(ErrorCode.NOT_IN_USE, Seq(s"$reportNumber", s"$repCode"))
       case "CR12" => // 1 existing and 1 proposed
-        if (proposedEntries != 1) lb += Error(ErrorCodes.ONE_PROPOSED, Seq(s"$reportNumber", s"$repCode"))
-        if (existingEntries != 1) lb += Error(ErrorCodes.ONE_EXISTING, Seq(s"$reportNumber", s"$repCode"))
-      case "CR13" => lb += Error(ErrorCodes.NOT_IN_USE, Seq(s"$reportNumber", s"$repCode"))
+        if (proposedEntries != 1) lb += Error(ErrorCode.ONE_PROPOSED, Seq(s"$reportNumber", s"$repCode"))
+        if (existingEntries != 1) lb += Error(ErrorCode.ONE_EXISTING, Seq(s"$reportNumber", s"$repCode"))
+      case "CR13" => lb += Error(ErrorCode.NOT_IN_USE, Seq(s"$reportNumber", s"$repCode"))
 
       case _ => // default - 1 existing and none proposed
-        if (proposedEntries != 0) lb += Error(ErrorCodes.NONE_PROPOSED, Seq(s"$reportNumber", s"$repCode"))
-        if (existingEntries != 1) lb += Error(ErrorCodes.ONE_EXISTING, Seq(s"$reportNumber", s"$repCode"))
+        if (proposedEntries != 0) lb += Error(ErrorCode.NONE_PROPOSED, Seq(s"$reportNumber", s"$repCode"))
+        if (existingEntries != 1) lb += Error(ErrorCode.ONE_EXISTING, Seq(s"$reportNumber", s"$repCode"))
     }
     lb.toList
   }
@@ -78,13 +78,13 @@ class BusinessRules @Inject()() {
 
 
   def baIdentityCodeErrors(xml:Node)(implicit request:Request[_]): List[Error] = {
-    val lb = new ListBuffer[String]()
+    val lb = new ListBuffer[ErrorCode]()
     val codeInReport:String = (xml \\ "BillingAuthorityIdentityCode").text
-      if (codeInReport.isEmpty) lb += ErrorCodes.BA_CODE_REPORT
+      if (codeInReport.isEmpty) lb += ErrorCode.BA_CODE_REPORT
         request.headers.get("BA-Code") match {
           case Some(code) => if (codeInReport.length > 0 && code != codeInReport) lb +=
-            ErrorCodes.BA_CODE_MATCH
-          case None => lb += ErrorCodes.BA_CODE_REQHDR
+            ErrorCode.BA_CODE_MATCH
+          case None => lb += ErrorCode.BA_CODE_REQHDR
         }
     lb.toList.map{err => Error(err)}
   }

@@ -20,7 +20,7 @@ import uk.gov.hmrc.voabar.models.{Error, _}
 
 import scala.util.matching.Regex
 import scala.xml.Node
-import uk.gov.hmrc.voabar.util.ErrorCodes
+import uk.gov.hmrc.voabar.util.ErrorCode
 import play.api.Logger
 
 class CharacterValidator {
@@ -42,11 +42,11 @@ class CharacterValidator {
     def validate(n: Node, errors: List[Error]): List[Error] = n match {
       case e: Node if e.isAtom => errors
       case f: Node if f.child.size == 1 && f.child.head.isAtom && !stringIsValid(f.text) =>
-        validate(f.child.head, Error(ErrorCodes.CHARACTER, Seq(location, f.label, f.text)) :: errors)
+        validate(f.child.head, Error(ErrorCode.CHARACTER, Seq(location, f.label, f.text)) :: errors)
       case g: Node => g.child.toList.flatMap(c => validate(c, errors))
       case _ =>
         Logger.warn("Fatal Error: character validation failed on an unknown data object")
-        Error(ErrorCodes.UNKNOWN_DATA_OBJECT, Seq()) :: List()
+        Error(ErrorCode.UNKNOWN_DATA_OBJECT, Seq()) :: List()
     }
     validate(node,List[Error]())
   }
