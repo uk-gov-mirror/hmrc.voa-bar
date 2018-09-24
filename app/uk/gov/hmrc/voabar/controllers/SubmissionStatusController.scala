@@ -48,6 +48,21 @@ class SubmissionStatusController @Inject() (
         .valueOr(_ => InternalServerError)
   }
 
+  private def getReportStatusByReference(reference: String): Future[Either[Result, ReportStatus]] = {
+    submissionStatusRepository.getByReference(reference).map(_.fold(
+      _ => Left(InternalServerError),
+      reportStatuses => Right(reportStatuses)
+    ))
+  }
+
+  def getByReference(reference: String) = Action.async { implicit request =>
+    (for {
+      _ <- EitherT.fromOption[Future](request.headers.get("BA-Code"), Unauthorized("BA-Code missing"))
+      reportStatuses <- EitherT(getReportStatusByReference(reference))
+    } yield (Ok(Json.toJson(reportStatuses))))
+      .valueOr(_ => InternalServerError)
+  }
+
   private def parseReportStatus(request: Request[JsValue]): Either[Result, ReportStatus] = {
     request.body.validate[ReportStatus] match {
       case result: JsSuccess[ReportStatus] => Right(result.get)

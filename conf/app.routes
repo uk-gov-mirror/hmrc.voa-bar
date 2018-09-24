@@ -8,6 +8,8 @@ GET         /submissions                @uk.gov.hmrc.voabar.controllers.Submissi
 
 PUT         /submissions                @uk.gov.hmrc.voabar.controllers.SubmissionStatusController.save(upsert: Boolean)
 
+GET         /submissions/:reference      @uk.gov.hmrc.voabar.controllers.SubmissionStatusController.getByReference(reference: String)
+
 PUT         /submissions/user-info      @uk.gov.hmrc.voabar.controllers.SubmissionStatusController.saveUserInfo
 
 GET         /user-report-upload/:id     @uk.gov.hmrc.voabar.controllers.UserReportUploadsController.getById(id)

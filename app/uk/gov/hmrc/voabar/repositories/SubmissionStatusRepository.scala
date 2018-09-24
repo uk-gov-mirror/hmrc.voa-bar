@@ -117,6 +117,22 @@ class SubmissionStatusRepositoryImpl @Inject()(
         }
       }
   }
+
+  override def getByReference(reference: String)
+  : Future[Either[Error, ReportStatus]] = {
+    val finder = BSONDocument("_id" -> reference)
+    collection.find(finder).sort(Json.obj("date" -> -1)).cursor[ReportStatus](ReadPreference.primary)
+      .collect[Seq](1, Cursor.FailOnError[Seq[ReportStatus]]())
+      .map(r => Right(r.head))
+      .recover {
+        case ex: Throwable => {
+          val errorMsg = "Couldn't retrieve BA reports"
+          Logger.warn(s"$errorMsg\n${ex.getMessage}")
+          Left(Error(errorMsg, Seq()))
+        }
+      }
+  }
+
   protected def atomicSaveOrUpdate(reference: String, upsert: Boolean, finder: BSONDocument, modifierBson: BSONDocument) = {
     val updateDocument = if (upsert) {
       modifierBson ++ setOnInsert(BSONDocument(ReportStatus.key -> reference))
@@ -190,6 +206,8 @@ trait SubmissionStatusRepository {
   def updateStatus(submissionId: String, status: ReportStatusType): Future[Either[BarError, Boolean]]
 
   def getByUser(userId: String) : Future[Either[Error, Seq[ReportStatus]]]
+
+  def getByReference(reference: String) : Future[Either[Error, ReportStatus]]
 
   def saveOrUpdate(reportStatus: ReportStatus, upsert: Boolean): Future[Either[Error, Unit.type]]
 
