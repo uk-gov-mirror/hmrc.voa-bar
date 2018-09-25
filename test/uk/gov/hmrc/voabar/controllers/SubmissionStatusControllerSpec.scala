@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.voabar.controllers
 
-import java.time.OffsetDateTime
+import java.time.ZonedDateTime
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
@@ -27,7 +27,7 @@ import org.mockito.Mockito.when
 import org.mockito.Matchers.any
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
-import uk.gov.hmrc.voabar.models.{Error, ReportStatus}
+import uk.gov.hmrc.voabar.models.{BarMongoError, ReportStatus}
 import play.api.test.Helpers._
 
 import scala.concurrent.Future
@@ -37,18 +37,18 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
   implicit val system = ActorSystem()
   implicit val materializer = ActorMaterializer()
   val id = "id"
-  val date = OffsetDateTime.now
+  val date = ZonedDateTime.now
   val userId = "userId"
   val reportStatus = ReportStatus(
-    _id = id,
-    date = date,
+    submissionId = id,
+    created = date,
     url = Some("url.com"),
-    userId = Some(userId)
+    baCode = Some(userId)
   )
   val reportStatusJson = Json.toJson(reportStatus)
   val reportStatusesJson = Json.toJson(Seq(reportStatus))
   val fakeRequest = FakeRequest("", "").withBody(reportStatusJson).withHeaders(("BA-Code", userId))
-  val error = Error("error", Seq())
+  val error = BarMongoError("error")
   "SubmissionStatusController" should {
     "save a new report status successfully" in {
       val submissionStatusRepositoryMock = mock[SubmissionStatusRepository]

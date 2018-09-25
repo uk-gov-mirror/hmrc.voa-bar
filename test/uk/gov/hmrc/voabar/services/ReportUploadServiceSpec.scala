@@ -31,7 +31,11 @@ import org.mockito.Mockito.verifyZeroInteractions
 import org.mockito.Matchers.anyString
 import org.mockito.Matchers.any
 import org.mockito.Matchers.{eq => meq}
+import org.mockito.Mockito
 import org.mockito.Mockito.times
+import org.mockito.invocation.InvocationOnMock
+import org.mockito.stubbing.Answer
+import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 import uk.gov.hmrc.voabar.connectors.LegacyConnector
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 import uk.gov.hmrc.voabar.models._
@@ -42,10 +46,12 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
 
   val uploadReference = "submissionID"
 
+  val aXml = IOUtils.toString(new FileInputStream("test/resources/xml/CTValid1.xml"))
+
   "ReportUploadServiceSpec" must {
     "proces request " in {
       val reportUploadService = new ReportUploadService(aCorrectStatusRepository(), aValidationService(), aXmlParser(), aLegacyConnector())
-      val res = reportUploadService.upload("username", "password", "<xml>ble</xml>", uploadReference)
+      val res = reportUploadService.upload("username", "password", aXml, uploadReference)
       res.map { result =>
         result mustBe "ok"
       }
@@ -87,12 +93,30 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
         result mustBe "ok"
       }
     }
+
+
+    "Send submissions in a Single submission file" in {
+      val baReport = IOUtils.toString(new FileInputStream("test/resources/xml/CTValid2.xml"))
+      val legacyConnector = aLegacyConnector()
+
+      val reportUploadService = new ReportUploadService(aCorrectStatusRepository(), aValidationService(), aXmlParser(), legacyConnector)
+      val res = reportUploadService.upload("username", "password", baReport, uploadReference)
+
+      res.map { result =>
+        result mustBe "ok"
+
+        val invocations = Mockito.mockingDetails(legacyConnector).getInvocations
+
+        invocations must have size 1
+
+      }
+    }
   }
 
   def aCorrectStatusRepository(): SubmissionStatusRepository = {
     val repository = mock[SubmissionStatusRepository]
     when(repository.updateStatus(anyString(), any(classOf[ReportStatusType]))).thenReturn(Future.successful(Right(true)))
-    when(repository.addError(anyString(), any(classOf[ReportStatusError]))).thenReturn(Future.successful(Right(true)))
+    when(repository.addError(anyString(), any(classOf[Error]))).thenReturn(Future.successful(Right(true)))
     repository
   }
 
@@ -110,10 +134,14 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
   def aLegacyConnector(): LegacyConnector = {
     val connector = mock[LegacyConnector]
     when(connector.sendBAReport(any(classOf[BAReportRequest]))(any(classOf[ExecutionContext])))
-      .thenReturn(Future.successful(Try(200)))
+      .thenAnswer(new Answer[Future[Try[Int]]] {
+        override def answer(invocation: InvocationOnMock): Future[Try[Int]] = Future.successful(Try(200))
+      })
 
     when(connector.validate(any(classOf[LoginDetails]))(any(classOf[ExecutionContext])))
-        .thenReturn(Future.successful(Try(200)))
+      .thenAnswer(new Answer[Future[Try[Int]]] {
+        override def answer(invocation: InvocationOnMock): Future[Try[Int]] = Future.successful(Try(200))
+      })
 
     connector
   }

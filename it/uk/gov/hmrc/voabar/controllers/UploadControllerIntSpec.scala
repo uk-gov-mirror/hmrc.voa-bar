@@ -65,7 +65,7 @@ class UploadControllerIntSpec extends PlaySpec with BeforeAndAfterAll with Optio
 
   "Upload controller " must {
 
-    "properly handle correct XML " ignore {
+    "properly handle correct XML " in {
 
       await(collection.insert(BSONDocument(
         "_id" -> "1234"
@@ -73,7 +73,7 @@ class UploadControllerIntSpec extends PlaySpec with BeforeAndAfterAll with Optio
 
       controller.upload()(fakeRequestWithXML)
 
-      Thread.sleep(5000)
+      Thread.sleep(3000)
 
       checkDatabaseStatus("1234", "Done")
 
@@ -91,7 +91,7 @@ class UploadControllerIntSpec extends PlaySpec with BeforeAndAfterAll with Optio
     }, JsCursor._
     type ResultType = JsObject
 
-    val collection = mongoComponent.mongoConnector.db().collection[JSONCollection]("submission")
+    val collection = mongoComponent.mongoConnector.db().collection[JSONCollection]("reportstatus")
 
     val query = BSONDocument("_id" -> BSONDocument("$eq" -> id))
 

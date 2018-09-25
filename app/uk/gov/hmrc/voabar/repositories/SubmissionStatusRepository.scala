@@ -29,7 +29,7 @@ import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import uk.gov.hmrc.mongo.{BSONBuilderHelpers, ReactiveRepository}
-import uk.gov.hmrc.voabar.models.{BarError, BarMongoError, Error, ReportStatus, ReportStatusError, ReportStatusType}
+import uk.gov.hmrc.voabar.models.{BarError, BarMongoError, Error, ReportStatus, ReportStatusType}
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
@@ -41,15 +41,15 @@ class SubmissionStatusRepositoryImpl @Inject()(
                                               )
                                               (implicit executionContext: ExecutionContext)
   extends ReactiveRepository[ReportStatus, String](
-    collectionName = ReportStatus.name,
+    collectionName = "submission",
     mongo = mongo.mongoConnector.db,
     domainFormat = ReportStatus.format,
     idFormat = implicitly[Format[String]]
   ) with SubmissionStatusRepository with BSONBuilderHelpers {
 
-  private val indexName = ReportStatus.name
+  private val indexName = name
   private val expireAfterSeconds = "expireAfterSeconds"
-  private val ttlPath = s"${ReportStatus.name}.timeToLiveInSeconds"
+  private val ttlPath = s"$name.timeToLiveInSeconds"
   private val ttl = config.getInt(ttlPath)
     .getOrElse(throw new ConfigException.Missing(ttlPath))
   createIndex()
@@ -58,7 +58,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
 
   private def createIndex(): Unit = {
     collection.indexesManager.ensure(Index(Seq(
-      (ReportStatus.key, IndexType.Text),
+      (key, IndexType.Text),
       ("userId", IndexType.Text)
     ), Some(indexName),
       options = BSONDocument(expireAfterSeconds -> ttl),
@@ -74,27 +74,26 @@ class SubmissionStatusRepositoryImpl @Inject()(
   }
 
   def saveOrUpdate(reportStatus: ReportStatus, upsert: Boolean)
-  : Future[Either[Error, Unit.type]] = {
-    val finder = BSONDocument(ReportStatus.key -> reportStatus._id)
+  : Future[Either[BarError, Unit.type]] = {
+    val finder = BSONDocument(key -> reportStatus.submissionId)
     val modifierBson = set(BSONDocument(
-      "date" -> reportStatus.date.toString,
+      "created" -> reportStatus.created.toString,
       "checksum" -> reportStatus.checksum,
       "url" -> reportStatus.url,
       "errors" -> reportStatus.errors.getOrElse(Seq()).map(e => BSONDocument(
-        "detail" -> e.detail,
-        "message" -> e.message,
-        "errorCode" -> e.errorCode
+        "detail" -> e.values,
+        "errorCode" -> e.code
       )),
       "filename" -> reportStatus.filename.getOrElse(""),
       "status" -> reportStatus.status)
     )
 
-    atomicSaveOrUpdate(reportStatus._id, upsert, finder, modifierBson)
+    atomicSaveOrUpdate(reportStatus.submissionId, upsert, finder, modifierBson)
   }
 
   def saveOrUpdate(userId: String, reference: String, upsert: Boolean)
-  : Future[Either[Error, Unit.type]] = {
-    val finder = BSONDocument(ReportStatus.key -> reference)
+  : Future[Either[BarError, Unit.type]] = {
+    val finder = BSONDocument(key -> reference)
     val modifierBson = set(BSONDocument(
       "date" -> OffsetDateTime.now.toString,
       "userId" -> userId)
@@ -103,39 +102,39 @@ class SubmissionStatusRepositoryImpl @Inject()(
     atomicSaveOrUpdate(reference, upsert, finder, modifierBson)
   }
 
-  override def getByUser(userId: String)
-  : Future[Either[Error, Seq[ReportStatus]]] = {
-    val finder = BSONDocument("userId" -> userId)
+  override def getByUser(baCode: String)
+  : Future[Either[BarError, Seq[ReportStatus]]] = {
+    val finder = BSONDocument("baCode" -> baCode)
     collection.find(finder).sort(Json.obj("date" -> -1)).cursor[ReportStatus](ReadPreference.primary)
       .collect[Seq](-1, Cursor.FailOnError[Seq[ReportStatus]]())
       .map(Right(_))
       .recover {
         case ex: Throwable => {
-          val errorMsg = "Couldn't retrieve BA reports"
+          val errorMsg = s"Couldn't retrieve BA reports with '$baCode'"
           Logger.warn(s"$errorMsg\n${ex.getMessage}")
-          Left(Error(errorMsg, Seq()))
+          Left(BarMongoError(errorMsg))
         }
       }
   }
 
   override def getByReference(reference: String)
-  : Future[Either[Error, ReportStatus]] = {
+  : Future[Either[BarError, ReportStatus]] = {
     val finder = BSONDocument("_id" -> reference)
     collection.find(finder).sort(Json.obj("date" -> -1)).cursor[ReportStatus](ReadPreference.primary)
       .collect[Seq](1, Cursor.FailOnError[Seq[ReportStatus]]())
       .map(r => Right(r.head))
       .recover {
         case ex: Throwable => {
-          val errorMsg = "Couldn't retrieve BA reports"
+          val errorMsg = s"Couldn't retrieve BA reports for reference $reference"
           Logger.warn(s"$errorMsg\n${ex.getMessage}")
-          Left(Error(errorMsg, Seq()))
+          Left(BarMongoError(errorMsg))
         }
       }
   }
 
   protected def atomicSaveOrUpdate(reference: String, upsert: Boolean, finder: BSONDocument, modifierBson: BSONDocument) = {
     val updateDocument = if (upsert) {
-      modifierBson ++ setOnInsert(BSONDocument(ReportStatus.key -> reference))
+      modifierBson ++ setOnInsert(BSONDocument(key -> reference))
     } else {
       modifierBson
     }
@@ -147,21 +146,25 @@ class SubmissionStatusRepositoryImpl @Inject()(
         getError(response.lastError.get.err.get))
       )
       .recover {
-        case ex: Throwable => Left(Error(ex.getMessage, Seq()))
+        case ex: Throwable => {
+          val errorMsg = "Error while saving submission"
+          Logger.error(errorMsg, ex)
+          Left(BarMongoError(errorMsg))
+        }
       }
   }
 
-  private def getError(error: String): Error = {
+  private def getError(error: String): BarError = {
     val errorMsg = "Error while saving report status"
-    Logger.warn(s"$errorMsg\n$error")
-    Error(error, Seq())
+    Logger.error(s"$errorMsg\n$error")
+    BarMongoError(errorMsg)
   }
 
-  override def addError(submissionId: String, error: ReportStatusError): Future[Either[BarError, Boolean]] = {
+  override def addError(submissionId: String, error: Error): Future[Either[BarError, Boolean]] = {
 
     val modifier = BSONDocument(
       "$push" -> BSONDocument(
-        "errors" -> errorToBson(error)
+        "errors" -> error
       )
     )
 
@@ -174,11 +177,6 @@ class SubmissionStatusRepositoryImpl @Inject()(
     }
   }
 
-  private def errorToBson(error: ReportStatusError) = BSONDocument(
-    "detial" -> error.detail,
-    "errorCode" -> error.errorCode,
-    "message" -> error.message
-  )
 
   override def updateStatus(submissionId: String, status: ReportStatusType): Future[Either[BarError, Boolean]] = {
 
@@ -200,18 +198,21 @@ class SubmissionStatusRepositoryImpl @Inject()(
 
 @ImplementedBy(classOf[SubmissionStatusRepositoryImpl])
 trait SubmissionStatusRepository {
+  val key = "submissionId"
 
-  def addError(submissionId: String, error: ReportStatusError): Future[Either[BarError, Boolean]]
+  val name = "submissions"
+
+  def addError(submissionId: String, error: Error): Future[Either[BarError, Boolean]]
 
   def updateStatus(submissionId: String, status: ReportStatusType): Future[Either[BarError, Boolean]]
 
-  def getByUser(userId: String) : Future[Either[Error, Seq[ReportStatus]]]
+  def getByUser(userId: String) : Future[Either[BarError, Seq[ReportStatus]]]
 
-  def getByReference(reference: String) : Future[Either[Error, ReportStatus]]
+  def getByReference(reference: String) : Future[Either[BarError, ReportStatus]]
 
-  def saveOrUpdate(reportStatus: ReportStatus, upsert: Boolean): Future[Either[Error, Unit.type]]
+  def saveOrUpdate(reportStatus: ReportStatus, upsert: Boolean): Future[Either[BarError, Unit.type]]
 
-  def saveOrUpdate(userId: String, reference: String, upsert: Boolean): Future[Either[Error, Unit.type]]
+  def saveOrUpdate(userId: String, reference: String, upsert: Boolean): Future[Either[BarError, Unit.type]]
 }
 
 

@@ -19,7 +19,7 @@ package uk.gov.hmrc.voabar.repositories
 import com.google.inject.ImplementedBy
 import com.typesafe.config.ConfigException
 import javax.inject.{Inject, Singleton}
-import uk.gov.hmrc.voabar.models.Error
+import uk.gov.hmrc.voabar.models.{BarError, BarMongoError, Error}
 import play.api.libs.json.{Format, Json}
 import play.api.{Configuration, Logger}
 import play.modules.reactivemongo.ReactiveMongoComponent
@@ -27,6 +27,7 @@ import reactivemongo.api.ReadPreference
 import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.bson.BSONDocument
 import uk.gov.hmrc.mongo.ReactiveRepository
+import uk.gov.hmrc.voabar.models
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -69,26 +70,26 @@ class DefaultUserReportUploadsRepository @Inject() (
         false
     }
   }
-  override def save(userReportUpload: UserReportUpload): Future[Either[Error, Unit.type]] = {
+  override def save(userReportUpload: UserReportUpload): Future[Either[BarError, Unit.type]] = {
     insert(userReportUpload)
       .map(_ => Right(Unit))
       .recover {
         case e: Throwable => {
           val errorMsg = s"Error saving user report upload entry"
           Logger.error(errorMsg)
-          Left(Error("", Seq(errorMsg)))
+          Left(models.BarMongoError(errorMsg))
         }
       }
   }
 
-  override def getById(id: String): Future[Either[Error, Option[UserReportUpload]]] = {
+  override def getById(id: String): Future[Either[BarError, Option[UserReportUpload]]] = {
     findById(id, ReadPreference.primary)
       .map(Right(_))
       .recover {
         case e: Throwable => {
           val errorMsg = s"Error getting user report upload entry for $id"
           Logger.error(errorMsg)
-          Left(Error("", Seq(errorMsg)))
+          Left(BarMongoError(errorMsg))
         }
       }
   }
@@ -96,6 +97,6 @@ class DefaultUserReportUploadsRepository @Inject() (
 
 @ImplementedBy(classOf[DefaultUserReportUploadsRepository])
 trait UserReportUploadsRepository {
-  def getById(id: String): Future[Either[Error, Option[UserReportUpload]]]
-  def save(userReportUpload: UserReportUpload): Future[Either[Error, Unit.type]]
+  def getById(id: String): Future[Either[BarError, Option[UserReportUpload]]]
+  def save(userReportUpload: UserReportUpload): Future[Either[BarError, Unit.type]]
 }

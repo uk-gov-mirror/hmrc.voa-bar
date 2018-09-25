@@ -23,7 +23,6 @@ import play.api.libs.json.{JsSuccess, JsValue}
 import play.api.mvc.{Action, Request, Result}
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
 import uk.gov.hmrc.voabar.models.ReportStatus
-import uk.gov.hmrc.voabar.models.ReportStatus._
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
 import play.api.libs.json.Json
 
@@ -97,7 +96,7 @@ class SubmissionStatusController @Inject() (
   def saveUserInfo() = Action.async(parse.tolerantJson) { request =>
     (for {
       reportStatus <- EitherT.fromEither[Future](parseReportStatus(request))
-      _ <- EitherT(saveSubmissionUserInfo(reportStatus.userId.get, reportStatus._id, true))
+      _ <- EitherT(saveSubmissionUserInfo(reportStatus.baCode.get, reportStatus.submissionId, true))
     } yield NoContent)
       .valueOr(_ => InternalServerError)
   }

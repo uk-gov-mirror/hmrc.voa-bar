@@ -26,7 +26,7 @@ import uk.gov.hmrc.voabar.repositories.{UserReportUpload, UserReportUploadsRepos
 import play.api.test.Helpers.{status, _}
 import org.mockito.Mockito.when
 import org.mockito.Matchers.any
-import uk.gov.hmrc.voabar.models.Error
+import uk.gov.hmrc.voabar.models.BarMongoError
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -34,7 +34,7 @@ import scala.concurrent.Future
 class UserReportUploadsControllerSpec extends PlaySpec with MockitoSugar {
   implicit val system = ActorSystem()
   implicit val materializer = ActorMaterializer()
-  val error = Error("error", Seq())
+  val error = BarMongoError("error")
   val id = "id"
   val userReportUpload = UserReportUpload(
     _id = id,
