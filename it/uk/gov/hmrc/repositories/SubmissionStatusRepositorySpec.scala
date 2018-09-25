@@ -31,7 +31,7 @@ import reactivemongo.play.json.ImplicitBSONHandlers._
 import uk.gov.hmrc.mongo.MongoConnector
 import uk.gov.hmrc.voabar.models.{BarMongoError, Error, Submitted}
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepositoryImpl
-import uk.gov.hmrc.voabar.util.ErrorCode
+import uk.gov.hmrc.voabar.util.{CHARACTER, ErrorCode}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -50,10 +50,10 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
 
     "add error" in {
       await(repo.collection.insert(BSONDocument(
-        "_id" -> "111"
+        repo.key -> "111"
       )))
 
-      val reportStatusError = Error(ErrorCode.CHARACTER , Seq( "message", "detail"))
+      val reportStatusError = Error(CHARACTER , Seq( "message", "detail"))
 
       val dbResult = await(repo.addError("111", reportStatusError))
 
@@ -63,7 +63,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
 
     "update status" in {
       await(repo.collection.insert(BSONDocument(
-        "_id" -> "222"
+        repo.key -> "222"
       )))
 
       val dbResult = await(repo.updateStatus("222", Submitted))

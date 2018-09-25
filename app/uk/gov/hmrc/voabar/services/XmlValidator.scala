@@ -63,10 +63,6 @@ class XmlValidator {
       validator.setErrorHandler(errorHandler)
       validator.validate(new DOMSource(xmlDocument))
 
-      //TODO
-      // validate name of root element and namespace of root element
-
-
     } match {
       case Success(value) => {
         if(errors.isEmpty) {

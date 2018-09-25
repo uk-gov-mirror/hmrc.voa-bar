@@ -39,6 +39,7 @@ import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 import uk.gov.hmrc.voabar.connectors.LegacyConnector
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 import uk.gov.hmrc.voabar.models._
+import uk.gov.hmrc.voabar.util.{ATLEAST_ONE_PROPOSED, CHARACTER, ErrorCode, INVALID_XML}
 
 import scala.util.Try
 
@@ -113,10 +114,62 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
     }
   }
 
+
+  "Error handler" should {
+
+    "persis BarXmlError" in {
+
+      val validationService = mock[ValidationService]
+      when(validationService.validate(anyString())).thenReturn(Left(BarXmlError("validation error")))
+      val statusRepository = aCorrectStatusRepository()
+      val reportUploadService = new ReportUploadService(statusRepository, validationService, aXmlParser(), aLegacyConnector())
+      val resutl = reportUploadService.upload("u", "p", "<xml></xml>", "reference1")
+
+      resutl.map { value =>
+        value mustBe("failed")
+        verify(statusRepository, times(1)).addError("reference1", Error(INVALID_XML, Seq("validation error")))
+        true mustBe(true)
+      }
+    }
+
+
+    "persis all Error from BarXmlValidationError" in {
+
+      val errors = List (
+        Error(CHARACTER),
+        Error(ATLEAST_ONE_PROPOSED)
+      )
+      val xmlValidationError = BarXmlValidationError(errors)
+
+      val validationService = mock[ValidationService]
+      when(validationService.validate(anyString())).thenReturn(Left(xmlValidationError))
+      val statusRepository = aCorrectStatusRepository()
+      val reportUploadService = new ReportUploadService(statusRepository, validationService, aXmlParser(), aLegacyConnector())
+      val resutl = reportUploadService.upload("u", "p", "<xml></xml>", "reference1")
+
+
+      resutl.map { value =>
+        value mustBe("failed")
+        verify(statusRepository, times(1)).addError("reference1", Error(CHARACTER, Seq()))
+        verify(statusRepository, times(1)).addError("reference1", Error(ATLEAST_ONE_PROPOSED, Seq()))
+        true mustBe(true)
+      }
+
+    }
+
+
+
+  }
+
   def aCorrectStatusRepository(): SubmissionStatusRepository = {
     val repository = mock[SubmissionStatusRepository]
-    when(repository.updateStatus(anyString(), any(classOf[ReportStatusType]))).thenReturn(Future.successful(Right(true)))
-    when(repository.addError(anyString(), any(classOf[Error]))).thenReturn(Future.successful(Right(true)))
+    when(repository.updateStatus(anyString(), any(classOf[ReportStatusType]))).thenAnswer(new Answer[Future[Either[BarError, Boolean]]] {
+      override def answer(invocationOnMock: InvocationOnMock): Future[Either[BarError, Boolean]] = Future.successful(Right(true))
+    })
+
+    when(repository.addError(anyString(), any(classOf[Error]))).thenAnswer(new Answer[Future[Either[BarError, Boolean]]] {
+      override def answer(invocationOnMock: InvocationOnMock): Future[Either[BarError, Boolean]] = Future.successful(Right(true))
+    })
     repository
   }
 
