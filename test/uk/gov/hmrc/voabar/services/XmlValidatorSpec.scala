@@ -19,6 +19,8 @@ package uk.gov.hmrc.voabar.services
 import org.apache.commons.io.IOUtils
 import org.scalatest.EitherValues
 import org.scalatestplus.play.PlaySpec
+import uk.gov.hmrc.voabar.models.{BarXmlValidationError, Error}
+import uk.gov.hmrc.voabar.util.INVALID_XML_XSD
 
 class XmlValidatorSpec extends PlaySpec with EitherValues {
 
@@ -59,4 +61,33 @@ class XmlValidatorSpec extends PlaySpec with EitherValues {
       //assert(errors.toString.contains("CouncilTaxBand"))
     }
   }
+
+  "A invalid XML " must {
+    "fail for wrong namespace" in {
+      val invalidNamespaceDocument = parser.parse(IOUtils.toString(getClass.getResource("/xml/CTInvalid1.xml"))
+        .replaceAll("http://www.govtalk.gov.uk/LG/Valuebill", "uri:wrong")).right.get
+
+      val result = validator.validate(invalidNamespaceDocument)
+
+      result mustBe ('left)
+
+      result.left.value mustBe BarXmlValidationError(List(Error(INVALID_XML_XSD, List("Cannot find the declaration of element 'BAreports'."))))
+
+    }
+
+    "fail for misspelled root element" in {
+
+      val invalidNamespaceDocument = parser.parse(IOUtils.toString(getClass.getResource("/xml/CTInvalid1.xml"))
+        .replaceAll("BAreports", "bareports")).right.get
+
+      val result = validator.validate(invalidNamespaceDocument)
+
+      result mustBe ('left)
+
+      result.left.value mustBe BarXmlValidationError(List(Error(INVALID_XML_XSD, List("Cannot find the declaration of element 'bareports'."))))
+
+    }
+
+  }
+
 }
