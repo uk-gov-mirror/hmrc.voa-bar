@@ -104,7 +104,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
     val req = BAReportRequest(submissionId, jsonString, username, password)(null) //TODO Fix uuid
     legacyConnector.sendBAReport(req).map {
       case Success(value) => Right(true)
-      case Failure(exception) => Left(BarEbarError("Upload failed."))
+      case Failure(exception) => Left(BarEbarError(exception.getMessage))
     }
 
   }

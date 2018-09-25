@@ -51,7 +51,7 @@ class XmlParser {
       docBuilder.parse(new ReaderInputStream(new StringReader(xml)))
     } match {
       case Success(value) => Right(value)
-      case Failure(_) => Left(BarXmlError("sax parse error"))
+      case Failure(x) => Left(BarXmlError(x.getMessage))
     }
   }
 

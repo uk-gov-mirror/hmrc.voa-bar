@@ -43,12 +43,12 @@ class XmlParserSpec extends PlaySpec with EitherValues {
     "fail for valid XML with XXS xml" in {
       val document = xmlParser.parse(validWithXXE)
       document mustBe('left)
-      document.left.value mustBe(BarXmlError("sax parse error"))
+      document.left.value mustBe(BarXmlError("DOCTYPE is disallowed when the feature \"http://apache.org/xml/features/disallow-doctype-decl\" set to true."))
     }
     "fail for xml with DTD embedded entity" in {
       val document = xmlParser.parse(validWithXXE)
       document mustBe('left)
-      document.left.value mustBe(BarXmlError("sax parse error"))
+      document.left.value mustBe(BarXmlError("DOCTYPE is disallowed when the feature \"http://apache.org/xml/features/disallow-doctype-decl\" set to true."))
     }
 
   }
