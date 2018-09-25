@@ -39,7 +39,7 @@ import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 import uk.gov.hmrc.voabar.connectors.LegacyConnector
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 import uk.gov.hmrc.voabar.models._
-import uk.gov.hmrc.voabar.util.ErrorCode
+import uk.gov.hmrc.voabar.util.{ATLEAST_ONE_PROPOSED, CHARACTER, ErrorCode, INVALID_XML}
 
 import scala.util.Try
 
@@ -127,7 +127,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
 
       resutl.map { value =>
         value mustBe("failed")
-        verify(statusRepository, times(1)).addError("reference1", Error(ErrorCode.INVALID_XML, Seq("validation error")))
+        verify(statusRepository, times(1)).addError("reference1", Error(INVALID_XML, Seq("validation error")))
         true mustBe(true)
       }
     }
@@ -136,8 +136,8 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
     "persis all Error from BarXmlValidationError" in {
 
       val errors = List (
-        Error(ErrorCode.CHARACTER),
-        Error(ErrorCode.ATLEAST_ONE_PROPOSED)
+        Error(CHARACTER),
+        Error(ATLEAST_ONE_PROPOSED)
       )
       val xmlValidationError = BarXmlValidationError(errors)
 
@@ -150,8 +150,8 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
 
       resutl.map { value =>
         value mustBe("failed")
-        verify(statusRepository, times(1)).addError("reference1", Error(ErrorCode.CHARACTER, Seq()))
-        verify(statusRepository, times(1)).addError("reference1", Error(ErrorCode.ATLEAST_ONE_PROPOSED, Seq()))
+        verify(statusRepository, times(1)).addError("reference1", Error(CHARACTER, Seq()))
+        verify(statusRepository, times(1)).addError("reference1", Error(ATLEAST_ONE_PROPOSED, Seq()))
         true mustBe(true)
       }
 

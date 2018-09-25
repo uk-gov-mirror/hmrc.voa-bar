@@ -1,6 +1,7 @@
 package uk.gov.hmrc.voabar.controllers
 
 import java.io.FileInputStream
+import java.time.ZonedDateTime
 import java.util.UUID
 
 import org.apache.commons.io.IOUtils
@@ -25,6 +26,8 @@ import org.mockito.invocation.InvocationOnMock
 import org.mockito.stubbing.Answer
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 import play.api.inject.bind
+import uk.gov.hmrc.voabar.models.ReportStatus
+import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Success, Try}
@@ -42,13 +45,14 @@ class UploadControllerIntSpec extends PlaySpec with BeforeAndAfterAll with Optio
   })
 
   override def fakeApplication() = new GuiceApplicationBuilder()
-    .configure("mongodb.uri" -> ("mongodb://localhost:27017/voa-bar" + UUID.randomUUID().toString))
+    .configure("mongodb.uri" -> ("mongodb://localhost:27017/voa-bar"))
     .bindings(bind[LegacyConnector].to(legacyConnector))
     .build()
 
   lazy val controller = app.injector.instanceOf[UploadController]
   lazy val mongoComponent = app.injector.instanceOf(classOf[ReactiveMongoComponent])
-  lazy val collection = mongoComponent.mongoConnector.db().collection[JSONCollection]("reportstatus")
+  lazy val collection = mongoComponent.mongoConnector.db().collection[JSONCollection]("submissions")
+  lazy val submissionRepository = app.injector.instanceOf[SubmissionStatusRepository]
 
   def fakeRequestWithXML = {
 
@@ -67,45 +71,28 @@ class UploadControllerIntSpec extends PlaySpec with BeforeAndAfterAll with Optio
 
     "properly handle correct XML " in {
 
-      await(collection.insert(BSONDocument(
-        "_id" -> "1234"
-      )))
+      val reportStatus = ReportStatus("1234", ZonedDateTime.now)
+
+      await(submissionRepository.saveOrUpdate(reportStatus, true))
 
       controller.upload()(fakeRequestWithXML)
 
       Thread.sleep(3000)
 
-      checkDatabaseStatus("1234", "Done")
+      val report = await(submissionRepository.getByReference("1234"))
 
-      true mustBe(true)
+      report must be('right)
+
+      Console.println(report)
+
+      report.right.value.status.value mustBe "Done"
+
     }
 
   }
 
-
-  private def checkDatabaseStatus(id: String, expectedStatus: String) = {
-
-    import reactivemongo.play.json._
-    import reactivemongo.play.json.collection.{
-      JSONCollection, JsCursor
-    }, JsCursor._
-    type ResultType = JsObject
-
-    val collection = mongoComponent.mongoConnector.db().collection[JSONCollection]("reportstatus")
-
-    val query = BSONDocument("_id" -> BSONDocument("$eq" -> id))
-
-    val result = await(collection.find(query).cursor[ResultType](ReadPreference.Primary).jsArray())
-
-    val status = (result(0) \ "status").as[String]
-
-    status mustBe(expectedStatus)
-
-  }
-
-
   override protected def afterAll(): Unit = {
-    mongoComponent.mongoConnector.db().drop()
+ //   mongoComponent.mongoConnector.db().drop()
     mongoComponent.mongoConnector.close()
   }
 
