@@ -16,6 +16,9 @@
 
 package uk.gov.hmrc.voabar.generators
 
+import java.io.StringWriter
+
+import javax.xml.bind.{JAXBContext, Marshaller}
 import org.scalacheck.Gen.Parameters
 import org.scalacheck.rng.Seed
 import org.scalatest.{FlatSpec, Matchers}
@@ -34,7 +37,24 @@ class GeneratorTest extends FlatSpec with Matchers {
 
 
 
+    val context = JAXBContext.newInstance("ebars.xml")
 
+    val marshaller = context.createMarshaller()
+    marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true)
+
+    val stringWriter = new StringWriter()
+
+    marshaller.marshal(res.get, stringWriter)
+
+    Console.println(stringWriter.toString)
+
+
+//    JAXBContext context = JAXBContext
+//      .newInstance(CreateExemptionCertificate.class);
+//    Marshaller m = context.createMarshaller();
+//    m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+//
+//    m.marshal(cc, System.out)
 
 
 

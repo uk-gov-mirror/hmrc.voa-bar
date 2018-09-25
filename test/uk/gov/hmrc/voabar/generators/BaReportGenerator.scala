@@ -17,13 +17,14 @@
 package uk.gov.hmrc.voabar.generators
 
 import java.math.BigInteger
-import java.util
 import java.util.GregorianCalendar
 
+import ebars.xml.BApropertySplitMergeStructure.AssessmentProperties
+import ebars.xml.BApropertySplitMergeStructure.AssessmentProperties.CurrentTax
+import ebars.xml.BApropertySplitMergeStructure.AssessmentProperties.CurrentTax.RateableValue
 import ebars.xml.BAreportBodyStructure.TypeOfTax
 import ebars.xml.BAreportBodyStructure.TypeOfTax.CtaxReasonForReport
-import ebars.xml.{BApropertySplitMergeStructure, _}
-import javax.xml.bind.JAXBElement
+import ebars.xml.{BApropertySplitMergeStructure, PersonNameStructure, _}
 import javax.xml.datatype.{DatatypeFactory, XMLGregorianCalendar}
 import org.scalacheck.Gen
 
@@ -32,15 +33,40 @@ import org.scalacheck.util.Buildable._
 
 object BaReportGenerator {
 
+  val xmlGregorianCalendar = for {
+    calendar <- Gen.calendar
+  }yield {
+    DatatypeFactory.newInstance().newXMLGregorianCalendar(calendar.asInstanceOf[GregorianCalendar])
+  }
+
+  val objectFactory = new ObjectFactory
+
   lazy val baReportGenerator: Gen[BAreports] = for {
     header <- reportHeader
-    propertyReports <- Gen.containerOf[List, BAreportBodyStructure](reportBodyStructure)
+    propertyReports <- Gen.containerOfN[List, BAreportBodyStructure](1,reportBodyStructure)
+    reportTrailer <- reportTrailerGen
   }yield {
     val report = new BAreports()
     report.setBAreportHeader(header)
     report.getBApropertyReport.addAll(propertyReports.asJava)
 
+    reportTrailer.setRecordCount(BigInteger.valueOf(propertyReports.size))
+    reportTrailer.setTotalNNDRreportCount(BigInteger.valueOf(0))
+    reportTrailer.setTotalCtaxReportCount(BigInteger.valueOf(propertyReports.size))
+    report.setBAreportTrailer(reportTrailer)
+
+
     report
+  }
+
+
+  val reportTrailerGen: Gen[ReportTrailerStructure] = for {
+    entryDateTime <- xmlGregorianCalendar
+
+  }yield {
+    val reportTrailer = new ReportTrailerStructure()
+    reportTrailer.setEntryDateTime(entryDateTime)
+    reportTrailer
   }
 
 
@@ -68,6 +94,7 @@ object BaReportGenerator {
     baReportNumber <- Gen.chooseNum(1,10000)
     typeOfTax <- typeOfTaxGen
     proposedEntries <- proposedEntriesGen
+    indicatedDateOfChange <- xmlGregorianCalendar
   }yield {
     val body = new BAreportBodyStructure()
     val f = new ebars.xml.ObjectFactory()
@@ -77,23 +104,109 @@ object BaReportGenerator {
     body.getContent.add(f.createBAreportBodyStructureBAidentityNumber(baIdentityNumber))
     body.getContent.add(f.createBAreportBodyStructureBAreportNumber(baReportNumber.toString))
     body.getContent.add(f.createBAreportBodyStructureTypeOfTax(typeOfTax))
+    body.getContent.add(f.createBAreportBodyStructureProposedEntries(proposedEntries))
 
+    body.getContent.add(f.createBAreportBodyStructureIndicatedDateOfChange(indicatedDateOfChange))
 
-    body.getContent.add(f.createBAreportBodyStructureProposedEntries(proposedEntries)) //TODO maybe wrong position, we need to create something sooner
-
+    body.getContent.add(f.createBAreportBodyStructureRemarks("THIS IS A BLUEPRINT TEST PLEASE DELETE / NO ACTION THIS REPORT"))
 
     body
   }
 
-  val proposedEntriesGen: Gen[BApropertySplitMergeStructure] = for {
-    _ <- Gen.alphaChar
-    //TODO generate properly
+  val currentTaxGen: Gen[CurrentTax] = for {
+    currency <- Gen.oneOf(ISOcurrencyType.values())
+    value <- Gen.chooseNum(1l, 10000000000l)
+    band <- Gen.oneOf(BandType.values())
   }yield {
-    val a = new BApropertySplitMergeStructure()
+    val currentTax = new CurrentTax()
+    currentTax.setCouncilTaxBand(band)
 
+    val a = new RateableValue()
+    a.setCurrency(currency)
+    a.setValue(new java.math.BigDecimal(value))
 
-    a
+    currentTax.setRateableValue(a)
+
+    currentTax
+
   }
+
+  val assessmentPropertiesGenerator: Gen[AssessmentProperties] = for {
+    currentTax <- currentTaxGen
+    propertyIdentity <- propertyIdentityGen
+    occupierContact <- occupierContactGen
+  }yield {
+    val assesmentProperties =  new AssessmentProperties()
+    assesmentProperties.setCurrentTax(currentTax)
+    assesmentProperties.setPropertyIdentity(propertyIdentity)
+    assesmentProperties.setOccupierContact(occupierContact)
+
+    assesmentProperties
+  }
+
+  val proposedEntriesGen: Gen[BApropertySplitMergeStructure] = for {
+    assesmentProperties <- assessmentPropertiesGenerator
+
+  }yield {
+    val propertySplitStructure = new BApropertySplitMergeStructure()
+    propertySplitStructure.getAssessmentProperties.add(assesmentProperties)
+
+    propertySplitStructure
+  }
+
+  val personNameStructureGen: Gen[PersonNameStructure] = for {
+    personTitle <- Gen.oneOf(List("MR", "MRS", "MISS", "MASTER", "MRS", "MS", "MX", "Mistress", "The Most Honourable"))
+    personGivenName <- Gen.alphaUpperStr
+    personFamilyName <- Gen.alphaUpperStr
+  }yield {
+    val ret = new PersonNameStructure()
+    ret.getPersonNameTitle.add(personTitle)
+    ret.getPersonGivenName.add(personGivenName)
+    ret.setPersonFamilyName(personFamilyName)
+    ret.setPersonRequestedName(s"${personTitle} ${personGivenName} ${personFamilyName}")
+
+    ret
+  }
+
+  val occupierContactGen: Gen[OccupierContactStructure] = for {
+    occupierName <- personNameStructureGen
+  }yield {
+    val ret = new OccupierContactStructure()
+    ret.setOccupierName(occupierName)
+
+    ret
+  }
+
+  val textAddressGen: Gen[TextAddressStructure] = for {
+    postcode <- Gen.alphaStr
+    addressLile1 <- Gen.alphaLowerStr
+    addressLile2 <- Gen.alphaUpperStr
+  }yield {
+    val textAddress = new TextAddressStructure()
+    textAddress.setPostcode(postcode)
+    textAddress.getAddressLine.add(addressLile1)
+    textAddress.getAddressLine.add(addressLile2)
+    textAddress
+  }
+
+
+  val propertyIdentityGen: Gen[BApropertyIdentificationStructure] = for {
+    textAddress <- textAddressGen
+    uniquePropertyReferenceNumber <- Gen.chooseNum(100l, 100000l)
+    baReference <- Gen.chooseNum(100l, 100000l)
+  }yield {
+    val propertyIdentity = new BApropertyIdentificationStructure()
+
+    propertyIdentity.getContent.add(objectFactory.createBSaddressStructureUniquePropertyReferenceNumber(uniquePropertyReferenceNumber))
+    propertyIdentity.getContent.add(objectFactory.createBApropertyIdentificationStructureTextAddress(textAddress))
+    propertyIdentity.getContent.add(objectFactory.createBApropertyIdentificationStructureBAreference(baReference.toString))
+
+    propertyIdentity
+  }
+
+
+
+
 
 
 
@@ -107,18 +220,11 @@ object BaReportGenerator {
 
     val reasonReportCode = new CtaxReasonForReportCodeStructure()
     reasonReportCode.setValue(reason)
-    reasonReportCode.setDescription("NEW")
     ctaxReasonForReport.setReasonForReportCode(reasonReportCode)
+    ctaxReasonForReport.setReasonForReportDescription("NEW")
     typeOfTax.setCtaxReasonForReport(ctaxReasonForReport)
     typeOfTax
   }
 
-
-
-  val xmlGregorianCalendar = for {
-    calendar <- Gen.calendar
-  }yield {
-    DatatypeFactory.newInstance().newXMLGregorianCalendar(calendar.asInstanceOf[GregorianCalendar])
-  }
 
 }
