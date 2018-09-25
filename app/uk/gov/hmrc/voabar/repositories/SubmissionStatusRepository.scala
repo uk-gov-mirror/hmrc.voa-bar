@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.voabar.repositories
 
-import java.time.OffsetDateTime
+import java.time.ZonedDateTime
 
 import com.google.inject.ImplementedBy
 import com.typesafe.config.ConfigException
@@ -41,7 +41,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
                                               )
                                               (implicit executionContext: ExecutionContext)
   extends ReactiveRepository[ReportStatus, String](
-    collectionName = "submission",
+    collectionName = "submissions",
     mongo = mongo.mongoConnector.db,
     domainFormat = ReportStatus.format,
     idFormat = implicitly[Format[String]]
@@ -54,12 +54,12 @@ class SubmissionStatusRepositoryImpl @Inject()(
     .getOrElse(throw new ConfigException.Missing(ttlPath))
   createIndex()
 
-  private def idSelector(submissionId: String) = BSONDocument("_id" -> submissionId)
+  private def idSelector(submissionId: String) = BSONDocument(key -> submissionId)
 
   private def createIndex(): Unit = {
     collection.indexesManager.ensure(Index(Seq(
       (key, IndexType.Text),
-      ("userId", IndexType.Text)
+      ("baCode", IndexType.Text)
     ), Some(indexName),
       options = BSONDocument(expireAfterSeconds -> ttl),
       background = true)) map {
@@ -95,8 +95,8 @@ class SubmissionStatusRepositoryImpl @Inject()(
   : Future[Either[BarError, Unit.type]] = {
     val finder = BSONDocument(key -> reference)
     val modifierBson = set(BSONDocument(
-      "date" -> OffsetDateTime.now.toString,
-      "userId" -> userId)
+      "created" -> ZonedDateTime.now.toString,
+      "baCode" -> userId)
     )
 
     atomicSaveOrUpdate(reference, upsert, finder, modifierBson)
@@ -105,7 +105,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
   override def getByUser(baCode: String)
   : Future[Either[BarError, Seq[ReportStatus]]] = {
     val finder = BSONDocument("baCode" -> baCode)
-    collection.find(finder).sort(Json.obj("date" -> -1)).cursor[ReportStatus](ReadPreference.primary)
+    collection.find(finder).sort(Json.obj("created" -> -1)).cursor[ReportStatus](ReadPreference.primary)
       .collect[Seq](-1, Cursor.FailOnError[Seq[ReportStatus]]())
       .map(Right(_))
       .recover {
@@ -119,8 +119,8 @@ class SubmissionStatusRepositoryImpl @Inject()(
 
   override def getByReference(reference: String)
   : Future[Either[BarError, ReportStatus]] = {
-    val finder = BSONDocument("_id" -> reference)
-    collection.find(finder).sort(Json.obj("date" -> -1)).cursor[ReportStatus](ReadPreference.primary)
+    val finder = BSONDocument(key -> reference)
+    collection.find(finder).sort(Json.obj("created" -> -1)).cursor[ReportStatus](ReadPreference.primary)
       .collect[Seq](1, Cursor.FailOnError[Seq[ReportStatus]]())
       .map(r => Right(r.head))
       .recover {
