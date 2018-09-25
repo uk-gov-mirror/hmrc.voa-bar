@@ -18,8 +18,8 @@ package uk.gov.hmrc.voabar.services
 
 import org.apache.commons.io.IOUtils
 import org.scalatestplus.play.PlaySpec
-import play.api.test.FakeRequest
 import uk.gov.hmrc.voabar.models.Error
+import uk.gov.hmrc.voabar.util._
 
 import scala.xml.{Node, XML}
 
@@ -72,7 +72,7 @@ class ValidationServiceSpec extends PlaySpec {
       "not match that in the HTTP request header" ignore {
       val validBatch = XML.loadString(batchWith1Report)
       validationService("0000").xmlNodeValidation(validBatch) mustBe List[Error](Error(
-        "1010", Seq()))
+        BA_CODE_MATCH, Seq()))
     }
 
 
@@ -81,8 +81,8 @@ class ValidationServiceSpec extends PlaySpec {
       val validBatch = XML.loadString(batchWith1Report)
       val invalidBatch = reportBuilder.invalidateBatch(validBatch.head, Map("BillingAuthority" -> "BadElement"))
       validationService("0000").xmlNodeValidation(invalidBatch.head) mustBe List[Error](
-        Error("1010", Seq()),
-        Error("cvc-complex-type.2.4.a", Seq("Invalid content was found starting with element 'BadElement'. " +
+        Error(BA_CODE_MATCH, Seq()),
+        Error(INVALID_XML_XSD, Seq("Invalid content was found starting with element 'BadElement'. " +
           "One of '{\"http://www.govtalk.gov.uk/LG/Valuebill\":BillingAuthority}' is expected."))
       )
     }
@@ -96,12 +96,12 @@ class ValidationServiceSpec extends PlaySpec {
         "PropertyDescriptionText" -> "BadElement"))
 
        validationService("0000").xmlNodeValidation(invalidBatch.head) mustBe List[Error](
-         Error("1010", Seq()),
-         Error("cvc-complex-type.2.4.a", Seq("Invalid content was found starting with element 'IllegalElement'. " +
+         Error(BA_CODE_MATCH, Seq()),
+         Error(INVALID_XML_XSD, Seq("Invalid content was found starting with element 'IllegalElement'. " +
            "One of '{\"http://www.govtalk.gov.uk/LG/Valuebill\":BillingAuthority}' is expected.")),
-         Error("cvc-complex-type.2.4.a", Seq("Invalid content was found starting with element 'WrongElement'. " +
+         Error(INVALID_XML_XSD, Seq("Invalid content was found starting with element 'WrongElement'. " +
            "One of '{\"http://www.govtalk.gov.uk/LG/Valuebill\":BAreportNumber}' is expected.")),
-         Error("cvc-complex-type.2.4.a",Seq("Invalid content was found starting with element 'BadElement'. " +
+         Error(INVALID_XML_XSD,Seq("Invalid content was found starting with element 'BadElement'. " +
            "One of '{\"http://www.govtalk.gov.uk/LG/Valuebill\":PrimaryDescriptionCode, \"http://www.govtalk." +
            "gov.uk/LG/Valuebill\":SecondaryDescriptionCode, \"http://www.govtalk.gov.uk/LG/Valuebill\":PropertyDescriptionText}' is expected.")))
 
@@ -116,15 +116,15 @@ class ValidationServiceSpec extends PlaySpec {
         "PropertyDescriptionText" -> "BadElement", "SOME VALID COUNCIL" -> "Some Valid Council"))
 
       validationService("0000").xmlNodeValidation(invalidBatch.head) mustBe List[Error](
-        Error("1010", Seq()),
-        Error("cvc-complex-type.2.4.a", Seq("Invalid content was found starting with element 'IllegalElement'. " +
+        Error(BA_CODE_MATCH, Seq()),
+        Error(INVALID_XML_XSD, Seq("Invalid content was found starting with element 'IllegalElement'. " +
           "One of '{\"http://www.govtalk.gov.uk/LG/Valuebill\":BillingAuthority}' is expected.")),
-        Error("cvc-complex-type.2.4.a", Seq("Invalid content was found starting with element 'WrongElement'. " +
+        Error(INVALID_XML_XSD, Seq("Invalid content was found starting with element 'WrongElement'. " +
           "One of '{\"http://www.govtalk.gov.uk/LG/Valuebill\":BAreportNumber}' is expected.")),
-        Error("cvc-complex-type.2.4.a",Seq("Invalid content was found starting with element 'BadElement'. " +
+        Error(INVALID_XML_XSD,Seq("Invalid content was found starting with element 'BadElement'. " +
           "One of '{\"http://www.govtalk.gov.uk/LG/Valuebill\":PrimaryDescriptionCode, \"http://www.govtalk." +
           "gov.uk/LG/Valuebill\":SecondaryDescriptionCode, \"http://www.govtalk.gov.uk/LG/Valuebill\":PropertyDescriptionText}' is expected.")),
-        Error("1000",Seq("Header","IllegalElement","Some Valid Council"))
+        Error(CHARACTER,Seq("Header","IllegalElement","Some Valid Council"))
       )
     }
 
@@ -135,28 +135,28 @@ class ValidationServiceSpec extends PlaySpec {
       ))
 
       validationService("9999").xmlNodeValidation(invalidBatch.head) mustBe List[Error](
-        Error("1000",Seq("211909","PersonGivenName","name"))
+        Error(CHARACTER,Seq("211909","PersonGivenName","name"))
       )
     }
 
     "return a list of errors when a batch containing 32 reports has multiple errors" ignore {
       val invalidBatch = XML.loadString(batchWith32ReportsWithErrors)
       validationService("8888").xmlNodeValidation(invalidBatch.head) mustBe List(
-        Error("1010",List()),
-        Error("cvc-complex-type.2.4.a",List("Invalid content was found starting with element 'IllegalElement'. One of " +
+        Error(BA_CODE_MATCH,List()),
+        Error(INVALID_XML_XSD,List("Invalid content was found starting with element 'IllegalElement'. One of " +
           "'{\"http://www.govtalk.gov.uk/LG/Valuebill\":EntryDateTime}' is expected.")),
-        Error("cvc-datatype-valid.1.2.1",List("'0£' is not a valid value for 'integer'.")),
-        Error("cvc-type.3.1.3",List("The value '0£' of element 'TotalNNDRreportCount' is not valid.")),
-        Error("1000",List("Trailer", "IllegalElement", "Some text")),
-        Error("1000",List("Trailer", "TotalNNDRreportCount", "0£")),
-        Error("1000",List("138161", "StreetDescription", "23 NeW ST")),
-        Error("cvc-complex-type.2.4.a",List("Invalid content was found starting with element 'BadElement'. " +
+        Error(INVALID_XML_XSD,List("'0£' is not a valid value for 'integer'.")),
+        Error(INVALID_XML_XSD,List("The value '0£' of element 'TotalNNDRreportCount' is not valid.")),
+        Error(CHARACTER ,List("Trailer", "IllegalElement", "Some text")),
+        Error(CHARACTER,List("Trailer", "TotalNNDRreportCount", "0£")),
+        Error(CHARACTER,List("138161", "StreetDescription", "23 NeW ST")),
+        Error(INVALID_XML_XSD,List("Invalid content was found starting with element 'BadElement'. " +
           "One of '{\"http://www.govtalk.gov.uk/LG/Valuebill\":TypeOfTax}' is expected.")),
-        Error("1000",List("138156", "Town", "WIMBLETOWN£")),
-        Error("cvc-complex-type.2.4.a",List("Invalid content was found starting with element 'ExistingEntries'. " +
+        Error(CHARACTER,List("138156", "Town", "WIMBLETOWN£")),
+        Error(INVALID_XML_XSD,List("Invalid content was found starting with element 'ExistingEntries'. " +
           "One of '{\"http://www.govtalk.gov.uk/LG/Valuebill\":ProposedEntries, \"http://www.govtalk.gov.uk/LG/Value" +
           "bill\":IndicatedDateOfChange}' is expected.")),
-        Error("1007",List("138159", "CR09")))
+        Error(ONE_EXISTING,List("138159", "CR09")))
     }
   }
 

@@ -25,7 +25,6 @@ import uk.gov.hmrc.voabar.connectors.LegacyConnector
 import play.api.libs.json.Json
 import uk.gov.hmrc.voabar.models.LoginDetails
 import play.api.test.Helpers.{status, _}
-import play.api.test._
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}

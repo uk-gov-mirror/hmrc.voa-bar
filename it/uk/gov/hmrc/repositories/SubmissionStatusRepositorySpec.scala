@@ -18,20 +18,25 @@ package uk.gov.hmrc.repositories
 
 import java.util.UUID
 
+import org.scalatest.mockito.MockitoSugar
+import play.api.inject.Injector
 import org.scalatest.{BeforeAndAfterAll, EitherValues}
 import org.scalatestplus.play.PlaySpec
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.Configuration
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import uk.gov.hmrc.mongo.MongoConnector
-import uk.gov.hmrc.voabar.models.{BarMongoError, ReportStatusError, Submitted}
+import uk.gov.hmrc.voabar.models.{BarMongoError, Error, Submitted}
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepositoryImpl
+import uk.gov.hmrc.voabar.util.ErrorCode
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
-  with EitherValues with DefaultAwaitTimeout with FutureAwaits {
+  with EitherValues with DefaultAwaitTimeout with FutureAwaits  with GuiceOneAppPerSuite with MockitoSugar {
 
   val mongoConponent = new ReactiveMongoComponent {
     override def mongoConnector: MongoConnector = new MongoConnector(
@@ -40,14 +45,15 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
 
   "repository" should {
 
-    val repo = new SubmissionStatusRepositoryImpl(mongoConponent)
+    val config = app.injector.instanceOf(classOf[Configuration])
+    val repo = new SubmissionStatusRepositoryImpl(mongoConponent, config)
 
     "add error" in {
       await(repo.collection.insert(BSONDocument(
         "_id" -> "111"
       )))
 
-      val reportStatusError = ReportStatusError("ERR_CODE", "message", "detail")
+      val reportStatusError = Error(ErrorCode.CHARACTER , Seq( "message", "detail"))
 
       val dbResult = await(repo.addError("111", reportStatusError))
 

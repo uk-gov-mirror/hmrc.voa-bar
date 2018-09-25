@@ -16,7 +16,8 @@
 
 package uk.gov.hmrc.voabar.models
 
-import org.joda.time.{DateTime, DateTimeZone}
+import java.time.ZonedDateTime
+
 import play.api.libs.json._
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
@@ -32,13 +33,16 @@ case object Submitted extends ReportStatusType
 case object Cancelled extends ReportStatusType
 case object Done extends ReportStatusType
 
-final case class ReportStatusError(
-                                    errorCode: String,
-                                    message: String,
-                                    detail: String
-                                  )
-
-case class ReportStatus(baCode: String, submissionId: String, status: String, errors: Seq[Error] = Seq(), created: DateTime = DateTime.now(DateTimeZone.UTC))
+final case class ReportStatus(
+                               submissionId: String,
+                               created: ZonedDateTime,
+                               url: Option[String] = None,
+                               checksum: Option[String] = None,
+                               errors: Option[Seq[Error]] = Some(Seq()),
+                               baCode: Option[String] = None,
+                               status: Option[String] = Some(Pending.value),
+                               filename: Option[String] = None
+                             )
 
 object ReportStatus {
   implicit val dateFormat = ReactiveMongoFormats.dateTimeFormats

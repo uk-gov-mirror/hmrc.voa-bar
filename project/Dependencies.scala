@@ -13,18 +13,20 @@ object Dependencies {
   private val autobarsXsdVersion = "8.0.0"
   private val guiceUtilsVersion = "4.1.0"
   private val catsCoreVersion = "1.3.1"
+  private val playDerivedCodecsVersion = "3.3"
 
   lazy val appDependencies: Seq[ModuleID] = compile ++ test()
 
   val compile = Seq(
-    "uk.gov.hmrc" %% "play-reactivemongo"  % reactiveMongoVersion,
+    "uk.gov.hmrc" %% "play-reactivemongo"           % reactiveMongoVersion,
+    "org.julienrf"%% "play-json-derived-codecs"     % playDerivedCodecsVersion,
     ws,
-    "uk.gov.hmrc" %% "bootstrap-play-25"   % bootstrapVersion,
-    "uk.gov.hmrc" %% "autobars-xsd"        % autobarsXsdVersion,
-    "uk.gov.hmrc" %% "http-caching-client" % httpCachingClientVersion,
-    "uk.gov.hmrc" %% "play-reactivemongo"  % playReactivemongoVersion,
-    "net.codingwell" %% "scala-guice"      % guiceUtilsVersion,
-    "org.typelevel" %% "cats-core" % catsCoreVersion
+    "uk.gov.hmrc" %% "bootstrap-play-25"            % bootstrapVersion,
+    "uk.gov.hmrc" %% "autobars-xsd"                 % autobarsXsdVersion,
+    "uk.gov.hmrc" %% "http-caching-client"          % httpCachingClientVersion,
+    "uk.gov.hmrc" %% "play-reactivemongo"           % playReactivemongoVersion,
+    "net.codingwell" %% "scala-guice"               % guiceUtilsVersion,
+    "org.typelevel" %% "cats-core"                  % catsCoreVersion
   )
 
   def test(scope: String = "test,it") = Seq(

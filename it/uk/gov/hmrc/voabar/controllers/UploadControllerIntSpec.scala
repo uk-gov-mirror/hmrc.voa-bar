@@ -4,7 +4,6 @@ import java.io.FileInputStream
 import java.util.UUID
 
 import org.apache.commons.io.IOUtils
-import org.eclipse.persistence.config.ResultType
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfterAll, EitherValues, OptionValues}
 import org.scalatestplus.play.PlaySpec
@@ -20,8 +19,8 @@ import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.collection.JSONCollection
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import uk.gov.hmrc.voabar.connectors.LegacyConnector
-import org.mockito.Matchers.{any, anyString}
-import org.mockito.Mockito.{verify, when}
+import org.mockito.Matchers.any
+import org.mockito.Mockito.when
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.stubbing.Answer
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest

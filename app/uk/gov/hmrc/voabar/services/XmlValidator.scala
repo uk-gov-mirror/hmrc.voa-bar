@@ -23,7 +23,8 @@ import javax.xml.transform.stream.StreamSource
 import javax.xml.validation.SchemaFactory
 import org.w3c.dom.Document
 import org.xml.sax.{ErrorHandler, SAXParseException}
-import uk.gov.hmrc.voabar.models.{BarError, BarXmlError, Error}
+import uk.gov.hmrc.voabar.models.{BarError, BarXmlError, BarXmlValidationError, Error}
+import uk.gov.hmrc.voabar.util.INVALID_XML_XSD
 
 import scala.util.{Failure, Success, Try}
 
@@ -40,7 +41,7 @@ class XmlValidator {
     val errorHandler: ErrorHandler = new ErrorHandler {
       private def addError(exception: SAXParseException) {
         val split = exception.getMessage.split(":", 2) map (_.trim)
-        errors += Error(split(0), Seq(split(1)))
+        errors += Error(INVALID_XML_XSD, Seq(split(1)))
       }
 
       override def warning(exception: SAXParseException) {
@@ -71,7 +72,7 @@ class XmlValidator {
         if(errors.isEmpty) {
           Right(true)
         }else {
-          Left(BarXmlError("XML Schema validation error"))
+          Left(BarXmlValidationError(errors.toList))
         }
       }
       case Failure(exception) => Left(BarXmlError("XML Schema validation error"))
