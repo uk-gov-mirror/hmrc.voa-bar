@@ -4,11 +4,11 @@ POST        /login                      @uk.gov.hmrc.voabar.controllers.LoginCon
 
 POST        /upload                     @uk.gov.hmrc.voabar.controllers.UploadController.upload
 
-GET         /submissions                @uk.gov.hmrc.voabar.controllers.SubmissionStatusController.getByUser
+GET         /submissions                @uk.gov.hmrc.voabar.controllers.SubmissionStatusController.getByUser(filter: Option[String])
 
 PUT         /submissions                @uk.gov.hmrc.voabar.controllers.SubmissionStatusController.save(upsert: Boolean)
 
-GET         /submissions/:reference      @uk.gov.hmrc.voabar.controllers.SubmissionStatusController.getByReference(reference: String)
+GET         /submissions/:reference     @uk.gov.hmrc.voabar.controllers.SubmissionStatusController.getByReference(reference: String)
 
 PUT         /submissions/user-info      @uk.gov.hmrc.voabar.controllers.SubmissionStatusController.saveUserInfo
 

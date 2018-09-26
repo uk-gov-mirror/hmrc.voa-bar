@@ -88,7 +88,7 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
     }
     "returns report statuses when search by user id" in {
       val submissionStatusRepositoryMock = mock[SubmissionStatusRepository]
-      when(submissionStatusRepositoryMock.getByUser(any[String])) thenReturn(Future.successful(Right(Seq(reportStatus))))
+      when(submissionStatusRepositoryMock.getByUser(any[String], any[Option[String]])) thenReturn(Future.successful(Right(Seq(reportStatus))))
       val submissionStatusController = new SubmissionStatusController(submissionStatusRepositoryMock)
 
       val response = submissionStatusController.getByUser()(fakeRequest).run()
@@ -98,7 +98,7 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
     }
     "returns invalid error when search by user id unsuccessfully" in {
       val submissionStatusRepositoryMock = mock[SubmissionStatusRepository]
-      when(submissionStatusRepositoryMock.getByUser(any[String])) thenReturn(Future.successful(Left(error)))
+      when(submissionStatusRepositoryMock.getByUser(any[String], any[Option[String]])) thenReturn(Future.successful(Left(error)))
       val submissionStatusController = new SubmissionStatusController(submissionStatusRepositoryMock)
 
       val response = submissionStatusController.getByUser()(fakeRequest).run()
