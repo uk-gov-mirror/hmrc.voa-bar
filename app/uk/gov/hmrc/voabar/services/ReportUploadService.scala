@@ -45,7 +45,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
 
     val processingResutl = for {
       _ <- EitherT(statusRepository.updateStatus(uploadReference, Pending))
-      _ <- EitherT.fromEither[Future](validationService.validate(xml))
+      _ <- EitherT.fromEither[Future](validationService.validate(xml, username))
       node <- EitherT.fromEither[Future](xmlParser.xmlToNode(xml))
       _ <- EitherT(statusRepository.updateStatus(uploadReference, Verified))
       _ <- EitherT(ebarsUpload(node, username, password, uploadReference))

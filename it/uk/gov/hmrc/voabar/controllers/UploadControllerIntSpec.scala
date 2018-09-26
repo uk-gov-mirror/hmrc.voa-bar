@@ -61,7 +61,7 @@ class UploadControllerIntSpec extends PlaySpec with BeforeAndAfterAll with Optio
       .withHeaders(
         "Content-Type" -> "text/plain",
         "Content-Length" -> s"${xmlNode.length}",
-        "BA-Code" -> "1234",
+        "BA-Code" -> "9999",
         "password" -> "pass1")
       .withTextBody(xmlNode)
   }

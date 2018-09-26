@@ -30,20 +30,20 @@ class ValidationService @Inject()(xmlValidator: XmlValidator,
                                   businessRules:BusinessRules
                                  ) {
 
-  def validate(xml: String): Either[BarError, Boolean] = {
+  def validate(xml: String, baLogin: String): Either[BarError, Boolean] = {
 
     for {
       domDocument <- xmlParser.parse(xml).right //parse XML
       _ <- xmlValidator.validate(domDocument).right //validate against XML schema
       scalaElement <- xmlParser.xmlToNode(xml).right
-      _ <- businessValidation(scalaElement).right
+      _ <- businessValidation(scalaElement, baLogin).right
     }yield {
       true
     }
   }
 
-  private def businessValidation(xml:Node):Either[BarError, Boolean] = {
-    val errors = xmlNodeValidation(xml)
+  private def businessValidation(xml:Node, baLogin: String):Either[BarError, Boolean] = {
+    val errors = xmlNodeValidation(xml, baLogin)
 
     if(errors.isEmpty) {
       Right(true)
@@ -53,12 +53,12 @@ class ValidationService @Inject()(xmlValidator: XmlValidator,
 
   }
 
-  def xmlNodeValidation(xml:Node): List[Error] = {
+  def xmlNodeValidation(xml:Node, baLogin: String): List[Error] = {
 
     val parsedBatch:Seq[Node] = xmlParser.oneReportPerBatch(xml)
 
     val validations:List[(Node) => List[Error]] = List(
-      validationBACode,
+      validationBACode(baLogin),
       validationChars,
       validationBusinessRules
     )
@@ -66,9 +66,8 @@ class ValidationService @Inject()(xmlValidator: XmlValidator,
 
   }
 
-  private def validationBACode(xml:Node): List[Error] = {
-    //businessRules.baIdentityCodeErrors(xml)(null)
-    List.empty[Error]
+  private def validationBACode(baLogin: String)(xml:Node): List[Error] = {
+    businessRules.baIdentityCodeErrors(xml, baLogin)
   }
 
   private def validationChars(xml:Node):List[Error] = {

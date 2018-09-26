@@ -68,7 +68,7 @@ class XmlValidator {
         if(errors.isEmpty) {
           Right(true)
         }else {
-          Left(BarXmlValidationError(errors.toList))
+          Left(BarXmlValidationError(errors.toList.distinct))
         }
       }
       case Failure(exception) => Left(BarXmlError("XML Schema validation error"))

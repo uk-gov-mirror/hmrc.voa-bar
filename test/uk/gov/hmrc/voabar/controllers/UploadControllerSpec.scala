@@ -60,24 +60,6 @@ class UploadControllerSpec extends PlaySpec with MockitoSugar {
       .withTextBody(xmlNode)
   }
 
-  "Checking the incoming XML returns a unit" ignore {
-    //val unit: Unit = ()
-    //await(controller.checkXml("", "bacode", "password", "submissionid")) mustBe unit
-  }
-
-   "Uploading an xml file records that the report was submitted" ignore {
-//    fakeHistoryService.clearCaptures()
-//    val result = await(controller.upload()(fakeRequestWithXML))
-//    fakeHistoryService.reportIsSubmittedCalled mustBe true
-  }
-
-  "Uploading an xml file records either that the file was checked without errors or the file was checked and errors were found" ignore {
-//    fakeHistoryService.clearCaptures()
-//    val result = await(controller.upload()(fakeRequestWithXML))
-//    fakeHistoryService.reportIsCheckedWithErrorsFound || fakeHistoryService.reportIsCheckedWithoutErrorsFound mustBe true
-  }
-
-
   "Return status 200 (OK) for a post carrying xml" in {
     val result = controller.upload()(fakeRequestWithXML)
     status(result) mustBe 200
@@ -111,9 +93,4 @@ class UploadControllerSpec extends PlaySpec with MockitoSugar {
     status(result) mustBe UNAUTHORIZED
   }
 
-  "An id is generated for each xml submission" ignore { //Probably not relevant anymore.
-    val result = controller.upload()(fakeRequestWithXML)
-    status(result) mustBe 200
-    contentAsString(result).matches("^\\d+-\\d+-[A-Z][A-Z]$") mustBe true
-  }
 }
