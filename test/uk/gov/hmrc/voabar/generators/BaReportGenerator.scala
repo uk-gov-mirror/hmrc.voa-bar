@@ -43,7 +43,7 @@ object BaReportGenerator {
 
   lazy val baReportGenerator: Gen[BAreports] = for {
     header <- reportHeader
-    propertyReports <- Gen.containerOfN[List, BAreportBodyStructure](1,reportBodyStructure)
+    propertyReports <- Gen.containerOf[List, BAreportBodyStructure](reportBodyStructure)
     reportTrailer <- reportTrailerGen
   }yield {
     val report = new BAreports()

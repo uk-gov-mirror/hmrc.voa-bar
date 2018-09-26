@@ -25,16 +25,12 @@ import org.scalatest.{FlatSpec, Matchers}
 
 class GeneratorTest extends FlatSpec with Matchers {
 
-
-
   "generator" should "generate some values" in {
 
 
     val repGen = BaReportGenerator.baReportGenerator
 
-    val res = repGen(Parameters.default, Seed(100L))
-
-
+    val res = repGen(Parameters.default, Seed(System.currentTimeMillis()))
 
 
     val context = JAXBContext.newInstance("ebars.xml")
@@ -47,17 +43,6 @@ class GeneratorTest extends FlatSpec with Matchers {
     marshaller.marshal(res.get, stringWriter)
 
     Console.println(stringWriter.toString)
-
-
-//    JAXBContext context = JAXBContext
-//      .newInstance(CreateExemptionCertificate.class);
-//    Marshaller m = context.createMarshaller();
-//    m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-//
-//    m.marshal(cc, System.out)
-
-
-
 
     true shouldBe true
   }
