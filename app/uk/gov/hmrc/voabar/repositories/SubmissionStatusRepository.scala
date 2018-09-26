@@ -102,9 +102,11 @@ class SubmissionStatusRepositoryImpl @Inject()(
     atomicSaveOrUpdate(reference, upsert, finder, modifierBson)
   }
 
-  override def getByUser(baCode: String)
+  override def getByUser(baCode: String, filter: Option[String] = None)
   : Future[Either[BarError, Seq[ReportStatus]]] = {
-    val finder = BSONDocument("baCode" -> baCode)
+    val finder = filter.fold(BSONDocument("baCode" -> baCode))(f =>
+      BSONDocument("baCode" -> baCode, "status" -> f)
+    )
     collection.find(finder).sort(Json.obj("created" -> -1)).cursor[ReportStatus](ReadPreference.primary)
       .collect[Seq](-1, Cursor.FailOnError[Seq[ReportStatus]]())
       .map(Right(_))
@@ -206,7 +208,7 @@ trait SubmissionStatusRepository {
 
   def updateStatus(submissionId: String, status: ReportStatusType): Future[Either[BarError, Boolean]]
 
-  def getByUser(userId: String) : Future[Either[BarError, Seq[ReportStatus]]]
+  def getByUser(userId: String, filter: Option[String] = None) : Future[Either[BarError, Seq[ReportStatus]]]
 
   def getByReference(reference: String) : Future[Either[BarError, ReportStatus]]
 

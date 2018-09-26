@@ -32,17 +32,17 @@ import scala.concurrent.{ExecutionContext, Future}
 class SubmissionStatusController @Inject() (
                                            submissionStatusRepository: SubmissionStatusRepository
                                            )(implicit ec: ExecutionContext) extends BaseController {
-  private def getReportStatuses(userId: String): Future[Either[Result, Seq[ReportStatus]]] = {
-    submissionStatusRepository.getByUser(userId).map(_.fold(
+  private def getReportStatuses(userId: String, filter: Option[String]): Future[Either[Result, Seq[ReportStatus]]] = {
+    submissionStatusRepository.getByUser(userId, filter).map(_.fold(
       _ => Left(InternalServerError),
       reportStatuses => Right(reportStatuses)
     ))
   }
 
-  def getByUser() = Action.async { implicit request =>
+  def getByUser(filter: Option[String] = None) = Action.async { implicit request =>
     (for {
       userId <- EitherT.fromOption[Future](request.headers.get("BA-Code"), Unauthorized("BA-Code missing"))
-      reportStatuses <- EitherT(getReportStatuses(userId))
+      reportStatuses <- EitherT(getReportStatuses(userId, filter))
     } yield (Ok(Json.toJson(reportStatuses))))
         .valueOr(_ => InternalServerError)
   }
