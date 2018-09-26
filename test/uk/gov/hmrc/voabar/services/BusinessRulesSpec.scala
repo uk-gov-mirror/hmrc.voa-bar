@@ -172,40 +172,21 @@ class BusinessRulesSpec extends PlaySpec {
   "The BA identity code validator" must {
     "return a empty list (no errors) when the BA code in the request header matches that in the report" in {
       val validBatch = XML.loadString(batchWith1Report)
-      implicit val request = FakeRequest("GET","").withHeaders("BA-Code" -> "9999")
-      businessRules.baIdentityCodeErrors(validBatch).isEmpty mustBe true
+      businessRules.baIdentityCodeErrors(validBatch, "9999").isEmpty mustBe true
     }
 
     "return a list of 1 error when the BA code in the request header does not match that in the report" in {
       val validBatch = XML.loadString(batchWith1Report)
-      implicit val request = FakeRequest("GET","").withHeaders("BA-Code" -> "0000")
-      businessRules.baIdentityCodeErrors(validBatch.head) mustBe List(
+      businessRules.baIdentityCodeErrors(validBatch.head, "0000") mustBe List(
         Error(BA_CODE_MATCH, Seq()))
     }
 
     "return a list of 1 error when the BA code in the report is empty" in {
       val validBatch = XML.loadString(batchWith1Report)
-      implicit val request = FakeRequest("GET","").withHeaders("BA-Code" -> "9999")
       val invalidBatch = reportBuilder.invalidateBatch(validBatch.head,Map("BillingAuthorityIdentityCode" -> ""))
-      businessRules.baIdentityCodeErrors(invalidBatch.head) mustBe List(
+      businessRules.baIdentityCodeErrors(invalidBatch.head, "9999") mustBe List(
         Error(BA_CODE_REPORT, Seq()))
     }
 
-    "return a list of 1 error when the BA code in the request header is empty" in {
-      implicit val request = FakeRequest("GET","")
-      val validBatch = XML.loadString(batchWith1Report)
-      businessRules.baIdentityCodeErrors(validBatch.head) mustBe List(
-        Error(BA_CODE_REQHDR, Seq()))
-    }
-
-    "return a list of 2 errors when the BA code is missing from the request header and the report" in {
-      val validBatch = XML.loadString(batchWith1Report)
-      implicit val request = FakeRequest("GET","")
-      val invalidBatch = reportBuilder.invalidateBatch(validBatch.head,Map("BillingAuthorityIdentityCode" -> ""))
-      businessRules.baIdentityCodeErrors(invalidBatch.head) mustBe List(
-        Error(BA_CODE_REPORT, Seq()),
-        Error(BA_CODE_REQHDR, Seq())
-      )
-    }
   }
 }

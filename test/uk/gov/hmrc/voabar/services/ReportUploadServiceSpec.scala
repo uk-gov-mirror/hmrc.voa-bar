@@ -120,7 +120,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
     "persis BarXmlError" in {
 
       val validationService = mock[ValidationService]
-      when(validationService.validate(anyString())).thenReturn(Left(BarXmlError("validation error")))
+      when(validationService.validate(anyString(), anyString())).thenReturn(Left(BarXmlError("validation error")))
       val statusRepository = aCorrectStatusRepository()
       val reportUploadService = new ReportUploadService(statusRepository, validationService, aXmlParser(), aLegacyConnector())
       val resutl = reportUploadService.upload("u", "p", "<xml></xml>", "reference1")
@@ -142,7 +142,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
       val xmlValidationError = BarXmlValidationError(errors)
 
       val validationService = mock[ValidationService]
-      when(validationService.validate(anyString())).thenReturn(Left(xmlValidationError))
+      when(validationService.validate(anyString(), anyString())).thenReturn(Left(xmlValidationError))
       val statusRepository = aCorrectStatusRepository()
       val reportUploadService = new ReportUploadService(statusRepository, validationService, aXmlParser(), aLegacyConnector())
       val resutl = reportUploadService.upload("u", "p", "<xml></xml>", "reference1")
@@ -175,7 +175,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
 
   def aValidationService(): ValidationService = {
     val validationService = mock[ValidationService]
-    when(validationService.validate(anyString())).thenReturn(Right(true))
+    when(validationService.validate(anyString(), anyString())).thenReturn(Right(true))
 
     validationService
   }

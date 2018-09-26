@@ -77,15 +77,16 @@ class BusinessRules @Inject()() {
   private def existingEntries(implicit node:NodeSeq):Int = (node \\ "ExistingEntries").size
 
 
-  def baIdentityCodeErrors(xml:Node)(implicit request:Request[_]): List[Error] = {
+  def baIdentityCodeErrors(xml:Node, baLogin: String): List[Error] = {
     val lb = new ListBuffer[ErrorCode]()
     val codeInReport:String = (xml \\ "BillingAuthorityIdentityCode").text
-      if (codeInReport.isEmpty) lb += BA_CODE_REPORT
-        request.headers.get("BA-Code") match {
-          case Some(code) => if (codeInReport.length > 0 && code != codeInReport) lb +=
-            BA_CODE_MATCH
-          case None => lb += BA_CODE_REQHDR
+      if (codeInReport.isEmpty) {
+        lb += BA_CODE_REPORT
+      }else {
+        if(codeInReport != baLogin) {
+          lb += BA_CODE_MATCH
         }
+      }
     lb.toList.map{err => Error(err)}
   }
 }
