@@ -81,8 +81,8 @@ class SubmissionStatusRepositoryImpl @Inject()(
       "checksum" -> reportStatus.checksum,
       "url" -> reportStatus.url,
       "errors" -> reportStatus.errors.getOrElse(Seq()).map(e => BSONDocument(
-        "detail" -> e.values,
-        "errorCode" -> e.code
+        "values" -> e.values,
+        "code" -> e.code
       )),
       "filename" -> reportStatus.filename.getOrElse(""),
       "status" -> reportStatus.status)
