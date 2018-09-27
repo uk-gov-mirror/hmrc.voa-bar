@@ -47,9 +47,8 @@ class SubmissionStatusRepositoryImpl @Inject()(
     idFormat = implicitly[Format[String]]
   ) with SubmissionStatusRepository with BSONBuilderHelpers {
 
-  private val indexName = name
   private val expireAfterSeconds = "expireAfterSeconds"
-  private val ttlPath = s"$name.timeToLiveInSeconds"
+  private val ttlPath = s"$collectionName.timeToLiveInSeconds"
   private val ttl = config.getInt(ttlPath)
     .getOrElse(throw new ConfigException.Missing(ttlPath))
   createIndex()
@@ -57,14 +56,11 @@ class SubmissionStatusRepositoryImpl @Inject()(
   private def idSelector(submissionId: String) = BSONDocument(key -> submissionId)
 
   private def createIndex(): Unit = {
-    collection.indexesManager.ensure(Index(Seq(
-      (key, IndexType.Text),
-      ("baCode", IndexType.Text)
-    ), Some(indexName),
-      options = BSONDocument(expireAfterSeconds -> ttl),
-      background = true)) map {
+    collection.indexesManager.ensure(
+      Index(Seq((key, IndexType.Hashed)), name = Some(collectionName), options = BSONDocument(expireAfterSeconds -> ttl),background = true,unique = true)
+    ).map {
       result => {
-        Logger.debug(s"set [$indexName] with value $ttl -> result : $result")
+        Logger.debug(s"set [$collectionName] with value $ttl -> result : $result")
         result
       }
     } recover {
@@ -72,6 +68,21 @@ class SubmissionStatusRepositoryImpl @Inject()(
         false
     }
   }
+
+//  override def indexes: Seq[Index] = Seq(
+//    Index(
+//      Seq(key -> IndexType.Hashed),
+//      name = Some(collectionName),
+//      unique = true,
+//      options = BSONDocument(expireAfterSeconds -> ttl),
+//      background = true
+//    ),
+//    Index(
+//      Seq("baCode" -> IndexType.Hashed),
+//      name = Some(s"${collectionName}_baCode"),
+//      background = true
+//    )
+//  )
 
   def saveOrUpdate(reportStatus: ReportStatus, upsert: Boolean)
   : Future[Either[BarError, Unit.type]] = {
@@ -202,7 +213,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
 trait SubmissionStatusRepository {
   val key = "submissionId"
 
-  val name = "submissions"
+  val collectionName = "submissions"
 
   def addError(submissionId: String, error: Error): Future[Either[BarError, Boolean]]
 
