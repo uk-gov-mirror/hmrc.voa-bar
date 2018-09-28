@@ -65,13 +65,8 @@ object ErrorCode {
   }
   implicit val errorCodeReader = new BSONReader[BSONString, ErrorCode] {
 
-    override def read(bson: BSONString): ErrorCode = {
-      val constantClassName = "uk.gov.hmrc.voabar.util.ErrorCode$" + bson.value + "$"
-
-      val a = Class.forName(constantClassName)
-      val field = a.getField("MODULE$").get(null).asInstanceOf[ErrorCode]
-      field
-    }
+    override def read(bson: BSONString): ErrorCode =
+      errorCodeClasses.get(bson.value).get
   }
 
   implicit val erorrCodeWriter = BSONWriter[ErrorCode, BSONString](e => BSONString(e.errorCode))
