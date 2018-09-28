@@ -31,8 +31,7 @@ import reactivemongo.play.json.ImplicitBSONHandlers._
 import uk.gov.hmrc.mongo.{BSONBuilderHelpers, ReactiveRepository}
 import uk.gov.hmrc.voabar.models.{BarError, BarMongoError, Error, ReportStatus, ReportStatusType}
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class SubmissionStatusRepositoryImpl @Inject()(
@@ -47,9 +46,8 @@ class SubmissionStatusRepositoryImpl @Inject()(
     idFormat = implicitly[Format[String]]
   ) with SubmissionStatusRepository with BSONBuilderHelpers {
 
-  private val indexName = name
   private val expireAfterSeconds = "expireAfterSeconds"
-  private val ttlPath = s"$name.timeToLiveInSeconds"
+  private val ttlPath = s"$collectionName.timeToLiveInSeconds"
   private val ttl = config.getInt(ttlPath)
     .getOrElse(throw new ConfigException.Missing(ttlPath))
   createIndex()
@@ -57,21 +55,33 @@ class SubmissionStatusRepositoryImpl @Inject()(
   private def idSelector(submissionId: String) = BSONDocument(key -> submissionId)
 
   private def createIndex(): Unit = {
-    collection.indexesManager.ensure(Index(Seq(
-      (key, IndexType.Text),
-      ("baCode", IndexType.Text)
-    ), Some(indexName),
-      options = BSONDocument(expireAfterSeconds -> ttl),
-      background = true)) map {
-      result => {
-        Logger.debug(s"set [$indexName] with value $ttl -> result : $result")
-        result
-      }
-    } recover {
-      case e => Logger.error("Failed to set TTL index", e)
-        false
+    Future.sequence(Seq(
+      collection.indexesManager.ensure(
+        Index(Seq((key, IndexType.Hashed)), name = Some(collectionName), options = BSONDocument(expireAfterSeconds -> ttl), background = true, unique = true)
+      ),
+      collection.indexesManager.ensure(
+        Index(Seq(("baCode", IndexType.Hashed)), name = Some(s"${collectionName}_baCode"), background = true)
+      )
+    )).map(_ => Logger.debug("Indexes created successfully"))
+      .recover {
+      case ex: Throwable => Logger.error("Error creating indexes", ex)
     }
   }
+
+//  override def indexes: Seq[Index] = Seq(
+//    Index(
+//      Seq(key -> IndexType.Hashed),
+//      name = Some(collectionName),
+//      unique = true,
+//      options = BSONDocument(expireAfterSeconds -> ttl),
+//      background = true
+//    ),
+//    Index(
+//      Seq("baCode" -> IndexType.Hashed),
+//      name = Some(s"${collectionName}_baCode"),
+//      background = true
+//    )
+//  )
 
   def saveOrUpdate(reportStatus: ReportStatus, upsert: Boolean)
   : Future[Either[BarError, Unit.type]] = {
@@ -202,7 +212,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
 trait SubmissionStatusRepository {
   val key = "submissionId"
 
-  val name = "submissions"
+  val collectionName = "submissions"
 
   def addError(submissionId: String, error: Error): Future[Either[BarError, Boolean]]
 

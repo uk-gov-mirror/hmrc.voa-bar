@@ -46,14 +46,14 @@ object ErrorCode {
   private lazy val errorCodeClasses: Map[String, ErrorCode] = typeOf[ErrorCode]
     .typeSymbol
     .asClass
-    .knownDirectSubclasses.map { c =>
+    .knownDirectSubclasses.foldLeft(Map[String, ErrorCode]()) { (acc, c) =>
       val classSymbol = c.asType.asClass
       val classMirror = scala.reflect.runtime.currentMirror.reflectClass(classSymbol)
       val primaryConstructor = classSymbol.primaryConstructor.asMethod
       val constructorMirror = classMirror.reflectConstructor(primaryConstructor)
       val instance = constructorMirror().asInstanceOf[ErrorCode]
-      (instance.errorCode, instance)
-    }.toMap[String, ErrorCode]
+      acc + (instance.errorCode -> instance)
+    }
   implicit val reader: Reads[ErrorCode] = new Reads[ErrorCode] {
     override def reads(json: JsValue): JsResult[ErrorCode] = {
       val value = json.validate[String].get
@@ -64,14 +64,7 @@ object ErrorCode {
     override def writes(o: ErrorCode): JsValue = Json.toJson[String](o.errorCode)
   }
   implicit val errorCodeReader = new BSONReader[BSONString, ErrorCode] {
-
-    override def read(bson: BSONString): ErrorCode = {
-      val constantClassName = "uk.gov.hmrc.voabar.util.ErrorCode$" + bson.value + "$"
-
-      val a = Class.forName(constantClassName)
-      val field = a.getField("MODULE$").get(null).asInstanceOf[ErrorCode]
-      field
-    }
+    override def read(bson: BSONString): ErrorCode = errorCodeClasses.get(bson.value).get
   }
 
   implicit val erorrCodeWriter = BSONWriter[ErrorCode, BSONString](e => BSONString(e.errorCode))
