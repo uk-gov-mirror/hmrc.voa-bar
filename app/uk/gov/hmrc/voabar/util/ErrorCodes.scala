@@ -16,8 +16,8 @@
 
 package uk.gov.hmrc.voabar.util
 
-import julienrf.json.derived
-import play.api.libs.json.OFormat
+import scala.reflect.runtime.universe._
+import play.api.libs.json._
 import reactivemongo.bson.{BSONReader, BSONString, BSONWriter}
 
 sealed trait ErrorCode { val errorCode: String }
@@ -43,20 +43,30 @@ case object INVALID_XML extends ErrorCode { val errorCode = "2001"}
 case object EBARS_UNAVAILABLE extends ErrorCode { val errorCode = "3000" }
 
 object ErrorCode {
-  implicit val format: OFormat[ErrorCode] = derived.oformat[ErrorCode]
-  implicit val errorCodeReader = new BSONReader[BSONString, ErrorCode] {
-
-    override def read(bson: BSONString): ErrorCode = {
-      val constantClassName = "uk.gov.hmrc.voabar.util.ErrorCode$" + bson.value + "$"
-
-      val a = Class.forName(constantClassName)
-      val field = a.getField("MODULE$").get(null).asInstanceOf[ErrorCode]
-      field
+  private lazy val errorCodeClasses: Map[String, ErrorCode] = typeOf[ErrorCode]
+    .typeSymbol
+    .asClass
+    .knownDirectSubclasses.foldLeft(Map[String, ErrorCode]()) { (acc, c) =>
+      val classSymbol = c.asType.asClass
+      val classMirror = scala.reflect.runtime.currentMirror.reflectClass(classSymbol)
+      val primaryConstructor = classSymbol.primaryConstructor.asMethod
+      val constructorMirror = classMirror.reflectConstructor(primaryConstructor)
+      val instance = constructorMirror().asInstanceOf[ErrorCode]
+      acc + (instance.errorCode -> instance)
+    }
+  implicit val reader: Reads[ErrorCode] = new Reads[ErrorCode] {
+    override def reads(json: JsValue): JsResult[ErrorCode] = {
+      val value = json.validate[String].get
+      JsSuccess(errorCodeClasses.get(value).get)
     }
   }
-
-  implicit val erorrCodeWriter = BSONWriter[ErrorCode, BSONString] { errorCore =>
-    BSONString(errorCore.getClass().getSimpleName.replace("$", ""))
+  implicit val writer: Writes[ErrorCode] = new Writes[ErrorCode] {
+    override def writes(o: ErrorCode): JsValue = Json.toJson[String](o.errorCode)
   }
+  implicit val errorCodeReader = new BSONReader[BSONString, ErrorCode] {
+    override def read(bson: BSONString): ErrorCode = errorCodeClasses.get(bson.value).get
+  }
+
+  implicit val erorrCodeWriter = BSONWriter[ErrorCode, BSONString](e => BSONString(e.errorCode))
 }
 
