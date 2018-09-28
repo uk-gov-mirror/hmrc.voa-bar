@@ -31,8 +31,7 @@ import reactivemongo.play.json.ImplicitBSONHandlers._
 import uk.gov.hmrc.mongo.{BSONBuilderHelpers, ReactiveRepository}
 import uk.gov.hmrc.voabar.models.{BarError, BarMongoError, Error, ReportStatus, ReportStatusType}
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class SubmissionStatusRepositoryImpl @Inject()(
@@ -56,16 +55,16 @@ class SubmissionStatusRepositoryImpl @Inject()(
   private def idSelector(submissionId: String) = BSONDocument(key -> submissionId)
 
   private def createIndex(): Unit = {
-    collection.indexesManager.ensure(
-      Index(Seq((key, IndexType.Hashed)), name = Some(collectionName), options = BSONDocument(expireAfterSeconds -> ttl),background = true,unique = true)
-    ).map {
-      result => {
-        Logger.debug(s"set [$collectionName] with value $ttl -> result : $result")
-        result
-      }
-    } recover {
-      case e => Logger.error("Failed to set TTL index", e)
-        false
+    Future.sequence(Seq(
+      collection.indexesManager.ensure(
+        Index(Seq((key, IndexType.Hashed)), name = Some(collectionName), options = BSONDocument(expireAfterSeconds -> ttl), background = true, unique = true)
+      ),
+      collection.indexesManager.ensure(
+        Index(Seq(("baCode", IndexType.Hashed)), name = Some(s"${collectionName}_baCode"), background = true)
+      )
+    )).map(_ => Logger.debug("Indexes created successfully"))
+      .recover {
+      case ex: Throwable => Logger.error("Error creating indexes", ex)
     }
   }
 
