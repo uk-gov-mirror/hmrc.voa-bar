@@ -46,14 +46,14 @@ object ErrorCode {
   private lazy val errorCodeClasses: Map[String, ErrorCode] = typeOf[ErrorCode]
     .typeSymbol
     .asClass
-    .knownDirectSubclasses.map { c =>
+    .knownDirectSubclasses.foldLeft(Map[String, ErrorCode]()) { (acc, c) =>
       val classSymbol = c.asType.asClass
       val classMirror = scala.reflect.runtime.currentMirror.reflectClass(classSymbol)
       val primaryConstructor = classSymbol.primaryConstructor.asMethod
       val constructorMirror = classMirror.reflectConstructor(primaryConstructor)
       val instance = constructorMirror().asInstanceOf[ErrorCode]
-      (instance.errorCode, instance)
-    }.toMap[String, ErrorCode]
+      acc + (instance.errorCode -> instance)
+    }
   implicit val reader: Reads[ErrorCode] = new Reads[ErrorCode] {
     override def reads(json: JsValue): JsResult[ErrorCode] = {
       val value = json.validate[String].get
