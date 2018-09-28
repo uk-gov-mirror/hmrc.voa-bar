@@ -64,8 +64,7 @@ object ErrorCode {
     override def writes(o: ErrorCode): JsValue = Json.toJson[String](o.errorCode)
   }
   implicit val errorCodeReader = new BSONReader[BSONString, ErrorCode] {
-    override def read(bson: BSONString): ErrorCode =
-      errorCodeClasses.get(bson.value).get
+    override def read(bson: BSONString): ErrorCode = errorCodeClasses.get(bson.value).get
   }
 
   implicit val erorrCodeWriter = BSONWriter[ErrorCode, BSONString](e => BSONString(e.errorCode))
