@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.voabar.repositories
 
+import java.time.ZonedDateTime
+
 import com.google.inject.ImplementedBy
 import com.typesafe.config.ConfigException
 import javax.inject.{Inject, Singleton}
@@ -31,7 +33,7 @@ import uk.gov.hmrc.voabar.models
 
 import scala.concurrent.{ExecutionContext, Future}
 
-final case class UserReportUpload(_id: String, userId: String, userPassword: String)
+final case class UserReportUpload(_id: String, userId: String, userPassword: String, lastUpadated: ZonedDateTime)
 
 object UserReportUpload {
   implicit val format = Json.format[UserReportUpload]
@@ -59,7 +61,7 @@ class DefaultUserReportUploadsRepository @Inject() (
     .getOrElse(throw new ConfigException.Missing(ttlPath))
   createIndex()
   private def createIndex(): Unit = {
-    collection.indexesManager.ensure(Index(Seq((key, IndexType.Hashed)), Some(indexName),
+    collection.indexesManager.ensure(Index(Seq(("lastUpdated", IndexType.Descending)), Some(indexName),
       options = BSONDocument(expireAfterSeconds -> ttl))) map {
       result => {
         Logger.debug(s"set [$indexName] with value $ttl -> result : $result")
