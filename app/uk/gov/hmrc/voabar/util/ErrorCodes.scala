@@ -31,7 +31,6 @@ case object NOT_IN_USE extends ErrorCode { val errorCode= "1006" }
 case object ONE_EXISTING extends ErrorCode { val errorCode= "1007" }
 case object NONE_PROPOSED extends ErrorCode { val errorCode = "1008" }
 case object BA_CODE_MATCH extends ErrorCode { val errorCode= "1010" }
-case object BA_CODE_REQHDR extends ErrorCode { val errorCode= "1011" }
 case object BA_CODE_REPORT extends ErrorCode { val errorCode= "1012" }
 case object UNSUPPORTED_TAX_TYPE extends ErrorCode { val errorCode= "1020"}
 case object UNKNOWN_TYPE_OF_TAX extends ErrorCode { val errorCode= "1021" }
