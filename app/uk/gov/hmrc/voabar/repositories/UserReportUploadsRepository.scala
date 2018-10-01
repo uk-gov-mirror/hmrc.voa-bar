@@ -33,7 +33,7 @@ import uk.gov.hmrc.voabar.models
 
 import scala.concurrent.{ExecutionContext, Future}
 
-final case class UserReportUpload(_id: String, userId: String, userPassword: String, lastUpadated: ZonedDateTime = ZonedDateTime.now)
+final case class UserReportUpload(_id: String, userId: String, userPassword: String, lastUpdated: ZonedDateTime = ZonedDateTime.now)
 
 object UserReportUpload {
   implicit val format = Json.format[UserReportUpload]
