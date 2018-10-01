@@ -57,7 +57,10 @@ class SubmissionStatusRepositoryImpl @Inject()(
   private def createIndex(): Unit = {
     Future.sequence(Seq(
       collection.indexesManager.ensure(
-        Index(Seq((key, IndexType.Hashed)), name = Some(collectionName), options = BSONDocument(expireAfterSeconds -> ttl), background = true, unique = true)
+        Index(Seq((key, IndexType.Hashed)), name = Some(collectionName), background = true, unique = true)
+      ),
+      collection.indexesManager.ensure(
+        Index(Seq(("created", IndexType.Descending)), name = Some(s"${collectionName}_created"), options = BSONDocument(expireAfterSeconds -> ttl), background = true)
       ),
       collection.indexesManager.ensure(
         Index(Seq(("baCode", IndexType.Hashed)), name = Some(s"${collectionName}_baCode"), background = true)
@@ -67,21 +70,6 @@ class SubmissionStatusRepositoryImpl @Inject()(
       case ex: Throwable => Logger.error("Error creating indexes", ex)
     }
   }
-
-//  override def indexes: Seq[Index] = Seq(
-//    Index(
-//      Seq(key -> IndexType.Hashed),
-//      name = Some(collectionName),
-//      unique = true,
-//      options = BSONDocument(expireAfterSeconds -> ttl),
-//      background = true
-//    ),
-//    Index(
-//      Seq("baCode" -> IndexType.Hashed),
-//      name = Some(s"${collectionName}_baCode"),
-//      background = true
-//    )
-//  )
 
   def saveOrUpdate(reportStatus: ReportStatus, upsert: Boolean)
   : Future[Either[BarError, Unit.type]] = {
