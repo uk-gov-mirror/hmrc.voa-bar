@@ -82,7 +82,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       }
 
       case BarEbarError(ebarError) => {
-        statusRepository.addError(submissionId, Error(INVALID_XML, Seq(ebarError)))
+        statusRepository.addError(submissionId, Error(EBARS_UNAVAILABLE, Seq(ebarError)))
         statusRepository.updateStatus(submissionId, Failed)
       }
       case BarMongoError(error, updateWriteResult) => {
