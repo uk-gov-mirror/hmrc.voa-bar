@@ -40,7 +40,7 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
   val date = ZonedDateTime.now
   val userId = "userId"
   val reportStatus = ReportStatus(
-    submissionId = id,
+    id = id,
     created = date,
     url = Some("url.com"),
     baCode = Some(userId)

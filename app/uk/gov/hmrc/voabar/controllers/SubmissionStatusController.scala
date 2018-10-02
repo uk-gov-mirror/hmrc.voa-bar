@@ -96,7 +96,7 @@ class SubmissionStatusController @Inject() (
   def saveUserInfo() = Action.async(parse.tolerantJson) { request =>
     (for {
       reportStatus <- EitherT.fromEither[Future](parseReportStatus(request))
-      _ <- EitherT(saveSubmissionUserInfo(reportStatus.baCode.get, reportStatus.submissionId, true))
+      _ <- EitherT(saveSubmissionUserInfo(reportStatus.baCode.get, reportStatus.id, true))
     } yield NoContent)
       .valueOr(_ => InternalServerError)
   }

@@ -46,34 +46,18 @@ class SubmissionStatusRepositoryImpl @Inject()(
     idFormat = implicitly[Format[String]]
   ) with SubmissionStatusRepository with BSONBuilderHelpers {
 
-  private val expireAfterSeconds = "expireAfterSeconds"
   private val ttlPath = s"$collectionName.timeToLiveInSeconds"
-  private val ttl = config.getInt(ttlPath)
-    .getOrElse(throw new ConfigException.Missing(ttlPath))
-  createIndex()
+  private val ttl = config.getInt(ttlPath).getOrElse(throw new ConfigException.Missing(ttlPath))
 
-  private def idSelector(submissionId: String) = BSONDocument(key -> submissionId)
-
-  private def createIndex(): Unit = {
-    Future.sequence(Seq(
-      collection.indexesManager.ensure(
-        Index(Seq((key, IndexType.Hashed)), name = Some(collectionName), background = true, unique = true)
-      ),
-      collection.indexesManager.ensure(
-        Index(Seq(("created", IndexType.Descending)), name = Some(s"${collectionName}_created"), options = BSONDocument(expireAfterSeconds -> ttl), background = true)
-      ),
-      collection.indexesManager.ensure(
-        Index(Seq(("baCode", IndexType.Hashed)), name = Some(s"${collectionName}_baCode"), background = true)
-      )
-    )).map(_ => Logger.debug("Indexes created successfully"))
-      .recover {
-      case ex: Throwable => Logger.error("Error creating indexes", ex)
-    }
-  }
+  override def indexes: Seq[Index] = Seq (
+    Index(Seq("baCode" -> IndexType.Hashed), name = Some(s"${collectionName}_baCodeIdx")),
+    Index(Seq("created" -> IndexType.Descending), name = Some(s"${collectionName}_createdIdx")
+      ,options = BSONDocument("expireAfterSeconds" -> ttl))
+  )
 
   def saveOrUpdate(reportStatus: ReportStatus, upsert: Boolean)
   : Future[Either[BarError, Unit.type]] = {
-    val finder = BSONDocument(key -> reportStatus.submissionId)
+    val finder = BSONDocument(_Id -> reportStatus.id)
     val modifierBson = set(BSONDocument(
       "created" -> reportStatus.created.toString,
       "checksum" -> reportStatus.checksum,
@@ -86,12 +70,12 @@ class SubmissionStatusRepositoryImpl @Inject()(
       "status" -> reportStatus.status)
     )
 
-    atomicSaveOrUpdate(reportStatus.submissionId, upsert, finder, modifierBson)
+    atomicSaveOrUpdate(reportStatus.id, upsert, finder, modifierBson)
   }
 
   def saveOrUpdate(userId: String, reference: String, upsert: Boolean)
   : Future[Either[BarError, Unit.type]] = {
-    val finder = BSONDocument(key -> reference)
+    val finder = BSONDocument(_Id -> reference)
     val modifierBson = set(BSONDocument(
       "created" -> ZonedDateTime.now.toString,
       "baCode" -> userId)
@@ -119,7 +103,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
 
   override def getByReference(reference: String)
   : Future[Either[BarError, ReportStatus]] = {
-    val finder = BSONDocument(key -> reference)
+    val finder = BSONDocument(_Id -> reference)
     collection.find(finder).sort(Json.obj("created" -> -1)).cursor[ReportStatus](ReadPreference.primary)
       .collect[Seq](1, Cursor.FailOnError[Seq[ReportStatus]]())
       .map(r => Right(r.head))
@@ -134,7 +118,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
 
   protected def atomicSaveOrUpdate(reference: String, upsert: Boolean, finder: BSONDocument, modifierBson: BSONDocument) = {
     val updateDocument = if (upsert) {
-      modifierBson ++ setOnInsert(BSONDocument(key -> reference))
+      modifierBson ++ setOnInsert(BSONDocument(_Id -> reference))
     } else {
       modifierBson
     }
@@ -168,7 +152,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
       )
     )
 
-    collection.update(idSelector(submissionId), modifier).map { updateResult =>
+    collection.update(_id(submissionId), modifier).map { updateResult =>
       if (updateResult.ok && updateResult.n == 1) {
         Right(true)
       } else {
@@ -185,7 +169,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
       )
     )
 
-    collection.update(idSelector(submissionId), modifier).map { updateResult =>
+    collection.update(_id(submissionId), modifier).map { updateResult =>
 
       if (updateResult.ok && updateResult.n == 1) {
         Right(true)
@@ -198,7 +182,6 @@ class SubmissionStatusRepositoryImpl @Inject()(
 
 @ImplementedBy(classOf[SubmissionStatusRepositoryImpl])
 trait SubmissionStatusRepository {
-  val key = "submissionId"
 
   val collectionName = "submissions"
 

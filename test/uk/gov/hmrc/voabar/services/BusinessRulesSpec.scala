@@ -172,7 +172,7 @@ class BusinessRulesSpec extends PlaySpec {
   "The BA identity code validator" must {
     "return a empty list (no errors) when the BA code in the request header matches that in the report" in {
       val validBatch = XML.loadString(batchWith1Report)
-      businessRules.baIdentityCodeErrors(validBatch, "9999").isEmpty mustBe true
+      businessRules.baIdentityCodeErrors(validBatch, "BA5090").isEmpty mustBe true
     }
 
     "return a list of 1 error when the BA code in the request header does not match that in the report" in {

@@ -7,7 +7,7 @@
            SchemaVersion="4-0">
     <BAreportHeader>
         <BillingAuthority>VALID COUNCIL</BillingAuthority>
-        <BillingAuthorityIdentityCode>9999</BillingAuthorityIdentityCode>
+        <BillingAuthorityIdentityCode>5090</BillingAuthorityIdentityCode>
         <ProcessDate>2018-01-30</ProcessDate>
         <EntryDateTime>2018-01-30T23:00:22</EntryDateTime>
     </BAreportHeader>

@@ -16,41 +16,41 @@
 
 package uk.gov.hmrc.repositories
 
+import java.time.ZonedDateTime
 import java.util.UUID
 
 import org.scalatest.mockito.MockitoSugar
-import play.api.inject.Injector
 import org.scalatest.{BeforeAndAfterAll, EitherValues}
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.Configuration
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.ImplicitBSONHandlers._
-import uk.gov.hmrc.mongo.MongoConnector
-import uk.gov.hmrc.voabar.models.{BarMongoError, Error, Submitted}
+import uk.gov.hmrc.voabar.models.{BarMongoError, Error, ReportStatus, Submitted}
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepositoryImpl
-import uk.gov.hmrc.voabar.util.{CHARACTER, ErrorCode}
+import uk.gov.hmrc.voabar.util.CHARACTER
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
   with EitherValues with DefaultAwaitTimeout with FutureAwaits  with GuiceOneAppPerSuite with MockitoSugar {
 
-  val mongoConponent = new ReactiveMongoComponent {
-    override def mongoConnector: MongoConnector = new MongoConnector(
-      "mongodb://localhost:27017/voa-bar" + UUID.randomUUID().toString)
-  }
+  override def fakeApplication() = new GuiceApplicationBuilder()
+    .configure("mongodb.uri" -> ("mongodb://localhost:27017/voa-bar" + UUID.randomUUID().toString))
+    .build()
+
+  lazy val mongoComponent = app.injector.instanceOf(classOf[ReactiveMongoComponent])
+
+
+  val repo = app.injector.instanceOf(classOf[SubmissionStatusRepositoryImpl])
 
   "repository" should {
 
-    val config = app.injector.instanceOf(classOf[Configuration])
-    val repo = new SubmissionStatusRepositoryImpl(mongoConponent, config)
-
     "add error" in {
       await(repo.collection.insert(BSONDocument(
-        repo.key -> "111"
+        "_id" -> "111"
       )))
 
       val reportStatusError = Error(CHARACTER , Seq( "message", "detail"))
@@ -61,9 +61,22 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
 
     }
 
+    "add error without description" in {
+      await(repo.collection.insert(BSONDocument(
+        "_id" -> "ggggg"
+      )))
+
+      val reportStatusError = Error(CHARACTER , List())
+
+      val dbResult = await(repo.addError("ggggg", reportStatusError))
+
+      dbResult must be('right)
+
+    }
+
     "update status" in {
       await(repo.collection.insert(BSONDocument(
-        repo.key -> "222"
+        "_id" -> "222"
       )))
 
       val dbResult = await(repo.updateStatus("222", Submitted))
@@ -81,10 +94,30 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
 
     }
 
+    "serialise and deserialize ReportStatus" in {
+
+      val dateTime = ZonedDateTime.now()
+
+      val guid = UUID.randomUUID().toString
+
+      val reportStatus = ReportStatus(guid, dateTime, None, None, None, Option("BA2220"), None)
+
+      await(repo.insert(reportStatus))
+
+
+      val res = await(repo.getByReference(guid))
+
+      res mustBe ('right)
+
+      res.right.value mustBe reportStatus
+
+
+    }
+
   }
 
   override protected def afterAll(): Unit = {
-    await(mongoConponent.mongoConnector.db().drop())
-    mongoConponent.mongoConnector.close()
+    mongoComponent.mongoConnector.db().drop()
+    mongoComponent.mongoConnector.close()
   }
 }

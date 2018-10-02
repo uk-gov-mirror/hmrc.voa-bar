@@ -69,7 +69,7 @@ class MockBAReportBuilderSpec extends PlaySpec{
 
       "modify a given report in multiple ways at once" in {
         val result = reportBuilder.invalidateBatch(batchSubmission,Map("SOME VALID COUNCIL" -> "INVALID COUNCIL",
-          "9999" -> "XXXX", "RecordCount" -> "InvalidElement"))
+          "5090" -> "XXXX", "RecordCount" -> "InvalidElement"))
         (result \\ "BillingAuthority").text mustBe "INVALID COUNCIL"
         (result \\ "BillingAuthorityIdentityCode").text mustBe "XXXX"
         (result \\ "InvalidElement").size mustBe 1

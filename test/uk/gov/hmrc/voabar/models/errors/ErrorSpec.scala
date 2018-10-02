@@ -17,8 +17,9 @@
 package uk.gov.hmrc.voabar.models.errors
 
 import org.scalatestplus.play.PlaySpec
+import reactivemongo.bson.BSONString
 import uk.gov.hmrc.voabar.models.Error
-import uk.gov.hmrc.voabar.util.CHARACTER
+import uk.gov.hmrc.voabar.util.{BA_CODE_MATCH, CHARACTER, ErrorCode}
 
 class ErrorSpec extends PlaySpec {
 
@@ -30,6 +31,16 @@ class ErrorSpec extends PlaySpec {
   "Given an error code and an error value produce an Error model" in {
     error.code mustBe code
     error.values mustBe errorValue
+  }
+
+  "return same instance after deserialisation" in {
+
+    val res = ErrorCode.errorCodeReader.read(BSONString("1010"))
+
+    res.hashCode() mustBe BA_CODE_MATCH.hashCode()
+
+    res mustBe theSameInstanceAs( BA_CODE_MATCH)
+
   }
 
 }
