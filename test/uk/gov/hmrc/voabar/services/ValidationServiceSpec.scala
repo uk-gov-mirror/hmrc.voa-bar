@@ -30,7 +30,7 @@ class ValidationServiceSpec extends PlaySpec {
   val batchWith32Reports = IOUtils.toString(getClass.getResource("/xml/res100.xml"))
   val batchWith32ReportsWithErrors = IOUtils.toString(getClass.getResource("/xml/res101.xml"))
 
-  val BA_LOGIN = "9999"
+  val BA_LOGIN = "BA5090"
 
 
   val xmlParser = new XmlParser
@@ -67,7 +67,7 @@ class ValidationServiceSpec extends PlaySpec {
 
     "return an empty list (no errors) when passed a valid batch with 32 reports" in {
       val validBatch: Node = XML.loadString(batchWith32Reports)
-      validationService("5243").xmlNodeValidation(validBatch, "5243").isEmpty mustBe true
+      validationService("5243").xmlNodeValidation(validBatch, "BA5243").isEmpty mustBe true
     }
 
     "return a list of 1 error when the BACode in the report header does " +

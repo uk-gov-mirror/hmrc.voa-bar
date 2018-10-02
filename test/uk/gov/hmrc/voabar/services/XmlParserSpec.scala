@@ -80,7 +80,7 @@ class XmlParserSpec extends PlaySpec with EitherValues {
     }
 
     "contain a BillingAuthorityIdentityCode element value" in {
-      (batchHeader \ "BillingAuthorityIdentityCode").text mustBe "9999"
+      (batchHeader \ "BillingAuthorityIdentityCode").text mustBe "5090"
     }
 
     "contain a ProcessDate element value" in {

@@ -61,6 +61,19 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
 
     }
 
+    "add error without description" in {
+      await(repo.collection.insert(BSONDocument(
+        "_id" -> "ggggg"
+      )))
+
+      val reportStatusError = Error(CHARACTER , List())
+
+      val dbResult = await(repo.addError("ggggg", reportStatusError))
+
+      dbResult must be('right)
+
+    }
+
     "update status" in {
       await(repo.collection.insert(BSONDocument(
         "_id" -> "222"
@@ -104,7 +117,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
   }
 
   override protected def afterAll(): Unit = {
-    //mongoComponent.mongoConnector.db().drop()
+    mongoComponent.mongoConnector.db().drop()
     mongoComponent.mongoConnector.close()
   }
 }

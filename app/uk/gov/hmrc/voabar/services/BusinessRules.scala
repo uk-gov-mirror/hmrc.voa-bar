@@ -79,11 +79,12 @@ class BusinessRules @Inject()() {
 
   def baIdentityCodeErrors(xml:Node, baLogin: String): List[Error] = {
     val lb = new ListBuffer[ErrorCode]()
+    val baLoginNumber = baLogin.substring(2)
     val codeInReport:String = (xml \\ "BillingAuthorityIdentityCode").text
       if (codeInReport.isEmpty) {
         lb += BA_CODE_REPORT
       }else {
-        if(codeInReport != baLogin) {
+        if(codeInReport != baLoginNumber) {
           lb += BA_CODE_MATCH
         }
       }
