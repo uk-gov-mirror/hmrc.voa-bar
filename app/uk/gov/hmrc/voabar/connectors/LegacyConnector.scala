@@ -22,6 +22,7 @@ import javax.inject.{Inject, Singleton}
 import play.api.Mode.Mode
 import play.api.{Configuration, Environment, Logger}
 import play.mvc.Http.Status
+import uk.gov.hmrc.crypto.{ApplicationCrypto, PlainText}
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.voabar.Utils
@@ -37,6 +38,8 @@ class DefaultLegacyConnector @Inject()(val http: HttpClient,
                                 val configuration: Configuration,
                                 utils: Utils,
                                 environment: Environment) extends LegacyConnector with  ServicesConfig {
+
+  lazy val crypto = ApplicationCrypto.JsonCrypto
 
   override protected def mode: Mode = environment.mode
 
@@ -74,7 +77,7 @@ class DefaultLegacyConnector @Inject()(val http: HttpClient,
       baReport.propertyReport,
       Seq(
         X_EBARS_USERNAME -> baReport.username,
-        X_EBARS_PASSWORD -> baReport.password,
+        X_EBARS_PASSWORD -> crypto.encrypt(PlainText(baReport.password)).value,
         X_EBARS_ATTEMPT -> s"${baReport.attempt}",
         X_EBARS_UUID -> baReport.uuid)
     ).map{ response =>
