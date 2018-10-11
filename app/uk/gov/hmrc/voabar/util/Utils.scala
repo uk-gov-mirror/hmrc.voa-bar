@@ -30,7 +30,7 @@ class Utils @Inject() (crypto: CompositeSymmetricCrypto) {
   def decryptPassword(password: String) : String = crypto.decrypt(Crypted(password)).value
 
   def generateHeader(loginDetails: LoginDetails)(implicit ec: ExecutionContext): HeaderCarrier = {
-    val decryptedPassword = decryptPassword(loginDetails.password)
+    val decryptedPassword = loginDetails.password //TODO - should be encrypted. In next version.
     val encodedAuthHeader = Base64.encodeBase64String(s"${loginDetails.username}:${decryptedPassword}".getBytes("UTF-8"))
     HeaderCarrier(authorization = Some(Authorization(s"Basic $encodedAuthHeader")))
   }
