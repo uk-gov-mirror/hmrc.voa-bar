@@ -116,6 +116,19 @@ class SubmissionStatusRepositoryImpl @Inject()(
       }
   }
 
+  override def getAll(): Future[Either[BarError, Seq[ReportStatus]]] = {
+    collection.find(Json.obj()).sort(Json.obj("created" -> -1)).cursor[ReportStatus](ReadPreference.primary)
+      .collect[Seq](1, Cursor.FailOnError[Seq[ReportStatus]]())
+      .map(Right(_))
+      .recover {
+        case ex: Throwable => {
+          val errorMsg = s"Couldn't retrieve all BA reports"
+          Logger.warn(s"$errorMsg\n${ex.getMessage}")
+          Left(BarMongoError(errorMsg))
+        }
+      }
+  }
+
   protected def atomicSaveOrUpdate(reference: String, upsert: Boolean, finder: BSONDocument, modifierBson: BSONDocument) = {
     val updateDocument = if (upsert) {
       modifierBson ++ setOnInsert(BSONDocument(_Id -> reference))
@@ -192,6 +205,8 @@ trait SubmissionStatusRepository {
   def getByUser(userId: String, filter: Option[String] = None) : Future[Either[BarError, Seq[ReportStatus]]]
 
   def getByReference(reference: String) : Future[Either[BarError, ReportStatus]]
+
+  def getAll(): Future[Either[BarError, Seq[ReportStatus]]]
 
   def saveOrUpdate(reportStatus: ReportStatus, upsert: Boolean): Future[Either[BarError, Unit.type]]
 

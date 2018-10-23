@@ -124,5 +124,25 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
 
       status(response) mustBe INTERNAL_SERVER_ERROR
     }
+    "returns all report statuses" in {
+      val submissionStatusRepositoryMock = mock[SubmissionStatusRepository]
+      when(submissionStatusRepositoryMock.getAll()) thenReturn (Future.successful(Right(Seq(reportStatus))))
+      val submissionStatusController = new SubmissionStatusController(submissionStatusRepositoryMock)
+
+      val response = submissionStatusController.getAll()(fakeRequest).run()
+
+      status(response) mustBe OK
+      contentAsJson(response) mustBe reportStatusesJson
+    }
+
+    "returns invalid error when search all unsuccessfully" in {
+      val submissionStatusRepositoryMock = mock[SubmissionStatusRepository]
+      when(submissionStatusRepositoryMock.getAll()) thenReturn(Future.successful(Left(error)))
+      val submissionStatusController = new SubmissionStatusController(submissionStatusRepositoryMock)
+
+      val response = submissionStatusController.getAll()(fakeRequest).run()
+
+      status(response) mustBe INTERNAL_SERVER_ERROR
+    }
   }
 }
