@@ -41,6 +41,10 @@ case object INVALID_XML extends ErrorCode { val errorCode = "2001"}
 
 case object EBARS_UNAVAILABLE extends ErrorCode { val errorCode = "3000" }
 
+case object UPSCAN_ERROR extends ErrorCode { val errorCode = "4000" }
+
+case object UNKNOWN_ERROR extends ErrorCode { val errorCode = "5000" }
+
 object ErrorCode {
   private lazy val errorCodeClasses: Map[String, ErrorCode] = typeOf[ErrorCode]
     .typeSymbol
