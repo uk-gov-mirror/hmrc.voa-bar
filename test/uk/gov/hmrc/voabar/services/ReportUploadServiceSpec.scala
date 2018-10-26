@@ -35,11 +35,10 @@ import org.mockito.Mockito
 import org.mockito.Mockito.times
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.stubbing.Answer
-import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 import uk.gov.hmrc.voabar.connectors.LegacyConnector
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 import uk.gov.hmrc.voabar.models._
-import uk.gov.hmrc.voabar.util.{ATLEAST_ONE_PROPOSED, CHARACTER, ErrorCode, INVALID_XML}
+import uk.gov.hmrc.voabar.util.{ATLEAST_ONE_PROPOSED, CHARACTER, INVALID_XML}
 
 import scala.util.Try
 

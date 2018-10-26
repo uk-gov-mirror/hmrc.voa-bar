@@ -16,17 +16,37 @@
 
 package uk.gov.hmrc.voabar.services
 
+import java.io.StringReader
 
 import javax.xml.XMLConstants
-import javax.xml.transform.dom.DOMSource
 import javax.xml.transform.stream.StreamSource
 import javax.xml.validation.SchemaFactory
-import org.w3c.dom.Document
 import org.xml.sax.{ErrorHandler, SAXParseException}
 import uk.gov.hmrc.voabar.models.{BarError, BarXmlError, BarXmlValidationError, Error}
 import uk.gov.hmrc.voabar.util.INVALID_XML_XSD
 
+import scala.collection.mutable
 import scala.util.{Failure, Success, Try}
+
+class XmlErrorHandler extends ErrorHandler {
+  val errors = mutable.Map[Int, Error]()
+  private def addError(exception: SAXParseException) {
+    val split = exception.getMessage.split(":", 2) map (_.trim)
+    errors.put(exception.getLineNumber, Error(INVALID_XML_XSD, Seq(s"Error on line ${exception.getLineNumber}: ${split(1)}")))
+  }
+
+  override def warning(exception: SAXParseException) {
+    addError(exception)
+  }
+
+  override def error(exception: SAXParseException) {
+    addError(exception)
+  }
+
+  override def fatalError(exception: SAXParseException) {
+    addError(exception)
+  }
+}
 
 class XmlValidator {
 
@@ -35,40 +55,23 @@ class XmlValidator {
   factory.setResourceResolver(new ResourceResolver)
   val schema = factory.newSchema(schemaFile1)
 
-  def validate(xmlDocument: Document):Either[BarError, Boolean] = {
-    val errors = scala.collection.mutable.Buffer.empty[Error]
+  def validate(xml: String):Either[BarError, Boolean] = {
 
-    val errorHandler: ErrorHandler = new ErrorHandler {
-      private def addError(exception: SAXParseException) {
-        val split = exception.getMessage.split(":", 2) map (_.trim)
-        errors += Error(INVALID_XML_XSD, Seq(split(1)))
-      }
-
-      override def warning(exception: SAXParseException) {
-        addError(exception)
-      }
-
-      override def error(exception: SAXParseException) {
-        addError(exception)
-      }
-
-      override def fatalError(exception: SAXParseException) {
-        addError(exception)
-      }
-    }
+    val source = new StreamSource(new StringReader(xml))
+    val errorHandler = new XmlErrorHandler
 
     Try {
-
       val validator = schema.newValidator
       validator.setErrorHandler(errorHandler)
-      validator.validate(new DOMSource(xmlDocument))
-
+      validator.setFeature("http://xml.org/sax/features/validation", true)
+      validator.setFeature("http://apache.org/xml/features/validation/schema", true)
+      validator.validate(source)
     } match {
-      case Success(value) => {
-        if(errors.isEmpty) {
+      case Success(_) => {
+        if(errorHandler.errors.isEmpty) {
           Right(true)
         }else {
-          Left(BarXmlValidationError(errors.toList.distinct))
+          Left(BarXmlValidationError(errorHandler.errors.values.toList.distinct))
         }
       }
       case Failure(exception) => Left(BarXmlError("XML Schema validation error"))
