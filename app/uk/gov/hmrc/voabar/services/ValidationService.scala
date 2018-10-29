@@ -16,12 +16,10 @@
 
 package uk.gov.hmrc.voabar.services
 
-import java.io.StringReader
-
 import javax.inject.{Inject, Singleton}
 import uk.gov.hmrc.voabar.models.{BarError, BarValidationError, Error}
 
-import scala.xml.{InputSource, Node, XML}
+import scala.xml.Node
 
 @Singleton
 class ValidationService @Inject()(xmlValidator: XmlValidator,
@@ -33,8 +31,7 @@ class ValidationService @Inject()(xmlValidator: XmlValidator,
   def validate(xml: String, baLogin: String): Either[BarError, Boolean] = {
 
     for {
-      domDocument <- xmlParser.parse(xml).right //parse XML
-      _ <- xmlValidator.validate(domDocument).right //validate against XML schema
+      _ <- xmlValidator.validate(xml).right //validate against XML schema
       scalaElement <- xmlParser.xmlToNode(xml).right
       _ <- businessValidation(scalaElement, baLogin).right
     }yield {
