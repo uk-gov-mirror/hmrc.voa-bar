@@ -41,7 +41,8 @@ final case class ReportStatus(
                                errors: Option[Seq[Error]] = Some(Seq()),
                                baCode: Option[String] = None,
                                status: Option[String] = Some(Pending.value),
-                               filename: Option[String] = None
+                               filename: Option[String] = None,
+                               totalReports: Option[Int] = None
                              )
 
 object ReportStatus {

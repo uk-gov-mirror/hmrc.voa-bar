@@ -191,6 +191,23 @@ class SubmissionStatusRepositoryImpl @Inject()(
       }
     }
   }
+
+
+  override def update(submissionId: String, status: ReportStatusType, totalReports: Int): Future[Either[BarError, Boolean]] = {
+    val modifier = set(BSONDocument(
+        "status" -> status.value,
+        "totalReports" -> totalReports
+      )
+    )
+
+    collection.update(_id(submissionId), modifier).map { updateResult =>
+      if (updateResult.ok && updateResult.n == 1) {
+        Right(true)
+      } else {
+        Left(BarMongoError("unable to update status in mongo", Option(updateResult)))
+      }
+    }
+  }
 }
 
 @ImplementedBy(classOf[SubmissionStatusRepositoryImpl])
@@ -201,6 +218,8 @@ trait SubmissionStatusRepository {
   def addError(submissionId: String, error: Error): Future[Either[BarError, Boolean]]
 
   def updateStatus(submissionId: String, status: ReportStatusType): Future[Either[BarError, Boolean]]
+
+  def update(submissionId: String, status: ReportStatusType, totalReports: Int): Future[Either[BarError, Boolean]]
 
   def getByUser(userId: String, filter: Option[String] = None) : Future[Either[BarError, Seq[ReportStatus]]]
 
