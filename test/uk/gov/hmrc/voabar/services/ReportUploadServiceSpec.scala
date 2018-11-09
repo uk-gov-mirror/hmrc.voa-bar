@@ -166,6 +166,10 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
       override def answer(invocationOnMock: InvocationOnMock): Future[Either[BarError, Boolean]] = Future.successful(Right(true))
     })
 
+    when(repository.update(anyString(), any(classOf[ReportStatusType]), any[Int])).thenAnswer(new Answer[Future[Either[BarError, Boolean]]] {
+      override def answer(invocationOnMock: InvocationOnMock): Future[Either[BarError, Boolean]] = Future.successful(Right(true))
+    })
+
     when(repository.addError(anyString(), any(classOf[Error]))).thenAnswer(new Answer[Future[Either[BarError, Boolean]]] {
       override def answer(invocationOnMock: InvocationOnMock): Future[Either[BarError, Boolean]] = Future.successful(Right(true))
     })
