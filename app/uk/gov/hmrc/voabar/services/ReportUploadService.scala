@@ -40,6 +40,10 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
                           legacyConnector: LegacyConnector)(implicit executionContext: ExecutionContext) {
   val ebarsValidator = new EbarsValidator()
 
+  private def numberReports(node: Node): Int = {
+    node \ "BApropertyReport" length
+  }
+
   def upload(username: String, password: String, xml: String, uploadReference: String) = {
 
 
@@ -47,7 +51,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       _ <- EitherT(statusRepository.updateStatus(uploadReference, Pending))
       _ <- EitherT.fromEither[Future](validationService.validate(xml, username))
       node <- EitherT.fromEither[Future](xmlParser.xmlToNode(xml))
-      _ <- EitherT(statusRepository.updateStatus(uploadReference, Verified))
+      _ <- EitherT(statusRepository.update(uploadReference, Verified, numberReports(node)))
       _ <- EitherT(ebarsUpload(node, username, password, uploadReference))
       _ <- EitherT(statusRepository.updateStatus(uploadReference, Done))
     } yield ("ok")
