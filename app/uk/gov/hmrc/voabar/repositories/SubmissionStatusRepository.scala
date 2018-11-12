@@ -118,7 +118,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
 
   override def getAll(): Future[Either[BarError, Seq[ReportStatus]]] = {
     collection.find(Json.obj()).sort(Json.obj("created" -> -1)).cursor[ReportStatus](ReadPreference.primary)
-      .collect[Seq](1, Cursor.FailOnError[Seq[ReportStatus]]())
+      .collect[Seq](-1, Cursor.FailOnError[Seq[ReportStatus]]())
       .map(Right(_))
       .recover {
         case ex: Throwable => {
