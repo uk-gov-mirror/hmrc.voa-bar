@@ -16,31 +16,27 @@
 
 package uk.gov.hmrc.voabar.connectors
 
-import com.google.inject.name.Named
-import com.google.inject.{ImplementedBy, Inject, Singleton}
+import com.google.inject.{ImplementedBy, Singleton}
 import com.typesafe.config.ConfigException
-import play.api.Configuration
-import play.api.Mode.Mode
-import play.api.i18n.Messages
+import javax.inject.Inject
+import play.api.{Configuration, Environment}
 import play.api.libs.json._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
-import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.play.http.ws.WSHttp
+import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import uk.gov.hmrc.voabar.Utils
 import uk.gov.hmrc.voabar.models.LoginDetails
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class DefaultEmailConnector @Inject() (
-                                 @Named("Mode") override val mode : Mode,
-                                 override val runModeConfiguration: Configuration,
-                                 val http: WSHttp,
-                                 utils: Utils
-                               ) (implicit messages: Messages, ec: ExecutionContext) extends ServicesConfig with EmailConnector {
-  lazy val emailUrl = baseUrl("email")
-  lazy val needsToSendEmail = runModeConfiguration.getBoolean("needToSendEmail").getOrElse(false)
-  lazy val email = runModeConfiguration.getString("email")
+class DefaultEmailConnector @Inject() (val http: HttpClient,
+                                       val configuration: Configuration,
+                                       utils: Utils,
+                                       environment: Environment)(implicit ec: ExecutionContext)
+  extends EmailConnector {
+  lazy val emailUrl = configuration.getString("microservices.service.email")
+  lazy val needsToSendEmail = configuration.getBoolean("needToSendEmail").getOrElse(false)
+  lazy val email = configuration.getString("email")
     .getOrElse(if (needsToSendEmail) throw new ConfigException.Missing("email") else "")
   implicit val rds: HttpReads[Unit] = new HttpReads[Unit] {
     override def read(method: String, url: String, response: HttpResponse): Unit = Unit
@@ -59,10 +55,10 @@ class DefaultEmailConnector @Inject() (
         "to" -> JsArray(Seq(JsString(email))),
         "templateId" -> JsString("bars_alert"),
         "parameters" -> JsObject(Seq(
-          "baRefNumber" -> JsString(s"""${Messages("BA ")}: $baRefNumber"""),
-          "fileName" -> JsString(s"""${Messages("File name ")}: $fileName"""),
-          "dateSubmitted" -> JsString(s"""${Messages("Date Submitted ")}: $dateSubmitted"""),
-          "errorList" -> JsString(s"""${Messages("Errors ")} $errorList""")
+          "baRefNumber" -> JsString(s"""BA : $baRefNumber"""),
+          "fileName" -> JsString(s"""File name : $fileName"""),
+          "dateSubmitted" -> JsString(s"""Date Submitted : $dateSubmitted"""),
+          "errorList" -> JsString(s"""Errors $errorList""")
         )),
         "force" -> JsBoolean(false)
       )
