@@ -24,7 +24,7 @@ import cats.implicits._
 import javax.inject.Inject
 import play.api.Logger
 import services.EbarsValidator
-import uk.gov.hmrc.voabar.connectors.LegacyConnector
+import uk.gov.hmrc.voabar.connectors.{EmailConnector, LegacyConnector}
 import uk.gov.hmrc.voabar.models._
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
@@ -37,7 +37,8 @@ import scala.xml.{Node, XML}
 class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository,
                           validationService: ValidationService,
                           xmlParser: XmlParser,
-                          legacyConnector: LegacyConnector)(implicit executionContext: ExecutionContext) {
+                          legacyConnector: LegacyConnector,
+                          emailConnector: EmailConnector)(implicit executionContext: ExecutionContext) {
   val ebarsValidator = new EbarsValidator()
 
   private def numberReports(node: Node): Int = {
@@ -54,40 +55,79 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       _ <- EitherT(statusRepository.update(uploadReference, Verified, numberReports(node)))
       _ <- EitherT(ebarsUpload(node, username, password, uploadReference))
       _ <- EitherT(statusRepository.updateStatus(uploadReference, Done))
+      _ <- EitherT(sendConfirmationEmail(uploadReference, username, password))
     } yield ("ok")
 
     processingResutl.value.map {
       case Right(v) => "ok"
       case Left(a) => {
-        handleError(uploadReference, a)
+        handleError(uploadReference, a, username, password)
         "failed"
       }
     }
   }
 
+  private def sendConfirmationEmail(
+                                   reportStatus: ReportStatus,
+                                   username: String,
+                                   password: String
+                                   ): Future[Either[BarEmailError, Unit.type]] = {
+    emailConnector.sendEmail(
+      reportStatus.id,
+      username,
+      password,
+      reportStatus.filename.getOrElse(""),
+      reportStatus.created.toString,
+      reportStatus.errors.getOrElse(Seq()).map(e => s"${e.code}: ${e.values.mkString("\n")}").mkString("\n"))
+      .map(_ => Right(Unit))
+      .recover{
+        case ex: Throwable => {
+          val errorMsg = "Error while sending confirmation message"
+          Logger.error(errorMsg, ex)
+          Right(Unit)
+        }
+      }
+  }
+  private def sendConfirmationEmail(
+                                     baRef: String,
+                                     username: String,
+                                     password: String): Future[Either[BarError, Unit.type]] = {
+    statusRepository.getByReference(baRef).flatMap(_.fold(
+        e => {
+          val errorMsg = "Error while retrieving report to be send via email"
+          Logger.error(errorMsg)
+          Future.successful(Right(Unit))
+        },
+        reportStatus => sendConfirmationEmail(reportStatus, username, password)
+      ))
+  }
 
-  private def handleError(submissionId: String, barError: BarError): Unit = {
+  private def handleError(submissionId: String, barError: BarError, username: String, password: String): Unit = {
     Logger.warn(s"handling error, submissionID: ${submissionId}, Error: ${barError}")
 
     barError match {
       case BarXmlError(message) => {
         statusRepository.addError(submissionId, Error(INVALID_XML, Seq(message)))
         statusRepository.updateStatus(submissionId, Failed)
+          .map(_ => sendConfirmationEmail(submissionId, username, password))
       }
 
       case BarXmlValidationError(errors) => {
         Future.sequence(errors.map(x => statusRepository.addError(submissionId, x)))
         statusRepository.updateStatus(submissionId, Failed)
+          .map(_ => sendConfirmationEmail(submissionId, username, password))
       }
 
       case BarValidationError(errors) => {
         Future.sequence(errors.map(x => statusRepository.addError(submissionId, x)))
         statusRepository.updateStatus(submissionId, Failed)
+          .map(_ => sendConfirmationEmail(submissionId, username, password))
       }
 
       case BarEbarError(ebarError) => {
         statusRepository.addError(submissionId, Error(EBARS_UNAVAILABLE, Seq(ebarError)))
         statusRepository.updateStatus(submissionId, Failed)
+          .map(_ => sendConfirmationEmail(submissionId, username, password))
       }
       case BarMongoError(error, updateWriteResult) => {
         //Something really, really bad, bad bad, we don't have mongo :(
