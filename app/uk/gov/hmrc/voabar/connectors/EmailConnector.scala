@@ -40,7 +40,8 @@ class DefaultEmailConnector @Inject() (
                                ) (implicit messages: Messages, ec: ExecutionContext) extends ServicesConfig with EmailConnector {
   lazy val emailUrl = baseUrl("email")
   lazy val needsToSendEmail = runModeConfiguration.getBoolean("needToSendEmail").getOrElse(false)
-  lazy val email = runModeConfiguration.getString("email").getOrElse(throw new ConfigException.Missing("email"))
+  lazy val email = runModeConfiguration.getString("email")
+    .getOrElse(if (needsToSendEmail) throw new ConfigException.Missing("email") else "")
   implicit val rds: HttpReads[Unit] = new HttpReads[Unit] {
     override def read(method: String, url: String, response: HttpResponse): Unit = Unit
   }
