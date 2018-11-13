@@ -60,8 +60,9 @@ class EmailConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoS
   def getConfiguration(sendEmail: Boolean = true): Configuration = {
     val configuration = mock[Configuration]
     val emailConfig = mock[Configuration]
-    when(configuration.getString("host")).thenReturn(Some("localhost"))
-    when(configuration.getString("port")).thenReturn(Some("80"))
+    when(emailConfig.getString("host")).thenReturn(Some("localhost"))
+    when(emailConfig.getString("port")).thenReturn(Some("80"))
+    when(emailConfig.getString("protocol")).thenReturn(Some("http"))
     when(configuration.getConfig("microservices.service.email")).thenReturn(Some(emailConfig))
     when(configuration.getBoolean("needToSendEmail")).thenReturn(Some(sendEmail))
     when(configuration.getString("email")).thenReturn(Some("foo@bar.co.uk"))
