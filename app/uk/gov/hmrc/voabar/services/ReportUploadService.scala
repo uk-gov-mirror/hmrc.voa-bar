@@ -76,7 +76,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       reportStatus.id,
       username,
       password,
-      reportStatus.filename.getOrElse(""),
+      reportStatus.filename.getOrElse("filename unavailable"),
       reportStatus.created.toString,
       reportStatus.errors.getOrElse(Seq()).map(e => s"${e.code}: ${e.values.mkString("\n")}").mkString("\n"))
       .map(_ => Right(Unit))
@@ -84,7 +84,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
         case ex: Throwable => {
           val errorMsg = "Error while sending confirmation message"
           Logger.error(errorMsg, ex)
-          Right(Unit)
+          Left(BarEmailError(errorMsg))
         }
       }
   }
