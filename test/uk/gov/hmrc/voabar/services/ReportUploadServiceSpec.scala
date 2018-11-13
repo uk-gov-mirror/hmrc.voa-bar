@@ -210,8 +210,8 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
 
   def aEmailConnector(): EmailConnector = {
     val emailConnector = mock[EmailConnector]
-    when(emailConnector.sendEmail(anyString, anyString, anyString, anyString, anyString, anyString)).thenAnswer(new Answer[Future[Unit.type]] {
-      override def answer(invocationOnMock: InvocationOnMock): Future[Unit.type] = Future.successful(Unit)
+    when(emailConnector.sendEmail(anyString, anyString, anyString, anyString, anyString, anyString)).thenAnswer(new Answer[Future[Unit]] {
+      override def answer(invocationOnMock: InvocationOnMock): Future[Unit] = Future.successful({})
     })
 
     emailConnector
