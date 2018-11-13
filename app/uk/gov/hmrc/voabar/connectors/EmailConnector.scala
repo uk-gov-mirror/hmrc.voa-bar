@@ -63,7 +63,7 @@ class DefaultEmailConnector @Inject() (val http: HttpClient,
         "force" -> JsBoolean(false)
       )
 
-      http.POST[JsValue, Unit](s"$emailUrl/send-templated-email/", json)
+      http.POST[JsValue, Unit](s"$emailUrl/hmrc/email/", json)
     }
     else {
       Future.successful(Unit)
