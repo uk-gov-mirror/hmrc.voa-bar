@@ -34,11 +34,11 @@ class DefaultEmailConnector @Inject() (val http: HttpClient,
                                        utils: Utils,
                                        environment: Environment)(implicit ec: ExecutionContext)
   extends EmailConnector {
-  lazy val emailConfig = configuration.getConfig("microservices.service.email")
-    .getOrElse(throw new ConfigException.Missing("microservices.service.email"))
-  lazy val emailUrl = s"${emailConfig.getString("protocol").getOrElse("http")}://${emailConfig.getString("host").get}:${emailConfig.getString("port").get}"
-  lazy val needsToSendEmail = configuration.getBoolean("needToSendEmail").getOrElse(false)
-  lazy val email = configuration.getString("email")
+  val emailConfig = configuration.getConfig("microservice.services.email")
+    .getOrElse(throw new ConfigException.Missing("microservice.services.email"))
+  val emailUrl = s"${emailConfig.getString("protocol").getOrElse("http")}://${emailConfig.getString("host").get}:${emailConfig.getString("port").get}"
+  val needsToSendEmail = configuration.getBoolean("needToSendEmail").getOrElse(false)
+  val email = configuration.getString("email")
     .getOrElse(if (needsToSendEmail) throw new ConfigException.Missing("email") else "")
   implicit val rds: HttpReads[Unit] = new HttpReads[Unit] {
     override def read(method: String, url: String, response: HttpResponse): Unit = Unit
@@ -65,7 +65,7 @@ class DefaultEmailConnector @Inject() (val http: HttpClient,
         "force" -> JsBoolean(false)
       )
 
-      http.POST[JsValue, Unit](s"$emailUrl/hmrc/email/", json)
+      http.POST[JsValue, Unit](s"$emailUrl/hmrc/email", json)
     }
     else {
       Future.successful(Unit)
