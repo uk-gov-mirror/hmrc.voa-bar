@@ -63,7 +63,7 @@ class EmailConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoS
     when(emailConfig.getString("host")).thenReturn(Some("localhost"))
     when(emailConfig.getString("port")).thenReturn(Some("80"))
     when(emailConfig.getString("protocol")).thenReturn(Some("http"))
-    when(configuration.getConfig("microservices.service.email")).thenReturn(Some(emailConfig))
+    when(configuration.getConfig("microservice.services.email")).thenReturn(Some(emailConfig))
     when(configuration.getBoolean("needToSendEmail")).thenReturn(Some(sendEmail))
     when(configuration.getString("email")).thenReturn(Some("foo@bar.co.uk"))
     configuration
