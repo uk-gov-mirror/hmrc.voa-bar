@@ -34,7 +34,9 @@ class DefaultEmailConnector @Inject() (val http: HttpClient,
                                        utils: Utils,
                                        environment: Environment)(implicit ec: ExecutionContext)
   extends EmailConnector {
-  lazy val emailUrl = configuration.getString("microservices.service.email")
+  lazy val emailConfig = configuration.getConfig("microservices.service.email")
+    .getOrElse(throw new ConfigException.Missing("microservices.service.email"))
+  lazy val emailUrl = s"${emailConfig.getString("protocol").getOrElse("http")}://${emailConfig.getString("host").get}:${emailConfig.getString("port").get}"
   lazy val needsToSendEmail = configuration.getBoolean("needToSendEmail").getOrElse(false)
   lazy val email = configuration.getString("email")
     .getOrElse(if (needsToSendEmail) throw new ConfigException.Missing("email") else "")
