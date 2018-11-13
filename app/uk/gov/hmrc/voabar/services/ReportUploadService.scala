@@ -133,6 +133,11 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
         //Something really, really bad, bad bad, we don't have mongo :(
         Logger.warn(s"Mongo exception, unable to update status of submission, submissionId: ${submissionId}, detail : ${updateWriteResult}")
       }
+      case BarEmailError(emailError) => {
+        statusRepository.addError(submissionId, Error(UNKNOWN_ERROR, Seq(emailError)))
+        statusRepository.updateStatus(submissionId, Failed)
+          .map(_ => sendConfirmationEmail(submissionId, username, password))
+      }
     }
   }
 
