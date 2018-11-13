@@ -84,7 +84,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
         case ex: Throwable => {
           val errorMsg = "Error while sending confirmation message"
           Logger.error(errorMsg, ex)
-          Left(BarEmailError(errorMsg))
+          Right(Unit)
         }
       }
   }
