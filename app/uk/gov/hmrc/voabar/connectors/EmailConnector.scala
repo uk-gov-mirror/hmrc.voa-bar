@@ -52,7 +52,7 @@ class DefaultEmailConnector @Inject() (val http: HttpClient,
                  dateSubmitted: String,
                  errorList: String): Future[Unit] = {
     implicit val authHc = utils.generateHeader(LoginDetails(username, password))
-    if (needsToSendEmail) {
+//    if (needsToSendEmail) {
       val json = Json.obj(
         "to" -> JsArray(Seq(JsString(email))),
         "templateId" -> JsString("bars_alert"),
@@ -66,10 +66,10 @@ class DefaultEmailConnector @Inject() (val http: HttpClient,
       )
 
       http.POST[JsValue, Unit](s"$emailUrl/hmrc/email", json)
-    }
-    else {
-      Future.successful(Unit)
-    }
+//    }
+//    else {
+//      Future.successful(Unit)
+//    }
   }
 }
 
