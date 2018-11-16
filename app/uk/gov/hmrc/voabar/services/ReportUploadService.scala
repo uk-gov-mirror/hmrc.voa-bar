@@ -102,7 +102,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       ))
   }
 
-  private def handleError(submissionId: String, barError: BarError, username: String, password: String): Unit = {
+  private def handleError(submissionId: String, barError: BarError, username: String, password: String): Future[Unit] = {
     Logger.warn(s"handling error, submissionID: ${submissionId}, Error: ${barError}")
 
     barError match {
@@ -132,6 +132,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       case BarMongoError(error, updateWriteResult) => {
         //Something really, really bad, bad bad, we don't have mongo :(
         Logger.warn(s"Mongo exception, unable to update status of submission, submissionId: ${submissionId}, detail : ${updateWriteResult}")
+        Future.successful()
       }
       case BarEmailError(emailError) => {
         statusRepository.addError(submissionId, Error(UNKNOWN_ERROR, Seq(emailError)))
