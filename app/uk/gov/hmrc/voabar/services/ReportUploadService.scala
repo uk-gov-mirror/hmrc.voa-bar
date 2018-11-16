@@ -45,10 +45,10 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
     node \ "BApropertyReport" length
   }
 
-  def upload(username: String, password: String, xml: String, uploadReference: String) = {
+  def upload(username: String, password: String, xml: String, uploadReference: String): Future[String] = {
 
 
-    val processingResutl = for {
+    (for {
       _ <- EitherT(statusRepository.updateStatus(uploadReference, Pending))
       _ <- EitherT.fromEither[Future](validationService.validate(xml, username))
       node <- EitherT.fromEither[Future](xmlParser.xmlToNode(xml))
@@ -56,15 +56,12 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       _ <- EitherT(ebarsUpload(node, username, password, uploadReference))
       _ <- EitherT(statusRepository.updateStatus(uploadReference, Done))
       _ <- EitherT(sendConfirmationEmail(uploadReference, username, password))
-    } yield ("ok")
-
-    processingResutl.value.map {
-      case Right(v) => "ok"
-      case Left(a) => {
-        handleError(uploadReference, a, username, password)
-        "failed"
-      }
-    }
+    } yield ("ok"))
+        .valueOrF (
+          a => handleError(uploadReference, a, username, password)
+                .map(_ => "failed")
+                .recover{case _ => "failed"}
+        )
   }
 
   private def sendConfirmationEmail(
@@ -102,7 +99,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       ))
   }
 
-  private def handleError(submissionId: String, barError: BarError, username: String, password: String): Unit = {
+  private def handleError(submissionId: String, barError: BarError, username: String, password: String): Future[Unit] = {
     Logger.warn(s"handling error, submissionID: ${submissionId}, Error: ${barError}")
 
     barError match {
@@ -132,6 +129,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       case BarMongoError(error, updateWriteResult) => {
         //Something really, really bad, bad bad, we don't have mongo :(
         Logger.warn(s"Mongo exception, unable to update status of submission, submissionId: ${submissionId}, detail : ${updateWriteResult}")
+        Future.successful()
       }
       case BarEmailError(emailError) => {
         statusRepository.addError(submissionId, Error(UNKNOWN_ERROR, Seq(emailError)))
