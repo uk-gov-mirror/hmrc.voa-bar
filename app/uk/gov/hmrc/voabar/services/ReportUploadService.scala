@@ -45,10 +45,10 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
     node \ "BApropertyReport" length
   }
 
-  def upload(username: String, password: String, xml: String, uploadReference: String) = {
+  def upload(username: String, password: String, xml: String, uploadReference: String): Future[String] = {
 
 
-    val processingResutl = for {
+    (for {
       _ <- EitherT(statusRepository.updateStatus(uploadReference, Pending))
       _ <- EitherT.fromEither[Future](validationService.validate(xml, username))
       node <- EitherT.fromEither[Future](xmlParser.xmlToNode(xml))
@@ -56,15 +56,12 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       _ <- EitherT(ebarsUpload(node, username, password, uploadReference))
       _ <- EitherT(statusRepository.updateStatus(uploadReference, Done))
       _ <- EitherT(sendConfirmationEmail(uploadReference, username, password))
-    } yield ("ok")
-
-    processingResutl.value.map {
-      case Right(v) => "ok"
-      case Left(a) => {
-        handleError(uploadReference, a, username, password)
-        "failed"
-      }
-    }
+    } yield ("ok"))
+        .valueOrF (
+          a => handleError(uploadReference, a, username, password)
+                .map(_ => "failed")
+                .recover{case _ => "failed"}
+        )
   }
 
   private def sendConfirmationEmail(
