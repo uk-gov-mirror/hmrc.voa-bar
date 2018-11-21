@@ -45,7 +45,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
     node \ "BApropertyReport" length
   }
 
-  def upload(username: String, password: String, xml: String, uploadReference: String): Future[String] = {
+  def upload(username: String, password: String, xml: String, uploadReference: String): Future[Either[String, String]] = {
 
 
     (for {
@@ -56,11 +56,11 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       _ <- EitherT(ebarsUpload(node, username, password, uploadReference))
       _ <- EitherT(statusRepository.updateStatus(uploadReference, Done))
       _ <- EitherT(sendConfirmationEmail(uploadReference, username, password))
-    } yield ("ok"))
+    } yield (Right("ok")))
         .valueOrF (
           a => handleError(uploadReference, a, username, password)
-                .map(_ => "failed")
-                .recover{case _ => "failed"}
+                .map(_ => Left("failed"))
+                .recover{case _ => Left("failed")}
         )
   }
 
