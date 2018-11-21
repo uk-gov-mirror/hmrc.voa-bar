@@ -17,16 +17,23 @@
 package uk.gov.hmrc.voabar.controllers
 
 import org.scalatest.mockito.MockitoSugar
+import org.mockito.Mockito.when
 import org.scalatestplus.play.PlaySpec
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status, _}
 import uk.gov.hmrc.voabar.services.ReportUploadService
+
 import scala.concurrent.ExecutionContext.Implicits.global
+import org.mockito.Matchers.anyString
+
+import scala.concurrent.Future
 
 
 class UploadControllerSpec extends PlaySpec with MockitoSugar {
 
   val reportUploadService = mock[ReportUploadService]
+  when(reportUploadService.upload(anyString, anyString, anyString, anyString))
+    .thenReturn(Future.successful(Right("ok")))
 
   val controller = new UploadController(reportUploadService)
 
