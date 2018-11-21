@@ -104,27 +104,31 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
 
     barError match {
       case BarXmlError(message) => {
-        statusRepository.addError(submissionId, Error(INVALID_XML, Seq(message)))
-        statusRepository.updateStatus(submissionId, Failed)
-          .map(_ => sendConfirmationEmail(submissionId, username, password))
+        for {
+          _ <- statusRepository.addError(submissionId, Error(INVALID_XML, Seq(message)))
+          _ <- statusRepository.updateStatus(submissionId, Failed)
+        } yield sendConfirmationEmail(submissionId, username, password)
       }
 
       case BarXmlValidationError(errors) => {
-        Future.sequence(errors.map(x => statusRepository.addError(submissionId, x)))
-        statusRepository.updateStatus(submissionId, Failed)
-          .map(_ => sendConfirmationEmail(submissionId, username, password))
+        for {
+          _ <- Future.sequence(errors.map(x => statusRepository.addError(submissionId, x)))
+          _ <- statusRepository.updateStatus(submissionId, Failed)
+        } yield sendConfirmationEmail(submissionId, username, password)
       }
 
       case BarValidationError(errors) => {
-        Future.sequence(errors.map(x => statusRepository.addError(submissionId, x)))
-        statusRepository.updateStatus(submissionId, Failed)
-          .map(_ => sendConfirmationEmail(submissionId, username, password))
+        for {
+          _ <- Future.sequence(errors.map(x => statusRepository.addError(submissionId, x)))
+          _ <- statusRepository.updateStatus(submissionId, Failed)
+        } yield sendConfirmationEmail(submissionId, username, password)
       }
 
       case BarEbarError(ebarError) => {
-        statusRepository.addError(submissionId, Error(EBARS_UNAVAILABLE, Seq(ebarError)))
-        statusRepository.updateStatus(submissionId, Failed)
-          .map(_ => sendConfirmationEmail(submissionId, username, password))
+        for {
+          _ <- statusRepository.addError(submissionId, Error(EBARS_UNAVAILABLE, Seq(ebarError)))
+          _ <- statusRepository.updateStatus(submissionId, Failed)
+        } yield sendConfirmationEmail(submissionId, username, password)
       }
       case BarMongoError(error, updateWriteResult) => {
         //Something really, really bad, bad bad, we don't have mongo :(
@@ -132,9 +136,10 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
         Future.successful()
       }
       case BarEmailError(emailError) => {
-        statusRepository.addError(submissionId, Error(UNKNOWN_ERROR, Seq(emailError)))
-        statusRepository.updateStatus(submissionId, Failed)
-          .map(_ => sendConfirmationEmail(submissionId, username, password))
+        for {
+          _ <- statusRepository.addError(submissionId, Error(UNKNOWN_ERROR, Seq(emailError)))
+          _ <- statusRepository.updateStatus(submissionId, Failed)
+          } yield sendConfirmationEmail(submissionId, username, password)
       }
     }
   }
