@@ -21,13 +21,13 @@ import play.api.mvc.{Action, AnyContent, Result}
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
 import uk.gov.hmrc.voabar.services.ReportUploadService
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class UploadController @Inject()(reportUploadService: ReportUploadService)
                                 (implicit ec: ExecutionContext) extends BaseController {
 
-  def upload(): Action[AnyContent] = Action.async(parse.anyContent) { implicit request =>
+  def upload(): Action[AnyContent] = Action(parse.anyContent) { implicit request =>
     val headers = request.headers
 
     val response = for {
@@ -39,15 +39,11 @@ class UploadController @Inject()(reportUploadService: ReportUploadService)
       xml <- request.body.asText.toRight(BadRequest("missing xml playload")).right
     } yield {
       reportUploadService.upload(baCode, password, xml, reference)
+      Ok("")
     }
 
-    response.fold(
-      x => Future.successful(x),
-      x => x.map(_.fold(
-        _ => InternalServerError("error uploading file"),
-        _ => Ok
-      ))
-    )
+    response.fold(x => x, x => x)
+
   }
 
   private def checkContentType(contentType: String): Either[Result, Boolean] = {
