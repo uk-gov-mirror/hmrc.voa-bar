@@ -54,7 +54,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
       val reportUploadService = new ReportUploadService(aCorrectStatusRepository(), aValidationService(), aXmlParser(), aLegacyConnector(), aEmailConnector())
       val res = reportUploadService.upload("username", "password", aXml, uploadReference)
       res.map { result =>
-        result mustBe Right("ok")
+        result mustBe "ok"
       }
     }
 
@@ -65,7 +65,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
       val res = reportUploadService.upload("username", "password", "<xm>ble</xml>", uploadReference)
       res.map { result =>
         verify(statusRepository).updateStatus(meq(uploadReference), meq(Failed))
-        result mustBe Left("failed")
+        result mustBe "failed"
       }
     }
 
@@ -82,7 +82,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
       res.map { result =>
         verify(statusRepository, times(1)).updateStatus(meq(uploadReference), meq(Pending))
         verifyZeroInteractions(validationService, legacyConnector, xmlParser)
-        result mustBe Left("failed")
+        result mustBe "failed"
       }
     }
 
@@ -91,7 +91,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
       val reportUploadService = new ReportUploadService(aCorrectStatusRepository(), aValidationService(), aXmlParser(), aLegacyConnector(), aEmailConnector())
       val res = reportUploadService.upload("username", "password", baReport, uploadReference)
       res.map { result =>
-        result mustBe Right("ok")
+        result mustBe "ok"
       }
     }
 
@@ -104,7 +104,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
       val res = reportUploadService.upload("username", "password", baReport, uploadReference)
 
       res.map { result =>
-        result mustBe Right("ok")
+        result mustBe "ok"
 
         val invocations = Mockito.mockingDetails(legacyConnector).getInvocations
 
@@ -126,7 +126,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
       val resutl = reportUploadService.upload("u", "p", "<xml></xml>", "reference1")
 
       resutl.map { value =>
-        value mustBe(Left("failed"))
+        value mustBe("failed")
         verify(statusRepository, times(1)).addError("reference1", Error(INVALID_XML, Seq("validation error")))
         true mustBe(true)
       }
@@ -149,7 +149,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
 
 
       resutl.map { value =>
-        value mustBe(Left("failed"))
+        value mustBe("failed")
         verify(statusRepository, times(1)).addError("reference1", Error(CHARACTER, Seq()))
         verify(statusRepository, times(1)).addError("reference1", Error(ATLEAST_ONE_PROPOSED, Seq()))
         true mustBe(true)
