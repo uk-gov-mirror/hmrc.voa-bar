@@ -56,7 +56,8 @@ class ValidationService @Inject()(xmlValidator: XmlValidator,
 
     val validations:List[(Node) => List[Error]] = List(
       validationBACode(baLogin),
-      validationChars,
+      //VOA-1403 Commented out call to validate characters
+      //validationChars,
       validationBusinessRules
     )
     parsedBatch.toList.flatMap{n => validations.flatMap(_.apply(n))}.distinct
