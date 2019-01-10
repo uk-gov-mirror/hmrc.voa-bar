@@ -55,5 +55,6 @@ lazy val microservice = Project(appName, file("."))
     parallelExecution in IntegrationTest := false)
   .settings(resolvers ++= Seq(
     Resolver.bintrayRepo("hmrc", "releases"),
-    Resolver.jcenterRepo
+    Resolver.jcenterRepo,
+    "hmrc-releases" at "https://artefacts.tax.service.gov.uk/artifactory/hmrc-releases/"
   ))
