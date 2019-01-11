@@ -87,15 +87,13 @@ class ValidationServiceSpec extends PlaySpec {
       )
     }
 
-    "return a list of 1 error when a batch containing 1 report has an illegal char within the property report" in {
+    "return an empty list (no errors) when a batch containing 1 report has an illegal char within the property report" in {
       val validBatch = XML.loadString(batchWith1Report)
       val invalidBatch = reportBuilder.invalidateBatch(validBatch.head, Map(
         "NAME" -> "name"
       ))
 
-      validationService("9999").xmlNodeValidation(invalidBatch.head, BA_LOGIN) mustBe List[Error](
-        Error(CHARACTER, Seq("211909", "PersonGivenName", "name"))
-      )
+      validationService("9999").xmlNodeValidation(invalidBatch.head, BA_LOGIN).isEmpty mustBe true
     }
   }
 
