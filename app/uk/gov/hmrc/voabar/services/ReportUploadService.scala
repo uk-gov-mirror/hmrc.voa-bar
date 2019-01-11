@@ -48,7 +48,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
   def upload(username: String, password: String, xml: String, uploadReference: String) = {
 
 
-    val processingResutl = for {
+    val processingResult = for {
       _ <- EitherT(statusRepository.updateStatus(uploadReference, Pending))
       _ <- EitherT.fromEither[Future](validationService.validate(xml, username))
       node <- EitherT.fromEither[Future](xmlParser.xmlToNode(xml))
@@ -58,7 +58,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       _ <- EitherT(sendConfirmationEmail(uploadReference, username, password))
     } yield ("ok")
 
-    processingResutl.value.map {
+    processingResult.value.map {
       case Right(v) => "ok"
       case Left(a) => {
         handleError(uploadReference, a, username, password)
