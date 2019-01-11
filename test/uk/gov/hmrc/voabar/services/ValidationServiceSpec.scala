@@ -35,11 +35,10 @@ class ValidationServiceSpec extends PlaySpec {
 
   val xmlParser = new XmlParser
   val xmlValidator = new XmlValidator
-  val charValidator = new CharacterValidator
   val reportBuilder = new MockBAReportBuilder
   val businessRules= new BusinessRules()
   def validationService(baCode:String): ValidationService = new ValidationService(
-    xmlValidator, xmlParser, charValidator, businessRules)
+    xmlValidator, xmlParser, businessRules)
 
   "Validation service" must {
 
