@@ -24,7 +24,6 @@ import scala.xml.Node
 @Singleton
 class ValidationService @Inject()(xmlValidator: XmlValidator,
                                   xmlParser:XmlParser,
-                                  charValidator:CharacterValidator,
                                   businessRules:BusinessRules
                                  ) {
 
@@ -56,8 +55,6 @@ class ValidationService @Inject()(xmlValidator: XmlValidator,
 
     val validations:List[(Node) => List[Error]] = List(
       validationBACode(baLogin),
-      //VOA-1403 Commented out call to validate characters
-      //validationChars,
       validationBusinessRules
     )
     parsedBatch.toList.flatMap{n => validations.flatMap(_.apply(n))}.distinct
@@ -66,16 +63,6 @@ class ValidationService @Inject()(xmlValidator: XmlValidator,
 
   private def validationBACode(baLogin: String)(xml:Node): List[Error] = {
     businessRules.baIdentityCodeErrors(xml, baLogin)
-  }
-
-  private def validationChars(xml:Node):List[Error] = {
-    val header:Node = (xml \ "BAreportHeader").head
-    val trailer:Node = (xml \ "BAreportTrailer").head
-    val reports:Seq[Node] = xml \ "BApropertyReport"
-    val headerErrors:List[Error] = charValidator.validateChars(header,"Header")
-    val trailerErrors:List[Error] = charValidator.validateChars(trailer,"Trailer")
-    val reportErrors:List[Error] = reports.flatMap(r => charValidator.validateChars(r,(r \ "BAreportNumber").text)).toList
-    headerErrors ::: reportErrors ::: trailerErrors
   }
 
   private def validationBusinessRules(xml:Node):List[Error] = {
