@@ -51,6 +51,9 @@ class DefaultLegacyConnector @Inject()(val http: HttpClient,
   private val autoBarsStubUrlPath = "microservice.services.autobars-stubs.baseUrl"
   private val autoBarsStubBaseUrl = runModeConfiguration.getString(autoBarsStubUrlPath)
     .getOrElse(throw new ConfigException.Missing(autoBarsStubUrlPath))
+  val autoBarsSubmitUrlPath = "microservice.services.autobars-stubs.submit_url"
+  private val autoBarsSubmitUrl   = runModeConfiguration.getString(autoBarsSubmitUrlPath)
+    .getOrElse(throw new ConfigException.Missing(autoBarsSubmitUrlPath))
 
   def validate(loginDetails: LoginDetails)(implicit ec: ExecutionContext): Future[Try[Int]] = {
     implicit val authHc = utils.generateHeader(loginDetails)
@@ -73,7 +76,7 @@ class DefaultLegacyConnector @Inject()(val http: HttpClient,
   private val X_EBARS_UUID = "X-ebars-uuid"
   def sendBAReport(baReport: BAReportRequest)(implicit ec: ExecutionContext): Future[Try[Int]] = {
     implicit val authHc = utils.generateHeader(LoginDetails(baReport.username, baReport.password))
-    http.POSTString(s"${autoBarsStubBaseUrl}/submit",
+    http.POSTString(s"${autoBarsStubBaseUrl}/${autoBarsSubmitUrl}",
       baReport.propertyReport,
       Seq(
         X_EBARS_USERNAME -> baReport.username,
