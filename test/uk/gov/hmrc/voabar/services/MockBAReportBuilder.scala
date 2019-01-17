@@ -29,6 +29,8 @@ class MockBAReportBuilder {
     "CR11" -> "Boundary Change - NOT IN USE",
     "CR12" -> "Major Address Change - NOT IN USE",
     "CR13" -> "Boundary Change, Add DO NOT USE THIS CODE",
+    "CR15" -> "Enquiry Received - Add DO NOT USE THIS CODE",
+    "CR16" -> "Consequential to band alteration for a neighbouring dwelling - Add DO NOT USE THIS CODE",
     "CR99" -> "NOT A VOA CODE - USED FOR TEST PURPOSES"
   )
 

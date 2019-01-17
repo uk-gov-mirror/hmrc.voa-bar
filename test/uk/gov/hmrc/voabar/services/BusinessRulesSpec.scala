@@ -19,7 +19,6 @@ package uk.gov.hmrc.voabar.services
 
 import org.apache.commons.io.IOUtils
 import org.scalatestplus.play.PlaySpec
-import play.api.test.FakeRequest
 import uk.gov.hmrc.voabar.models.Error
 import uk.gov.hmrc.voabar.util._
 
@@ -135,6 +134,18 @@ class BusinessRulesSpec extends PlaySpec {
         val invalidReasonCode = reportBuilder("CR13", 1000, 1, 1)
         val invalidCodeErrors = businessRules.reasonForReportErrors(invalidReasonCode)
         invalidCodeErrors mustBe Seq[Error](Error(NOT_IN_USE, Seq(REPORTNUMBER, "CR13")))
+      }
+
+      "A report with reason code CR15 (Enquiry Received - DO NOT USE) is invalid" in {
+        val invalidReasonCode = reportBuilder("CR15", 1000, 1, 1)
+        val invalidCodeErrors = businessRules.reasonForReportErrors(invalidReasonCode)
+        invalidCodeErrors mustBe Seq[Error](Error(NOT_IN_USE, Seq(REPORTNUMBER, "CR15")))
+      }
+
+      "A report with reason code CR16 (Consequential to band alteration for a neighbouring dwelling - DO NOT USE) is invalid" in {
+        val invalidReasonCode = reportBuilder("CR16", 1000, 1, 1)
+        val invalidCodeErrors = businessRules.reasonForReportErrors(invalidReasonCode)
+        invalidCodeErrors mustBe Seq[Error](Error(NOT_IN_USE, Seq(REPORTNUMBER, "CR16")))
       }
 
       "A report with any other reason code is valid if it contains 0 proposed and 1 existing entry" in {
