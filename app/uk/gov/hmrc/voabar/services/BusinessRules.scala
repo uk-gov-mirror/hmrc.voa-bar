@@ -17,7 +17,6 @@
 package uk.gov.hmrc.voabar.services
 import javax.inject.{Inject, Singleton}
 import play.api.Logger
-import play.api.mvc.Request
 import uk.gov.hmrc.voabar.models.Error
 import uk.gov.hmrc.voabar.util._
 
@@ -65,6 +64,8 @@ class BusinessRules @Inject()() {
         if (proposedEntries != 1) lb += Error(ONE_PROPOSED, Seq(s"$reportNumber", s"$repCode"))
         if (existingEntries != 1) lb += Error(ONE_EXISTING, Seq(s"$reportNumber", s"$repCode"))
       case "CR13" => lb += Error(NOT_IN_USE, Seq(s"$reportNumber", s"$repCode"))
+      case "CR15" => lb += Error(NOT_IN_USE, Seq(s"$reportNumber", s"$repCode")) // Form code for internal use
+      case "CR16" => lb += Error(NOT_IN_USE, Seq(s"$reportNumber", s"$repCode")) // Form code for internal use
 
       case _ => // default - 1 existing and none proposed
         if (proposedEntries != 0) lb += Error(NONE_PROPOSED, Seq(s"$reportNumber", s"$repCode"))
