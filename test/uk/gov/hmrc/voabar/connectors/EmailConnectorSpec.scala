@@ -25,7 +25,7 @@ import play.api.http.Status
 import play.api.{Configuration, Environment}
 import play.api.inject.Injector
 import play.api.libs.json.{JsObject, JsValue, Writes}
-import uk.gov.hmrc.crypto.ApplicationCryptoDI
+import uk.gov.hmrc.crypto.ApplicationCrypto
 import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import uk.gov.hmrc.voabar.Utils
@@ -38,8 +38,8 @@ class EmailConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoS
   private def injector: Injector = app.injector
   private val configuration = injector.instanceOf[Configuration]
   private val environment = injector.instanceOf[Environment]
-  private val crypto = new ApplicationCryptoDI(configuration).JsonCrypto
-  private val utils = new Utils(crypto)
+  private val crypto = new ApplicationCrypto(configuration.underlying)
+  private val utils = new Utils(crypto.JsonCrypto)
   private implicit val hc = mock[HeaderCarrier]
   private val username = "username"
   private val password = "password"

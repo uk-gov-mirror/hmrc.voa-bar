@@ -9,7 +9,7 @@ object Dependencies {
   private val httpCachingClientVersion = "7.1.0"
   private val playReactivemongoVersion = "6.0.0"
   private val reactiveMongoVersion = "6.2.0"
-  private val bootstrapVersion = "3.0.0"
+  private val bootstrapVersion = "4.3.0"
   private val autobarsXsdVersion = "8.0.0"
   private val guiceUtilsVersion = "4.1.0"
   private val catsCoreVersion = "1.3.1"
@@ -28,7 +28,7 @@ object Dependencies {
   )
 
   def test(scope: String = "test,it") = Seq(
-    "uk.gov.hmrc" %% "hmrctest" % "3.0.0" % scope,
+    "uk.gov.hmrc" %% "hmrctest" % "3.3.0" % scope,
     "org.scalatest" %% "scalatest" % "2.2.6" % scope,
     "org.scalatestplus.play" %% "scalatestplus-play" % scalaTestPlusPlayVersion % scope,
     "org.pegdown" % "pegdown" % "1.6.0" % scope,

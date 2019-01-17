@@ -20,6 +20,7 @@ import com.google.inject.ImplementedBy
 import com.typesafe.config.ConfigException
 import javax.inject.{Inject, Singleton}
 import play.api.Mode.Mode
+import play.api.Play
 import play.api.{Configuration, Environment, Logger}
 import play.mvc.Http.Status
 import uk.gov.hmrc.crypto.{ApplicationCrypto, PlainText}
@@ -39,7 +40,7 @@ class DefaultLegacyConnector @Inject()(val http: HttpClient,
                                 utils: Utils,
                                 environment: Environment) extends LegacyConnector with  ServicesConfig {
 
-  lazy val crypto = ApplicationCrypto.JsonCrypto
+  lazy val crypto = new ApplicationCrypto(Play.current.configuration.underlying).JsonCrypto
 
   override protected def mode: Mode = environment.mode
 
