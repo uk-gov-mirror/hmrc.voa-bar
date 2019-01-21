@@ -106,7 +106,6 @@ class XmlValidatorSpec extends PlaySpec with EitherValues {
       validationResutl must be('left)
 
       validationResutl.left.value mustBe a[BarXmlValidationError]
-      println(s"Whar is validation result ----------${validationResutl.left.value}")
       validationResutl.left.value.asInstanceOf[BarXmlValidationError].errors must contain only (
         Error(INVALID_XML_XSD,List("Error on line 2236: Invalid content was found starting with element '{\"http://www.govtalk.gov.uk/LG/Valuebill\":IllegalElement}'. One of " +
           "'{\"http://www.govtalk.gov.uk/LG/Valuebill\":EntryDateTime}' is expected.")),
