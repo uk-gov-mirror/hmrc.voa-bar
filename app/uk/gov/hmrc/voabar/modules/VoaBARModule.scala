@@ -18,16 +18,20 @@ package uk.gov.hmrc.voabar.modules
 
 import com.google.inject.Provides
 import net.codingwell.scalaguice.ScalaModule
+import play.api.Play
 import services.EbarsValidator
+import javax.inject.Inject
 import uk.gov.hmrc.crypto.{ApplicationCrypto, CompositeSymmetricCrypto}
 
-class VoaBARModule extends ScalaModule {
+class VoaBARModule  extends ScalaModule {
   override def configure() = {
     bind[EbarsValidator].toInstance(new EbarsValidator)
+
   }
 
   @Provides
   def jsonCryptoProvider(): CompositeSymmetricCrypto = {
-    ApplicationCrypto.JsonCrypto
+    //applicationCrypto.JsonCrypto
+    new ApplicationCrypto(Play.current.configuration.underlying).JsonCrypto
   }
 }

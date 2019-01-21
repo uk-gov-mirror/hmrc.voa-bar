@@ -22,7 +22,7 @@ import org.mockito.Mockito.{verify, when}
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.{Configuration, Environment}
+import play.api.{Play, Configuration, Environment}
 import play.api.http.Status
 import play.api.inject.Injector
 import play.api.libs.json.{JsValue, Writes}
@@ -33,7 +33,7 @@ import uk.gov.hmrc.voabar.models.LoginDetails
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 import play.api.test.Helpers._
-import uk.gov.hmrc.crypto.{ApplicationCryptoDI, PlainText}
+import uk.gov.hmrc.crypto.{ApplicationCrypto,PlainText}
 import uk.gov.hmrc.voabar.Utils
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 
@@ -44,13 +44,13 @@ class LegacyConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with Mockito
   private def injector: Injector = app.injector
   private val configuration = injector.instanceOf[Configuration]
   private val environment = injector.instanceOf[Environment]
-  private val crypto = new ApplicationCryptoDI(configuration).JsonCrypto
-  private val utils = new Utils(crypto)
+  private val crypto = new ApplicationCrypto(configuration.underlying)
+  private val utils = new Utils(crypto.JsonCrypto)
   private implicit val hc = mock[HeaderCarrier]
 
   private val username = "ba0121"
   private val password = "wibble"
-  private val encryptedPassword = crypto.encrypt(PlainText(password)).value
+  private val encryptedPassword = crypto.JsonCrypto.encrypt(PlainText(password)).value
 
   private val goodLogin = LoginDetails(username, encryptedPassword)
   private lazy val validXmlContent = Source.fromInputStream(getClass.getResourceAsStream("/xml/CTValid1.xml")).getLines().mkString

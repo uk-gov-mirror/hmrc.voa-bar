@@ -106,14 +106,13 @@ class XmlValidatorSpec extends PlaySpec with EitherValues {
       validationResutl must be('left)
 
       validationResutl.left.value mustBe a[BarXmlValidationError]
-
       validationResutl.left.value.asInstanceOf[BarXmlValidationError].errors must contain only (
-        Error(INVALID_XML_XSD,List("Error on line 2236: Invalid content was found starting with element 'IllegalElement'. One of " +
+        Error(INVALID_XML_XSD,List("Error on line 2236: Invalid content was found starting with element '{\"http://www.govtalk.gov.uk/LG/Valuebill\":IllegalElement}'. One of " +
           "'{\"http://www.govtalk.gov.uk/LG/Valuebill\":EntryDateTime}' is expected.")),
         Error(INVALID_XML_XSD,List("Error on line 2238: The value '0£' of element 'TotalNNDRreportCount' is not valid.")),
-        Error(INVALID_XML_XSD,List("Error on line 790: Invalid content was found starting with element 'BadElement'. " +
+        Error(INVALID_XML_XSD,List("Error on line 790: Invalid content was found starting with element '{\"http://www.govtalk.gov.uk/LG/Valuebill\":BadElement}'. " +
           "One of '{\"http://www.govtalk.gov.uk/LG/Valuebill\":TypeOfTax}' is expected.")),
-        Error(INVALID_XML_XSD,List("Error on line 1908: Invalid content was found starting with element 'ExistingEntries'. " +
+        Error(INVALID_XML_XSD,List("Error on line 1908: Invalid content was found starting with element '{\"http://www.govtalk.gov.uk/LG/Valuebill\":ExistingEntries}'. " +
           "One of '{\"http://www.govtalk.gov.uk/LG/Valuebill\":ProposedEntries, \"http://www.govtalk.gov.uk/LG/Value" +
           "bill\":IndicatedDateOfChange}' is expected.")))
     }
