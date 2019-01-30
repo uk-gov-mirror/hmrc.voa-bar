@@ -6,13 +6,13 @@ object Dependencies {
 
   private val mockitoAllVersion = "1.10.19"
   private val scalaTestPlusPlayVersion = "2.0.1"
-  private val httpCachingClientVersion = "7.1.0"
+  private val httpCachingClientVersion = "8.0.0"
   private val playReactivemongoVersion = "6.0.0"
   private val reactiveMongoVersion = "6.2.0"
-  private val bootstrapVersion = "4.3.0"
+  private val bootstrapVersion = "4.8.0"
   private val autobarsXsdVersion = "8.0.0"
-  private val guiceUtilsVersion = "4.1.0"
-  private val catsCoreVersion = "1.3.1"
+  private val guiceUtilsVersion = "4.2.2"
+  private val catsCoreVersion = "1.5.0"
 
   lazy val appDependencies: Seq[ModuleID] = compile ++ test()
 
