@@ -24,6 +24,7 @@ import play.api.Play
 import play.api.{Configuration, Environment, Logger}
 import play.mvc.Http.Status
 import uk.gov.hmrc.crypto.{ApplicationCrypto, PlainText}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.voabar.Utils
@@ -40,29 +41,30 @@ class DefaultLegacyConnector @Inject()(val http: HttpClient,
                                 utils: Utils,
                                 environment: Environment) extends LegacyConnector with  ServicesConfig {
 
-  lazy val crypto = new ApplicationCrypto(Play.current.configuration.underlying).JsonCrypto
+  lazy val crypto = new ApplicationCrypto(configuration.underlying).JsonCrypto
 
   override protected def mode: Mode = environment.mode
 
   override protected def runModeConfiguration: Configuration = configuration
 
-  private val legacyConnectorUrlPath = "microservice.services.legacy-ebars-client.baseUrl"
-  private val baseUrl = runModeConfiguration.getString(legacyConnectorUrlPath)
-    .getOrElse(throw new ConfigException.Missing(legacyConnectorUrlPath))
-  private val autoBarsStubUrlPath = "microservice.services.autobars-stubs.baseUrl"
-  private val autoBarsStubBaseUrl = runModeConfiguration.getString(autoBarsStubUrlPath)
-    .getOrElse(throw new ConfigException.Missing(autoBarsStubUrlPath))
-  val autoBarsSubmitUrlPath = "microservice.services.autobars-stubs.submit_url"
-  private val autoBarsSubmitUrl   = runModeConfiguration.getString(autoBarsSubmitUrlPath)
-    .getOrElse(throw new ConfigException.Missing(autoBarsSubmitUrlPath))
+  val autoBarsSubmitUrl = getConfString("autobars-stubs.submit_url", throw new ConfigException.Missing("autobars-stubs.submit_url"))
 
-  def validate(loginDetails: LoginDetails)(implicit ec: ExecutionContext): Future[Try[Int]] = {
-    implicit val authHc = utils.generateHeader(loginDetails)
+  val autoBarsStubBaseUrl = baseUrl("autobars-stubs") + "/autobars-stubs"
 
-    http.GET(s"${baseUrl}/ebars_dmz_pres_ApplicationWeb/Welcome.do").map { response =>
+
+  override def validate(loginDetails: LoginDetails)(implicit executionContext: ExecutionContext,
+                                            headerCarrier: HeaderCarrier):Future[Try[Int]] = {
+
+    http.POST[LoginDetails,HttpResponse](s"$autoBarsStubBaseUrl/login", loginDetails, Seq.empty).map { response =>
       response.status match {
-        case(Status.OK) => Success(Status.OK)
-        case _ => Failure(new RuntimeException("Login attempt fails with username = " + loginDetails.username + ", password = " + loginDetails.password))
+        case Status.OK => Success(Status.OK)
+        case Status.UNAUTHORIZED => Failure(new RuntimeException(
+          s"Login attempt fails with username = ${loginDetails.username} password = ****, UNAUTHORIZED"))
+        case _ => {
+          Logger.warn(s"Unable to authenticate user, other problem : status: ${response.status}, headers: ${response.allHeaders.mkString(",")}")
+          Failure(new RuntimeException(
+            s"Login attempt fails with username = ${loginDetails.username} password = ****, response code: ${response.status}"))
+        }
       }
     } recover {
       case ex =>
@@ -75,8 +77,10 @@ class DefaultLegacyConnector @Inject()(val http: HttpClient,
   private val X_EBARS_PASSWORD = "X-ebars-password"
   private val X_EBARS_ATTEMPT = "X-ebars-attempt"
   private val X_EBARS_UUID = "X-ebars-uuid"
-  def sendBAReport(baReport: BAReportRequest)(implicit ec: ExecutionContext): Future[Try[Int]] = {
-    implicit val authHc = utils.generateHeader(LoginDetails(baReport.username, baReport.password))
+  def sendBAReport(baReport: BAReportRequest)(implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Try[Int]] = {
+
+    val authHc = utils.generateHeader(LoginDetails(baReport.username, baReport.password), headerCarrier)
+
     http.POSTString(s"${autoBarsStubBaseUrl}/${autoBarsSubmitUrl}",
       baReport.propertyReport,
       Seq(
@@ -84,7 +88,7 @@ class DefaultLegacyConnector @Inject()(val http: HttpClient,
         X_EBARS_PASSWORD -> crypto.encrypt(PlainText(baReport.password)).value,
         X_EBARS_ATTEMPT -> s"${baReport.attempt}",
         X_EBARS_UUID -> baReport.uuid)
-    ).map{ response =>
+    )(HttpReads.readRaw, authHc, ec).map{ response =>
       response.status match {
         case(Status.OK) => Success(Status.OK)
       }
@@ -99,6 +103,6 @@ class DefaultLegacyConnector @Inject()(val http: HttpClient,
 
 @ImplementedBy(classOf[DefaultLegacyConnector])
 trait LegacyConnector {
-  def validate(loginDetails: LoginDetails)(implicit ec: ExecutionContext): Future[Try[Int]]
-  def sendBAReport(baReport: BAReportRequest)(implicit ec: ExecutionContext): Future[Try[Int]]
+  def validate(loginDetails: LoginDetails)(implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Try[Int]]
+  def sendBAReport(baReport: BAReportRequest)(implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Try[Int]]
 }

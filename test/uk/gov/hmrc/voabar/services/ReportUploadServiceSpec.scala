@@ -36,6 +36,7 @@ import org.mockito.Mockito
 import org.mockito.Mockito.times
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.stubbing.Answer
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.voabar.connectors.{EmailConnector, LegacyConnector}
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 import uk.gov.hmrc.voabar.models._
@@ -48,6 +49,8 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
   val uploadReference = "submissionID"
 
   val aXml = IOUtils.toString(new FileInputStream("test/resources/xml/CTValid1.xml"))
+
+  implicit val headerCarrier = HeaderCarrier()
 
   "ReportUploadServiceSpec" must {
     "proces request " in {
@@ -195,12 +198,12 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
 
   def aLegacyConnector(): LegacyConnector = {
     val connector = mock[LegacyConnector]
-    when(connector.sendBAReport(any(classOf[BAReportRequest]))(any(classOf[ExecutionContext])))
+    when(connector.sendBAReport(any(classOf[BAReportRequest]))(any[ExecutionContext], any[HeaderCarrier]))
       .thenAnswer(new Answer[Future[Try[Int]]] {
         override def answer(invocation: InvocationOnMock): Future[Try[Int]] = Future.successful(Try(200))
       })
 
-    when(connector.validate(any(classOf[LoginDetails]))(any(classOf[ExecutionContext])))
+    when(connector.validate(any(classOf[LoginDetails]))(any[ExecutionContext], any[HeaderCarrier]))
       .thenAnswer(new Answer[Future[Try[Int]]] {
         override def answer(invocation: InvocationOnMock): Future[Try[Int]] = Future.successful(Try(200))
       })
