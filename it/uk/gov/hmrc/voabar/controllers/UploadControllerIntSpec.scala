@@ -39,9 +39,9 @@ class UploadControllerIntSpec extends PlaySpec with BeforeAndAfterAll with Optio
 
   val legacyConnector = mock[LegacyConnector]
 
-  when(legacyConnector.sendBAReport(any(classOf[BAReportRequest]))(any[ExecutionContext], any[HeaderCarrier])).thenAnswer(new Answer[Future[Try[Int]]] {
-    override def answer(invocation: InvocationOnMock): Future[Try[Int]] = {
-      Future.successful(Success(200))
+  when(legacyConnector.sendBAReport(any(classOf[BAReportRequest]))(any[ExecutionContext], any[HeaderCarrier])).thenAnswer(new Answer[Future[Int]] {
+    override def answer(invocation: InvocationOnMock): Future[Int] = {
+      Future.successful(200)
     }
   })
 

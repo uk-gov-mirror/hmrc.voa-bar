@@ -42,7 +42,7 @@ import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 import uk.gov.hmrc.voabar.models._
 import uk.gov.hmrc.voabar.util.{ATLEAST_ONE_PROPOSED, CHARACTER, INVALID_XML}
 
-import scala.util.Try
+import scala.util.{Failure, Try}
 
 class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  MustMatchers with OptionValues with WsScalaTestClient {
 
@@ -160,7 +160,33 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
 
     }
 
+    "handle email Submission error" in {
 
+      val emailConnector = mock[EmailConnector]
+      when(emailConnector.sendEmail(anyString(), anyString(), anyString(), anyString(), anyString(), anyString())).thenReturn {
+        Future.failed(new RuntimeException("email sending failed"))
+      }
+
+      val reportUploadService = new ReportUploadService(aCorrectStatusRepository(), aValidationService(), aXmlParser(), aLegacyConnector(),emailConnector)
+      val res = reportUploadService.upload("username", "password", aXml, uploadReference)
+      res.map { result =>
+        result mustBe "failed"
+      }
+    }
+
+    "handle eBar Error error" in {
+
+      val legacyConnector = mock[LegacyConnector]
+      when(legacyConnector.sendBAReport(any[BAReportRequest])(any[ExecutionContext], any[HeaderCarrier])).thenReturn {
+        Future.failed(new RuntimeException("Can't send data to ebars."))
+      }
+
+      val reportUploadService = new ReportUploadService(aCorrectStatusRepository(), aValidationService(), aXmlParser(), legacyConnector, aEmailConnector())
+      val res = reportUploadService.upload("username", "password", aXml, uploadReference)
+      res.map { result =>
+        result mustBe "failed"
+      }
+    }
 
   }
 
@@ -199,8 +225,8 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
   def aLegacyConnector(): LegacyConnector = {
     val connector = mock[LegacyConnector]
     when(connector.sendBAReport(any(classOf[BAReportRequest]))(any[ExecutionContext], any[HeaderCarrier]))
-      .thenAnswer(new Answer[Future[Try[Int]]] {
-        override def answer(invocation: InvocationOnMock): Future[Try[Int]] = Future.successful(Try(200))
+      .thenAnswer(new Answer[Future[Int]] {
+        override def answer(invocation: InvocationOnMock): Future[Int] = Future.successful(200)
       })
 
     when(connector.validate(any(classOf[LoginDetails]))(any[ExecutionContext], any[HeaderCarrier]))

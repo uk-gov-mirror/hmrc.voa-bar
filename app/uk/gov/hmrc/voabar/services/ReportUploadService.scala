@@ -85,7 +85,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
         case ex: Throwable => {
           val errorMsg = "Error while sending confirmation message"
           Logger.error(errorMsg, ex)
-          Right(Unit)
+          Left(BarEmailError(ex.getMessage))
         }
       }
   }
@@ -135,9 +135,8 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
         Logger.warn(s"Mongo exception, unable to update status of submission, submissionId: ${submissionId}, detail : ${updateWriteResult}")
       }
       case BarEmailError(emailError) => {
-        statusRepository.addError(submissionId, Error(UNKNOWN_ERROR, Seq(emailError)))
-        statusRepository.updateStatus(submissionId, Failed)
-          .map(_ => sendConfirmationEmail(submissionId, username, password))
+        statusRepository.addError(submissionId, Error(UNKNOWN_ERROR, Seq(emailError))) //TODO probably put WARNING about email submission
+        statusRepository.updateStatus(submissionId, Done)
       }
     }
   }
@@ -151,10 +150,9 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
     val jaxbElement = ebarsValidator.fromXml(xmlString)
     val jsonString = ebarsValidator.toJson(jaxbElement)
 
-    val req = BAReportRequest(submissionId, jsonString, username, password)(null) //TODO Fix uuid
-    legacyConnector.sendBAReport(req).map {
-      case Success(value) => Right(true)
-      case Failure(exception) => Left(BarEbarError(exception.getMessage))
+    val req = BAReportRequest(submissionId, jsonString, username, password)
+    legacyConnector.sendBAReport(req).map(_ => Right(true)).recover {
+      case ex: Exception => Left(BarEbarError(ex.getMessage))
     }
 
   }

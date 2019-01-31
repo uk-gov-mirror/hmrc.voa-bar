@@ -77,7 +77,7 @@ class DefaultLegacyConnector @Inject()(val http: HttpClient,
   private val X_EBARS_PASSWORD = "X-ebars-password"
   private val X_EBARS_ATTEMPT = "X-ebars-attempt"
   private val X_EBARS_UUID = "X-ebars-uuid"
-  def sendBAReport(baReport: BAReportRequest)(implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Try[Int]] = {
+  def sendBAReport(baReport: BAReportRequest)(implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Int] = {
 
     val authHc = utils.generateHeader(LoginDetails(baReport.username, baReport.password), headerCarrier)
 
@@ -88,15 +88,19 @@ class DefaultLegacyConnector @Inject()(val http: HttpClient,
         X_EBARS_PASSWORD -> crypto.encrypt(PlainText(baReport.password)).value,
         X_EBARS_ATTEMPT -> s"${baReport.attempt}",
         X_EBARS_UUID -> baReport.uuid)
-    )(HttpReads.readRaw, authHc, ec).map{ response =>
+    )(HttpReads.readRaw, authHc, ec).flatMap { response =>
       response.status match {
-        case(Status.OK) => Success(Status.OK)
+        case Status.OK => Future.successful(Status.OK)
+        case Status.UNAUTHORIZED => Future.failed(new  RuntimeException("UNAUTHORIZED"))
+        case Status.SERVICE_UNAVAILABLE => Future.failed(new  RuntimeException("eBars UNAVAILABLE"))
+        case Status.INTERNAL_SERVER_ERROR => Future.failed(new  RuntimeException("eBars INTERNAL_SERVER_ERROR"))
+        case status => Future.failed(new  RuntimeException(s"unspecified eBars error, status code : ${status}"))
       }
-    } recover {
+    } recoverWith {
       case ex =>
         val errorMsg = "Couldn't send BA Reports"
         Logger.warn(s"$errorMsg\n${ex.getMessage}")
-        Failure(new RuntimeException(errorMsg))
+        Future.failed(ex)
     }
   }
 }
@@ -104,5 +108,5 @@ class DefaultLegacyConnector @Inject()(val http: HttpClient,
 @ImplementedBy(classOf[DefaultLegacyConnector])
 trait LegacyConnector {
   def validate(loginDetails: LoginDetails)(implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Try[Int]]
-  def sendBAReport(baReport: BAReportRequest)(implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Try[Int]]
+  def sendBAReport(baReport: BAReportRequest)(implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Int]
 }
