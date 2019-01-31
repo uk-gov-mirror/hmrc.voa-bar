@@ -26,6 +26,7 @@ import org.mockito.invocation.InvocationOnMock
 import org.mockito.stubbing.Answer
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 import play.api.inject.bind
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.voabar.models.ReportStatus
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
 
@@ -38,7 +39,7 @@ class UploadControllerIntSpec extends PlaySpec with BeforeAndAfterAll with Optio
 
   val legacyConnector = mock[LegacyConnector]
 
-  when(legacyConnector.sendBAReport(any(classOf[BAReportRequest]))(any(classOf[ExecutionContext]))).thenAnswer(new Answer[Future[Try[Int]]] {
+  when(legacyConnector.sendBAReport(any(classOf[BAReportRequest]))(any[ExecutionContext], any[HeaderCarrier])).thenAnswer(new Answer[Future[Try[Int]]] {
     override def answer(invocation: InvocationOnMock): Future[Try[Int]] = {
       Future.successful(Success(200))
     }

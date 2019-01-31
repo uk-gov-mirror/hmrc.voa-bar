@@ -119,8 +119,8 @@ class LegacyConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with Mockito
         val connector = new DefaultLegacyConnector(httpMock, configuration, utils, environment)
         connector.validate(goodLogin)
 
-        verify(httpMock).GET(urlCaptor.capture)(any(), any(), any())
-        urlCaptor.getValue must endWith("Welcome.do")
+        verify(httpMock).POST(urlCaptor.capture, any(),any())(any(), any(), any(), any())
+        urlCaptor.getValue must endWith("autobars-stubs/login")
       }
 
       "return a 200 if the data transfer call is successful" in {
@@ -138,7 +138,7 @@ class LegacyConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with Mockito
 
       "return a failure if the data transfer call throws an exception" in {
         val httpMock = mock[HttpClient]
-        when(httpMock.GET(anyString)(any[HttpReads[Any]], any[HeaderCarrier], any())) thenReturn Future.successful(new RuntimeException)
+        when(httpMock.POST(anyString, any(), any())(any(), any[HttpReads[Any]], any[HeaderCarrier], any())) thenReturn Future.successful(new RuntimeException)
         val connector = new DefaultLegacyConnector(httpMock, configuration, utils, environment)
         val result = await(connector.validate(goodLogin))
         assert(result.isFailure)

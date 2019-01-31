@@ -24,6 +24,7 @@ import cats.implicits._
 import javax.inject.Inject
 import play.api.Logger
 import services.EbarsValidator
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.voabar.connectors.{EmailConnector, LegacyConnector}
 import uk.gov.hmrc.voabar.models._
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
@@ -45,7 +46,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
     node \ "BApropertyReport" length
   }
 
-  def upload(username: String, password: String, xml: String, uploadReference: String) = {
+  def upload(username: String, password: String, xml: String, uploadReference: String)(implicit headerCarrier: HeaderCarrier) = {
 
 
     val processingResult = for {
@@ -142,7 +143,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
   }
 
 
-  private def ebarsUpload(node: Node, username: String, password: String, submissionId: String): Future[Either[BarError, Boolean]] = {
+  private def ebarsUpload(node: Node, username: String, password: String, submissionId: String)(implicit headerCarrier: HeaderCarrier) : Future[Either[BarError, Boolean]] = {
 
     val buff = new StringWriter()
     XML.write(buff, node, "UTF-8", true, null)

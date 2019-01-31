@@ -25,6 +25,7 @@ import uk.gov.hmrc.voabar.connectors.LegacyConnector
 import play.api.libs.json.Json
 import uk.gov.hmrc.voabar.models.LoginDetails
 import play.api.test.Helpers.{status, _}
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
@@ -38,10 +39,10 @@ class LoginControllerSpec extends PlaySpec with MockitoSugar {
   }
 
   val mockLegacyConnector = mock[LegacyConnector]
-  when (mockLegacyConnector.validate(any[LoginDetails])(any[ExecutionContext])) thenReturn Future.successful(Success(200))
+  when (mockLegacyConnector.validate(any[LoginDetails])(any[ExecutionContext], any[HeaderCarrier])) thenReturn Future.successful(Success(200))
 
   val mockLegacyConnectorFailed = mock[LegacyConnector]
-  when (mockLegacyConnectorFailed.validate(any[LoginDetails])(any[ExecutionContext])) thenReturn
+  when (mockLegacyConnectorFailed.validate(any[LoginDetails])(any[ExecutionContext], any[HeaderCarrier])) thenReturn
     Future.successful(Failure(new RuntimeException("Received exception from upstream service")))
 
   val goodJson = """{"username": "ba0121", "password":"xxxdyyy"}"""
