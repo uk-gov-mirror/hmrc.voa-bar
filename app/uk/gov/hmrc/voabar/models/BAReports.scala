@@ -25,6 +25,4 @@ object EbarsRequests {
                               username: String,
                               password: String,
                               attempt: Int = 1)
-                            (implicit val hc: HeaderCarrier)
-
 }

@@ -19,10 +19,11 @@ package uk.gov.hmrc.voabar.connectors
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.{any, anyString}
 import org.mockito.Mockito.{verify, when}
+import org.scalatest.{AsyncFeatureSpec, AsyncWordSpecLike}
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.{Play, Configuration, Environment}
+import play.api.{Configuration, Environment, Play}
 import play.api.http.Status
 import play.api.inject.Injector
 import play.api.libs.json.{JsValue, Writes}
@@ -33,7 +34,7 @@ import uk.gov.hmrc.voabar.models.LoginDetails
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 import play.api.test.Helpers._
-import uk.gov.hmrc.crypto.{ApplicationCrypto,PlainText}
+import uk.gov.hmrc.crypto.{ApplicationCrypto, PlainText}
 import uk.gov.hmrc.voabar.Utils
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 
@@ -91,10 +92,10 @@ class LegacyConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with Mockito
       when(utilsMock.generateHeader(any[LoginDetails])(any[ExecutionContext])).thenReturn(hc)
       val connector = new DefaultLegacyConnector(httpMock, configuration, utilsMock, environment)
 
-      val result = await(connector.sendBAReport(baReportsRequest))
+      connector.sendBAReport(baReportsRequest).map { result =>
+        result mustBe Status.OK
+      }
 
-      result.isSuccess mustBe true
-      result.get mustBe Status.OK
     }
 
     "return an internal servererror when an BA report upload request fails" in {
@@ -104,9 +105,12 @@ class LegacyConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with Mockito
       when(utilsMock.generateHeader(any[LoginDetails])(any[ExecutionContext])).thenReturn(hc)
       val connector = new DefaultLegacyConnector(httpMock, configuration, utilsMock, environment)
 
-      val result = await(connector.sendBAReport(baReportsRequest))
+      connector.sendBAReport(baReportsRequest).map { _=>
+        fail("we didn't expect successful future")
+      } recover {
+        case x: RuntimeException => succeed
+      }
 
-      result.isFailure mustBe true
     }
 
     "provided with JSON directly" must {

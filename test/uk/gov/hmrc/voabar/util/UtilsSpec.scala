@@ -24,8 +24,10 @@ import uk.gov.hmrc.voabar.Utils
 import org.mockito.Matchers.any
 import org.mockito.Mockito.when
 import uk.gov.hmrc.voabar.models.LoginDetails
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import org.apache.commons.codec.binary.Base64
+import uk.gov.hmrc.http.HeaderCarrier
 
 class UtilsSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar {
 
@@ -50,6 +52,23 @@ class UtilsSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar {
         val utils = new Utils(cryptoMock)
 
         val hc = utils.generateHeader(goodLogin)
+
+        val encodedAuthHeader = Base64.encodeBase64String(s"${goodLogin.username}:${password}".getBytes("UTF-8"))
+
+        hc.authorization match {
+          case Some(s) => hc.authorization.isDefined mustBe true
+            s.toString.equals(s"Authorization(Basic ${encodedAuthHeader})") mustBe true
+          case _ => assert(false)
+        }
+      }
+
+      "include some basic authorization in the header for existing header carrier" in {
+        val cryptoMock = mock[CompositeSymmetricCrypto]
+        when(cryptoMock.decrypt(any[Crypted])).thenReturn(PlainText(password))
+        val utils = new Utils(cryptoMock)
+        val headerCarrier = HeaderCarrier()
+
+        val hc = utils.generateHeader(goodLogin, headerCarrier)
 
         val encodedAuthHeader = Base64.encodeBase64String(s"${goodLogin.username}:${password}".getBytes("UTF-8"))
 
