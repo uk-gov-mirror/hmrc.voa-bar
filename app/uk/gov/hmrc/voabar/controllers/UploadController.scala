@@ -27,7 +27,7 @@ import scala.concurrent.ExecutionContext
 class UploadController @Inject()(reportUploadService: ReportUploadService)
                                 (implicit ec: ExecutionContext) extends BaseController {
 
-  def upload(): Action[AnyContent] = Action(parse.anyContent) { implicit request =>
+  def upload(): Action[AnyContent] = Action(parse.anyContent(Option(1024L * 1024L * 20L))) { implicit request =>
     val headers = request.headers
 
     val response = for {
