@@ -17,15 +17,20 @@
 package uk.gov.hmrc.voabar.controllers
 
 import javax.inject.{Inject, Singleton}
+import play.api.Configuration
 import play.api.mvc.{Action, AnyContent, Result}
+import uk.gov.hmrc.crypto.{ApplicationCrypto, Crypted}
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
 import uk.gov.hmrc.voabar.services.ReportUploadService
 
 import scala.concurrent.ExecutionContext
+import scala.util.{Failure, Success, Try}
 
 @Singleton
-class UploadController @Inject()(reportUploadService: ReportUploadService)
+class UploadController @Inject()(reportUploadService: ReportUploadService, configuration: Configuration)
                                 (implicit ec: ExecutionContext) extends BaseController {
+
+  lazy val crypto = new ApplicationCrypto(configuration.underlying).JsonCrypto
 
   def upload(): Action[AnyContent] = Action(parse.anyContent(Option(1024L * 1024L * 20L))) { implicit request =>
     val headers = request.headers
@@ -34,7 +39,8 @@ class UploadController @Inject()(reportUploadService: ReportUploadService)
       contentType <- headers.get("Content-Type").toRight(UnsupportedMediaType).right
       _ <- checkContentType(contentType).right
       baCode <- headers.get("BA-Code").toRight(Unauthorized("BA-Code missing")).right
-      password <- headers.get("password").toRight(Unauthorized("password missing")).right
+      encryptedPassword <- headers.get("password").toRight(Unauthorized("password missing")).right
+      password <- decryptPassword(encryptedPassword).right
       reference <- request.getQueryString("reference").toRight(BadRequest("missing reference")).right
       xml <- request.body.asText.toRight(BadRequest("missing xml playload")).right
     } yield {
@@ -44,6 +50,15 @@ class UploadController @Inject()(reportUploadService: ReportUploadService)
 
     response.fold(x => x, x => x)
 
+  }
+
+  private def decryptPassword(encryptedPassword: String): Either[Result, String] = {
+    Try {
+      crypto.decrypt(Crypted(encryptedPassword))
+    } match {
+      case Success(password) => Right(password.value)
+      case Failure(exception) => Left(Unauthorized("Unable to decrypt password"))
+    }
   }
 
   private def checkContentType(contentType: String): Either[Result, Boolean] = {

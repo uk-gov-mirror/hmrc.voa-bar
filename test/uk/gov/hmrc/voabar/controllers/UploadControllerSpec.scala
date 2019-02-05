@@ -16,11 +16,15 @@
 
 package uk.gov.hmrc.voabar.controllers
 
+import org.mockito.Mockito
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
+import play.api.Configuration
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{status, _}
+import uk.gov.hmrc.crypto.{ApplicationCrypto, PlainText}
 import uk.gov.hmrc.voabar.services.ReportUploadService
+
 import scala.concurrent.ExecutionContext.Implicits.global
 
 
@@ -28,7 +32,13 @@ class UploadControllerSpec extends PlaySpec with MockitoSugar {
 
   val reportUploadService = mock[ReportUploadService]
 
-  val controller = new UploadController(reportUploadService)
+  val configuration = Configuration("json.encryption.key" -> "gvBoGdgzqG1AarzF1LY0zQ==")
+
+  lazy val crypto = new ApplicationCrypto(configuration.underlying).JsonCrypto
+
+  val encryptedPassword = crypto.encrypt(PlainText("password")).value
+
+  val controller = new UploadController(reportUploadService, configuration)
 
   def fakeRequestWithXML = {
     val xmlNode = """<xml>Wibble</xml>"""
@@ -37,7 +47,7 @@ class UploadControllerSpec extends PlaySpec with MockitoSugar {
         "Content-Type" -> "text/plain",
         "Content-Length" -> s"${xmlNode.length}",
         "BA-Code" -> "1234",
-        "password" -> "pass1")
+        "password" -> encryptedPassword)
         .withTextBody(xmlNode)
   }
 
@@ -73,7 +83,7 @@ class UploadControllerSpec extends PlaySpec with MockitoSugar {
 
   "Return 400 (Bad Request) when given a content type that is text/plain but no text is given" in {
     val result = controller.upload()(FakeRequest("POST", "/upload")
-      .withHeaders("Content-Type" -> "text/plain", "BA-Code" -> "1234", "password" -> "pass1"))
+      .withHeaders("Content-Type" -> "text/plain", "BA-Code" -> "1234", "password" -> encryptedPassword))
     status(result) mustBe 400
   }
 
