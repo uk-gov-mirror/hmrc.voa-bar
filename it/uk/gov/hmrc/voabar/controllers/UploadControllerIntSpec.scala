@@ -24,8 +24,10 @@ import org.mockito.Matchers.any
 import org.mockito.Mockito.when
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.stubbing.Answer
+import org.scalatest.prop.Configuration
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 import play.api.inject.bind
+import uk.gov.hmrc.crypto.{ApplicationCrypto, PlainText}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.voabar.models.ReportStatus
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
@@ -54,6 +56,9 @@ class UploadControllerIntSpec extends PlaySpec with BeforeAndAfterAll with Optio
   lazy val mongoComponent = app.injector.instanceOf(classOf[ReactiveMongoComponent])
   lazy val collection = mongoComponent.mongoConnector.db().collection[JSONCollection]("submissions")
   lazy val submissionRepository = app.injector.instanceOf[SubmissionStatusRepository]
+  lazy val configuration = app.injector.instanceOf[play.api.Configuration]
+
+  lazy val crypto = new ApplicationCrypto(configuration.underlying).JsonCrypto
 
   def fakeRequestWithXML = {
 
@@ -63,7 +68,7 @@ class UploadControllerIntSpec extends PlaySpec with BeforeAndAfterAll with Optio
         "Content-Type" -> "text/plain",
         "Content-Length" -> s"${xmlNode.length}",
         "BA-Code" -> "BA5090",
-        "password" -> "BA5090")
+        "password" -> crypto.encrypt(PlainText("BA5090")).value)
       .withTextBody(xmlNode)
   }
 
