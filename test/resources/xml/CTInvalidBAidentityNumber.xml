@@ -14,7 +14,7 @@
     <BApropertyReport>
         <DateSent>2017-12-05</DateSent>
         <TransactionIdentityBA>1111111111111</TransactionIdentityBA>
-        <BAidentityNumber>5090</BAidentityNumber>
+        <BAidentityNumber>5091</BAidentityNumber>
         <BAreportNumber>200000</BAreportNumber>
         <TypeOfTax>
             <CtaxReasonForReport>
@@ -123,7 +123,7 @@
     <BApropertyReport>
         <DateSent>2017-12-05</DateSent>
         <TransactionIdentityBA>6831841467181</TransactionIdentityBA>
-        <BAidentityNumber>5090</BAidentityNumber>
+        <BAidentityNumber>5091</BAidentityNumber>
         <BAreportNumber>200111</BAreportNumber>
         <TypeOfTax>
             <CtaxReasonForReport>
@@ -227,7 +227,6 @@
     <BApropertyReport>
         <DateSent>2017-12-05</DateSent>
         <TransactionIdentityBA>2345104467511</TransactionIdentityBA>
-        <BAidentityNumber>5090</BAidentityNumber>
         <BAreportNumber>200222</BAreportNumber>
         <TypeOfTax>
             <CtaxReasonForReport>

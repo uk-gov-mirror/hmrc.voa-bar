@@ -29,6 +29,7 @@ class ValidationServiceSpec extends PlaySpec {
   val batchWith4Reports = IOUtils.toString(getClass.getResource("/xml/CTValid2.xml"))
   val batchWith32Reports = IOUtils.toString(getClass.getResource("/xml/res100.xml"))
   val batchWith32ReportsWithErrors = IOUtils.toString(getClass.getResource("/xml/res101.xml"))
+  val batchWithWrongBaCodeInSubreport = IOUtils.toString(getClass.getResource("/xml/CTInvalidBAidentityNumber.xml"))
 
   val BA_LOGIN = "BA5090"
 
@@ -94,6 +95,16 @@ class ValidationServiceSpec extends PlaySpec {
 
       validationService("9999").xmlNodeValidation(invalidBatch.head, BA_LOGIN).isEmpty mustBe true
     }
+
+    "return a list with 2 errors for wrong and missing BAidentityNumber in subreport" in {
+      val invalidBatch = XML.loadString(batchWithWrongBaCodeInSubreport)
+
+      validationService("BA9999").xmlNodeValidation(invalidBatch.head, "BA9999") must contain theSameElementsAs List (
+        Error(BA_CODE_MATCH, Seq()), Error(BA_CODE_REPORT, Seq("'BAidentityNumber' missing."))
+      )
+
+    }
+
   }
 
 }
