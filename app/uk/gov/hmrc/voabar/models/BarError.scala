@@ -32,3 +32,5 @@ case class BarMongoError(error: String, updateWriteResult: Option[UpdateWriteRes
 case class BarEbarError(ebarError: String) extends BarError
 
 case class BarEmailError(ebarError: String) extends BarError
+
+case class UnknownError(detail: String) extends BarError
