@@ -112,7 +112,7 @@ class XmlParserSpec extends PlaySpec with EitherValues {
     }
 
     "contain a BAidentityNumber" in {
-      (propertyReport.head \ "BAidentityNumber").text mustBe "9999"
+      (propertyReport.head \ "BAidentityNumber").text mustBe "5090"
     }
 
     "contain a BAreportNumber" in {

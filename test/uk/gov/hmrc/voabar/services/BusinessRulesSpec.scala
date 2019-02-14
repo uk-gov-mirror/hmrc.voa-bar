@@ -188,15 +188,31 @@ class BusinessRulesSpec extends PlaySpec {
 
     "return a list of 1 error when the BA code in the request header does not match that in the report" in {
       val validBatch = XML.loadString(batchWith1Report)
-      businessRules.baIdentityCodeErrors(validBatch.head, "0000") mustBe List(
+      businessRules.baIdentityCodeErrors(validBatch.head, "BA0000") mustBe List(
         Error(BA_CODE_MATCH, Seq()))
     }
 
     "return a list of 1 error when the BA code in the report is empty" in {
       val validBatch = XML.loadString(batchWith1Report)
       val invalidBatch = reportBuilder.invalidateBatch(validBatch.head,Map("BillingAuthorityIdentityCode" -> ""))
-      businessRules.baIdentityCodeErrors(invalidBatch.head, "9999") mustBe List(
+      businessRules.baIdentityCodeErrors(invalidBatch.head, "BA9999") mustBe List(
         Error(BA_CODE_REPORT, Seq()))
+    }
+
+    "return a list of 1 errors when the BA code in subreport is wrong" in {
+      val validBatch = XML.loadString(batchWith4Reports)
+      val invalidBatch = reportBuilder.invalidateBatch(validBatch.head,Map("BillingAuthorityIdentityCode" -> "5090"))
+
+      businessRules.bAidentityNumber((invalidBatch.head \ "BApropertyReport").head, "BA5091") must contain theSameElementsAs List(
+        Error(BA_CODE_MATCH, Seq())
+      )
+    }
+
+    "return a list of 0 errors when the BA code in subreport is correct" in {
+      val validBatch = XML.loadString(batchWith4Reports)
+      val invalidBatch = reportBuilder.invalidateBatch(validBatch.head,Map("BillingAuthorityIdentityCode" -> "5090"))
+
+      businessRules.bAidentityNumber((invalidBatch.head \ "BApropertyReport").head, "BA5090") must be ('empty)
     }
 
   }

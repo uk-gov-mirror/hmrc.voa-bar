@@ -55,7 +55,7 @@ class ValidationService @Inject()(xmlValidator: XmlValidator,
 
     val validations:List[(Node) => List[Error]] = List(
       validationBACode(baLogin),
-      validationBusinessRules
+      validationBusinessRules(baLogin)
     )
     parsedBatch.toList.flatMap{n => validations.flatMap(_.apply(n))}.distinct
 
@@ -65,8 +65,10 @@ class ValidationService @Inject()(xmlValidator: XmlValidator,
     businessRules.baIdentityCodeErrors(xml, baLogin)
   }
 
-  private def validationBusinessRules(xml:Node):List[Error] = {
+  private def validationBusinessRules(baLogin: String)(xml:Node):List[Error] = {
     val reports:Seq[Node] = xml \ "BApropertyReport"
-    reports.flatMap(r => businessRules.reasonForReportErrors(r)).toList
+    reports.flatMap(r => {
+      businessRules.reasonForReportErrors(r) ++ businessRules.bAidentityNumber(r, baLogin)
+    }).toList
   }
 }

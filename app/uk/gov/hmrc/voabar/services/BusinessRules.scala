@@ -40,6 +40,20 @@ class BusinessRules @Inject()() {
     }
   }
 
+  def bAidentityNumber(baReport: Node, baLogin: String): List[Error] = {
+    val baLoginNumber = baLogin.substring(2)
+    (baReport \ "BAidentityNumber").headOption match {
+      case Some(node) => {
+        if(node.text == baLoginNumber) {
+          List.empty[Error]
+        }else {
+          List(Error(BA_CODE_MATCH))
+        }
+      }
+      case None => List(Error(BA_CODE_REPORT, Seq("'BAidentityNumber' missing.")))
+    }
+  }
+
   private def validateCTaxCode(implicit node:NodeSeq): List[Error] = {
 
     val repCode:String = (node \\ "ReasonForReportCode").text
