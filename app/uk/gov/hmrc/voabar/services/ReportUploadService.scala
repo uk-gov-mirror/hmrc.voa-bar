@@ -32,7 +32,7 @@ import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
 import uk.gov.hmrc.voabar.util._
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 import scala.xml.{Node, XML}
 
 class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository,
@@ -59,7 +59,14 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       _ <- EitherT(sendConfirmationEmail(uploadReference, username, password))
     } yield ("ok")
 
-    processingResult.value.map {
+    processingResult.value
+        .recover {
+          case exception: Exception => {
+            Logger.warn("Unexpected error when processing file, trying to recover", exception)
+            Left(UnknownError(exception.getMessage))
+          }
+        }
+      .map {
       case Right(v) => "ok"
       case Left(a) => {
         handleError(uploadReference, a, username, password)
@@ -137,6 +144,10 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       case BarEmailError(emailError) => {
         statusRepository.addError(submissionId, Error(UNKNOWN_ERROR, Seq(emailError))) //TODO probably put WARNING about email submission
         statusRepository.updateStatus(submissionId, Done)
+      }case UnknownError(detail) => {
+        statusRepository.addError(submissionId, Error(UNKNOWN_ERROR, Seq(detail)))
+        statusRepository.updateStatus(submissionId, Failed)
+          .map(_ => sendConfirmationEmail(submissionId, username, password))
       }
     }
   }
@@ -144,17 +155,33 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
 
   private def ebarsUpload(node: Node, username: String, password: String, submissionId: String)(implicit headerCarrier: HeaderCarrier) : Future[Either[BarError, Boolean]] = {
 
-    val buff = new StringWriter()
-    XML.write(buff, node, "UTF-8", true, null)
-    val xmlString = buff.toString
-    val jaxbElement = ebarsValidator.fromXml(xmlString)
-    val jsonString = ebarsValidator.toJson(jaxbElement)
+    val riskyConversion: Either[BarError, String] = Try {
+      val buff = new StringWriter()
+      XML.write(buff, node, "UTF-8", true, null)
+      val xmlString = buff.toString
+      val jaxbElement = ebarsValidator.fromXml(xmlString)
+      ebarsValidator.toJson(jaxbElement)
+    } match {
+      case Success(jsonString) => Right(jsonString)
+      case Failure(exception) => Left(BarEbarError(exception.getMessage))
+    }
+    
 
-    val req = BAReportRequest(submissionId, jsonString, username, password)
-    legacyConnector.sendBAReport(req).map(_ => Right(true)).recover {
-      case ex: Exception => Left(BarEbarError(ex.getMessage))
+    def internall_upload(jsonString: String):Future[Either[BarError, Boolean]] = {
+      val req = BAReportRequest(submissionId, jsonString, username, password)
+      legacyConnector.sendBAReport(req).map(_ => Right(true)).recover {
+        case ex: Exception => Left(BarEbarError(ex.getMessage))
+      }
     }
 
+    val resutl = for {
+      jsonString <- EitherT.fromEither[Future](riskyConversion)
+      result <- EitherT(internall_upload(jsonString))
+    } yield(result)
+
+    resutl.value
   }
+
+
 
 }
