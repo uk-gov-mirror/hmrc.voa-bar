@@ -16,9 +16,14 @@
 
 package uk.gov.hmrc.voabar.services
 
-import javax.inject.{Inject, Singleton}
-import uk.gov.hmrc.voabar.models.{BarError, BarValidationError, Error}
+import java.net.URL
 
+import javax.inject.{Inject, Singleton}
+import org.w3c.dom.Document
+import play.api.Logger
+import uk.gov.hmrc.voabar.models.{BarError, BarValidationError, Error, UnknownError}
+
+import scala.util.{Failure, Success, Try}
 import scala.xml.Node
 
 @Singleton
@@ -27,14 +32,32 @@ class ValidationService @Inject()(xmlValidator: XmlValidator,
                                   businessRules:BusinessRules
                                  ) {
 
-  def validate(xml: String, baLogin: String): Either[BarError, Boolean] = {
+  def validate(xmlUrl: String, baLogin: String): Either[BarError, (Document, Node)] = {
 
     for {
-      _ <- xmlValidator.validate(xml).right //validate against XML schema
-      scalaElement <- xmlParser.xmlToNode(xml).right
+      url <- createUrl(xmlUrl).right
+
+      domTree <- xmlParser.parse(url).right
+      _ <- xmlValidator.validate(domTree).right //validate against XML schema
+
+      scalaElement <- xmlParser.domToScala(domTree).right
       _ <- businessValidation(scalaElement, baLogin).right
-    }yield {
-      true
+    } yield {
+      (domTree, scalaElement)
+    }
+  }
+
+  private def createUrl(url: String): Either[BarError, URL] = {
+
+    Try {
+      new URL(url)
+    } match {
+      case Success(value) => Right(value)
+      case Failure(exception) => {
+        Logger.warn("Invalid xml URL ", exception)
+        Left(UnknownError(s"Invalid xml URL ${exception.getMessage}"))
+      }
+
     }
   }
 

@@ -44,13 +44,13 @@ class ValidationServiceSpec extends PlaySpec {
   "Validation service" must {
 
     "sucessfully validate correct XML document" in {
-      val xmlBatchSubmissionAsString = IOUtils.toString(getClass.getResource("/xml/CTValid1.xml"))
+      val xmlBatchSubmissionAsString = getClass.getResource("/xml/CTValid1.xml").toString
       val validationResult = validationService("9999").validate(xmlBatchSubmissionAsString, BA_LOGIN)
       validationResult mustBe ('right)
     }
 
     "return Left for not valid XML" in {
-      val xmlBatchSubmissionAsString = IOUtils.toString(getClass.getResource("/xml/CTInvalid1.xml"))
+      val xmlBatchSubmissionAsString = getClass.getResource("/xml/CTInvalid1.xml").toString
       val validationResult = validationService("9999").validate(xmlBatchSubmissionAsString, BA_LOGIN)
       validationResult mustBe ('left)
     }

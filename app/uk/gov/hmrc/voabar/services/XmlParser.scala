@@ -17,14 +17,19 @@
 package uk.gov.hmrc.voabar.services
 
 import java.io.{ByteArrayInputStream, StringReader}
+import java.net.{URI, URL}
 
 import javax.xml.parsers.DocumentBuilderFactory
+import javax.xml.transform.TransformerFactory
+import javax.xml.transform.dom.DOMSource
+import javax.xml.transform.sax.SAXResult
 import org.apache.commons.io.input.ReaderInputStream
 import org.w3c.dom.Document
 import uk.gov.hmrc.voabar.models.{BarError, BarXmlError}
 
 import scala.util.{Failure, Success, Try}
 import scala.xml._
+import scala.xml.parsing.NoBindingFactoryAdapter
 
 class XmlParser {
 
@@ -45,10 +50,14 @@ class XmlParser {
   documentBuilderFactory.setExpandEntityReferences(false) //XXE vulnerable fix
 
 
-  def parse(xml: String): Either[BarError, Document] = {
+  def parse(xml: URL): Either[BarError, Document] = {
+    import scala.concurrent.blocking
+
     Try {
       val docBuilder = documentBuilderFactory.newDocumentBuilder()
-      docBuilder.parse(new ReaderInputStream(new StringReader(xml)))
+      blocking { //downloading and parsing XML is blocking operation, maybe we can buffer it to byte[] and then parse to avoid blocking IO
+        docBuilder.parse(xml.openStream())
+      }
     } match {
       case Success(value) => Right(value)
       case Failure(x) => Left(BarXmlError(x.getMessage))
@@ -66,13 +75,29 @@ class XmlParser {
     (node \ "BApropertyReport") map {report => addChild(node,batchHeader ++ report ++ batchTrailer)}
   }
 
+  /*
 
-  def xmlToNode(xml: String): Either[BarError, Elem] = {
+https://martin.elwin.com/blog/2008/05/scala-xml-and-java-dom/
+
+  Using Char array
+//dom is the DOM Element
+val charWriter = new CharArrayWriter()
+TransformerFactory.newInstance.newTransformer.transform(new DOMSource(dom), new StreamResult(charWriter))
+val xml = XML.load(new CharArrayReader(charWriter.toCharArray))
+
+  TODO - test properly with namespace, scala XML libraries handle namespace incorectly!!!
+   */
+  def domToScala(document: Document): Either[BarError, Node] = {
     Try {
-      XML.withSAXParser(saxFactory.newSAXParser()).loadString(xml)
+      val saxHandler = new NoBindingFactoryAdapter()
+      saxHandler.scopeStack.push(TopScope)
+      TransformerFactory.newInstance.newTransformer.transform(new DOMSource(document), new SAXResult(saxHandler))
+      saxHandler.scopeStack.pop
+      saxHandler.rootElem
     } match {
-      case Success(value) => Right(value)
+      case Success(scalaNode) => Right(scalaNode)
       case Failure(exception) => Left(BarXmlError(exception.getMessage))
     }
   }
+
 }

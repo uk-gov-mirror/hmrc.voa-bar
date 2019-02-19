@@ -28,11 +28,11 @@ class XmlParserSpec extends PlaySpec with EitherValues {
 
   val xmlParser = new XmlParser()
 
-  val xmlBatchSubmissionAsString = IOUtils.toString(getClass.getResource("/xml/CTValid1.xml"))
-  val validWithXXE = IOUtils.toString(getClass.getResource("/xml/CTValidWithXXE.xml"))
-  val invalidWithXXE2 = IOUtils.toString(getClass.getResource("/xml/WithXXE.xml"))
+  val xmlBatchSubmissionAsString = getClass.getResource("/xml/CTValid1.xml")
+  val validWithXXE = getClass.getResource("/xml/CTValidWithXXE.xml")
+  val invalidWithXXE2 = getClass.getResource("/xml/WithXXE.xml")
 
-  val batchSubmission: Node = XML.loadString(xmlBatchSubmissionAsString)
+  val batchSubmission: Node = xmlParser.domToScala(xmlParser.parse(xmlBatchSubmissionAsString).right.get).right.get
 
   "Xml parser " must {
     "successfuly parse xml to DOM" in {

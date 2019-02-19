@@ -22,6 +22,8 @@ import java.io.StringWriter
 import cats.data.EitherT
 import cats.implicits._
 import javax.inject.Inject
+import javax.xml.transform.dom.DOMSource
+import org.w3c.dom.Document
 import play.api.Logger
 import services.EbarsValidator
 import uk.gov.hmrc.http.HeaderCarrier
@@ -46,15 +48,15 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
     node \ "BApropertyReport" length
   }
 
-  def upload(username: String, password: String, xml: String, uploadReference: String)(implicit headerCarrier: HeaderCarrier) = {
+  def upload(username: String, password: String, xmlUrl: String, uploadReference: String)(implicit headerCarrier: HeaderCarrier) = {
 
 
     val processingResult = for {
       _ <- EitherT(statusRepository.updateStatus(uploadReference, Pending))
-      _ <- EitherT.fromEither[Future](validationService.validate(xml, username))
-      node <- EitherT.fromEither[Future](xmlParser.xmlToNode(xml))
-      _ <- EitherT(statusRepository.update(uploadReference, Verified, numberReports(node)))
-      _ <- EitherT(ebarsUpload(node, username, password, uploadReference))
+      //TODO - add xml size validation - Is async, this is why here
+      xmlTree <- EitherT.fromEither[Future](validationService.validate(xmlUrl, username))
+      _ <- EitherT(statusRepository.update(uploadReference, Verified, numberReports(xmlTree._2)))
+      _ <- EitherT(ebarsUpload(xmlTree._1, username, password, uploadReference))
       _ <- EitherT(statusRepository.updateStatus(uploadReference, Done))
       _ <- EitherT(sendConfirmationEmail(uploadReference, username, password))
     } yield ("ok")
@@ -153,13 +155,11 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
   }
 
 
-  private def ebarsUpload(node: Node, username: String, password: String, submissionId: String)(implicit headerCarrier: HeaderCarrier) : Future[Either[BarError, Boolean]] = {
+  private def ebarsUpload(domDocument: Document, username: String, password: String, submissionId: String)(implicit headerCarrier: HeaderCarrier) : Future[Either[BarError, Boolean]] = {
 
     val riskyConversion: Either[BarError, String] = Try {
-      val buff = new StringWriter()
-      XML.write(buff, node, "UTF-8", true, null)
-      val xmlString = buff.toString
-      val jaxbElement = ebarsValidator.fromXml(xmlString)
+
+      val jaxbElement = ebarsValidator.fromXml(new DOMSource(domDocument))
       ebarsValidator.toJson(jaxbElement)
     } match {
       case Success(jsonString) => Right(jsonString)

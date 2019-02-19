@@ -1,39 +1,29 @@
 package uk.gov.hmrc.voabar.controllers
 
-import java.io.FileInputStream
+import java.nio.file.Paths
 import java.time.ZonedDateTime
-import java.util.UUID
 
-import org.apache.commons.io.IOUtils
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfterAll, EitherValues, OptionValues}
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.JsObject
 import play.api.test.{DefaultAwaitTimeout, FakeRequest, FutureAwaits}
-
-import scala.concurrent.ExecutionContext.Implicits.global
 import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.ReadPreference
-import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.collection.JSONCollection
-import reactivemongo.play.json.ImplicitBSONHandlers._
 import uk.gov.hmrc.voabar.connectors.LegacyConnector
 import org.mockito.Matchers.any
 import org.mockito.Mockito.when
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.stubbing.Answer
-import org.scalatest.prop.Configuration
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 import play.api.inject.bind
 import uk.gov.hmrc.crypto.{ApplicationCrypto, PlainText}
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.voabar.models.ReportStatus
+import uk.gov.hmrc.voabar.models.{ReportStatus, UploadDetails}
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Success, Try}
 
 
 class UploadControllerIntSpec extends PlaySpec with BeforeAndAfterAll with OptionValues
@@ -62,14 +52,14 @@ class UploadControllerIntSpec extends PlaySpec with BeforeAndAfterAll with Optio
 
   def fakeRequestWithXML = {
 
-    val xmlNode = IOUtils.toString(new FileInputStream("test/resources/xml/CTValid1.xml"))
-    FakeRequest("POST", "/request?reference=1234")
+    val xmlURL = Paths.get("test/resources/xml/CTValid1.xml").toAbsolutePath.toUri.toURL.toString
+
+    FakeRequest("POST", "/voa-bar/upload")
       .withHeaders(
-        "Content-Type" -> "text/plain",
-        "Content-Length" -> s"${xmlNode.length}",
         "BA-Code" -> "BA5090",
-        "password" -> crypto.encrypt(PlainText("BA5090")).value)
-      .withTextBody(xmlNode)
+        "password" -> crypto.encrypt(PlainText("BA5090")).value
+      )
+      .withBody(UploadDetails("1234", xmlURL))
   }
 
 
