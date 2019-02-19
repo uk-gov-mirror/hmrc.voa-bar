@@ -19,8 +19,10 @@ package uk.gov.hmrc.voabar.services
 import java.io.StringReader
 
 import javax.xml.XMLConstants
+import javax.xml.transform.dom.DOMSource
 import javax.xml.transform.stream.StreamSource
 import javax.xml.validation.SchemaFactory
+import org.w3c.dom.Document
 import org.xml.sax.{ErrorHandler, SAXParseException}
 import uk.gov.hmrc.voabar.models.{BarError, BarXmlError, BarXmlValidationError, Error}
 import uk.gov.hmrc.voabar.util.INVALID_XML_XSD
@@ -55,9 +57,9 @@ class XmlValidator {
   factory.setResourceResolver(new ResourceResolver)
   val schema = factory.newSchema(schemaFile1)
 
-  def validate(xml: String):Either[BarError, Boolean] = {
+  def validate(document: Document):Either[BarError, Boolean] = {
 
-    val source = new StreamSource(new StringReader(xml))
+    val source = new DOMSource(document)
     val errorHandler = new XmlErrorHandler
 
     Try {

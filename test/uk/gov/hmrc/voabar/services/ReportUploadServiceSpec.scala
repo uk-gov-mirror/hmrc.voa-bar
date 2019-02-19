@@ -42,34 +42,37 @@ import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 import uk.gov.hmrc.voabar.models._
 import uk.gov.hmrc.voabar.util.{ATLEAST_ONE_PROPOSED, CHARACTER, INVALID_XML}
 
-import scala.util.{Failure, Try}
+import scala.util.Try
 
 class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  MustMatchers with OptionValues with WsScalaTestClient {
 
   val uploadReference = "submissionID"
 
-  val aXml = IOUtils.toString(new FileInputStream("test/resources/xml/CTValid1.xml"))
+  val aXmlUrl = getClass.getResource("/xml/CTValid1.xml").toString
 
   implicit val headerCarrier = HeaderCarrier()
 
   "ReportUploadServiceSpec" must {
     "proces request " in {
       val reportUploadService = new ReportUploadService(aCorrectStatusRepository(), aValidationService(), aXmlParser(), aLegacyConnector(), aEmailConnector())
-      val res = reportUploadService.upload("username", "password", aXml, uploadReference)
+      val res = reportUploadService.upload("username", "password", aXmlUrl, uploadReference)
       res.map { result =>
         result mustBe "ok"
       }
     }
 
     "record error for not valid XML" in {
+
       val statusRepository = aCorrectStatusRepository()
 
-      val reportUploadService = new ReportUploadService(statusRepository, aValidationService(), aXmlParser(), aLegacyConnector(), aEmailConnector())
-      val res = reportUploadService.upload("username", "password", "<xm>ble</xml>", uploadReference)
+      val reportUploadService = new ReportUploadService(statusRepository, aValidationThrowError(), aXmlParser(), aLegacyConnector(), aEmailConnector())
+      val res = reportUploadService.upload("username", "password", aXmlUrl, uploadReference)
+
       res.map { result =>
         verify(statusRepository).updateStatus(meq(uploadReference), meq(Failed))
         result mustBe "failed"
       }
+
     }
 
     "stop any work after update error" in {
@@ -168,7 +171,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
       }
 
       val reportUploadService = new ReportUploadService(aCorrectStatusRepository(), aValidationService(), aXmlParser(), aLegacyConnector(),emailConnector)
-      val res = reportUploadService.upload("username", "password", aXml, uploadReference)
+      val res = reportUploadService.upload("username", "password", aXmlUrl, uploadReference)
       res.map { result =>
         result mustBe "failed"
       }
@@ -182,7 +185,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
       }
 
       val reportUploadService = new ReportUploadService(aCorrectStatusRepository(), aValidationService(), aXmlParser(), legacyConnector, aEmailConnector())
-      val res = reportUploadService.upload("username", "password", aXml, uploadReference)
+      val res = reportUploadService.upload("username", "password", aXmlUrl, uploadReference)
       res.map { result =>
         result mustBe "failed"
       }
@@ -212,11 +215,24 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
   }
 
   def aValidationService(): ValidationService = {
+
+    val xmlParser = new XmlParser()
+
+    val domDocument = xmlParser.parse(getClass.getResource("/xml/CTValid1.xml")).right.get
+    val scalaNode = xmlParser.domToScala(domDocument).right.get
+
     val validationService = mock[ValidationService]
-    when(validationService.validate(anyString(), anyString())).thenReturn(Right(true))
+    when(validationService.validate(anyString(), anyString())).thenReturn(Right((domDocument, scalaNode)))
 
     validationService
   }
+
+  def aValidationThrowError() = {
+    val validationService = mock[ValidationService]
+    when(validationService.validate(anyString(), anyString())).thenReturn(Left(BarXmlError("Failed")))
+    validationService
+  }
+
 
   def aXmlParser(): XmlParser = {
     new XmlParser()

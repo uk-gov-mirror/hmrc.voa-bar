@@ -21,6 +21,7 @@ import play.api.Configuration
 import play.api.mvc.{Action, AnyContent, Result}
 import uk.gov.hmrc.crypto.{ApplicationCrypto, Crypted}
 import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import uk.gov.hmrc.voabar.models.UploadDetails
 import uk.gov.hmrc.voabar.services.ReportUploadService
 
 import scala.concurrent.ExecutionContext
@@ -32,25 +33,21 @@ class UploadController @Inject()(reportUploadService: ReportUploadService, confi
 
   lazy val crypto = new ApplicationCrypto(configuration.underlying).JsonCrypto
 
-  def upload(): Action[AnyContent] = Action(parse.anyContent(Option(1024L * 1024L * 20L))) { implicit request =>
+  def upload() = Action(parse.json[UploadDetails]) { implicit request =>
     val headers = request.headers
+    val uploadDetails = request.body
 
     val response = for {
-      contentType <- headers.get("Content-Type").toRight(UnsupportedMediaType).right
-      _ <- checkContentType(contentType).right
       baCode <- headers.get("BA-Code").toRight(Unauthorized("BA-Code missing")).right
       encryptedPassword <- headers.get("password").toRight(Unauthorized("password missing")).right
       password <- decryptPassword(encryptedPassword).right
-      reference <- request.getQueryString("reference").toRight(BadRequest("missing reference")).right
-      xml <- request.body.asText.toRight(BadRequest("missing xml playload")).right
-    } yield {
-      reportUploadService.upload(baCode, password, xml, reference)
+    }yield {
+      reportUploadService.upload(baCode, password, uploadDetails.xmlUrl, uploadDetails.reference)
       Ok("")
     }
-
-    response.fold(x => x, x => x)
-
+    response.fold(identity, identity)
   }
+
 
   private def decryptPassword(encryptedPassword: String): Either[Result, String] = {
     Try {

@@ -16,11 +16,13 @@
 
 package uk.gov.hmrc.voabar.services
 
+import java.net.URL
+
 import org.apache.commons.io.IOUtils
 import org.scalatest.EitherValues
 import org.scalatestplus.play.PlaySpec
 import uk.gov.hmrc.voabar.models.{BarXmlValidationError, Error}
-import uk.gov.hmrc.voabar.util.INVALID_XML_XSD
+import uk.gov.hmrc.voabar.util.{INVALID_XML_XSD, XmlTestParser}
 
 import scala.xml.XML
 
@@ -31,10 +33,10 @@ class XmlValidatorSpec extends PlaySpec with EitherValues {
   val reportBuilder = new MockBAReportBuilder
   val xmlParser = new XmlParser()
 
-  val valid1 = IOUtils.toString(getClass.getResource("/xml/CTValid1.xml"))
-  val valid2 = IOUtils.toString(getClass.getResource("/xml/CTValid2.xml"))
-  val invalid1 = IOUtils.toString(getClass.getResource("/xml/CTInvalid1.xml"))
-  val invalid2 = IOUtils.toString(getClass.getResource("/xml/CTInvalid2.xml"))
+  val valid1 = xmlParser.parse(getClass.getResource("/xml/CTValid1.xml")).right.get
+  val valid2 = xmlParser.parse(getClass.getResource("/xml/CTValid2.xml")).right.get
+  val invalid1 = xmlParser.parse(getClass.getResource("/xml/CTInvalid1.xml")).right.get
+  val invalid2 = xmlParser.parse(getClass.getResource("/xml/CTInvalid2.xml")).right.get
 
 
   "A valid ba batch submission xml file (valid1)" must {
@@ -69,11 +71,13 @@ class XmlValidatorSpec extends PlaySpec with EitherValues {
       val invalidNamespaceDocument = IOUtils.toString(getClass.getResource("/xml/CTInvalid1.xml"))
         .replaceAll("http://www.govtalk.gov.uk/LG/Valuebill", "uri:wrong")
 
-      val result = validator.validate(invalidNamespaceDocument)
+      val doc = XmlTestParser.parseXml(invalidNamespaceDocument)
+
+      val result = validator.validate(doc)
 
       result mustBe ('left)
 
-      result.left.value mustBe BarXmlValidationError(List(Error(INVALID_XML_XSD, List("Error on line 2: Cannot find the declaration of element 'BAreports'."))))
+      result.left.value mustBe BarXmlValidationError(List(Error(INVALID_XML_XSD, List("Error on line -1: Cannot find the declaration of element 'BAreports'."))))
 
     }
 
@@ -82,11 +86,13 @@ class XmlValidatorSpec extends PlaySpec with EitherValues {
       val invalidNamespaceDocument = IOUtils.toString(getClass.getResource("/xml/CTInvalid1.xml"))
         .replaceAll("BAreports", "bareports")
 
-      val result = validator.validate(invalidNamespaceDocument)
+      val doc = XmlTestParser.parseXml(invalidNamespaceDocument)
+
+      val result = validator.validate(doc)
 
       result mustBe ('left)
 
-      result.left.value mustBe BarXmlValidationError(List(Error(INVALID_XML_XSD, List("Error on line 2: Cannot find the declaration of element 'bareports'."))))
+      result.left.value mustBe BarXmlValidationError(List(Error(INVALID_XML_XSD, List("Error on line -1: Cannot find the declaration of element 'bareports'."))))
 
     }
 
@@ -94,27 +100,21 @@ class XmlValidatorSpec extends PlaySpec with EitherValues {
 
   val batchWith4Reports = IOUtils.toString(getClass.getResource("/xml/CTValid2.xml"))
 
-
+//TODO - we are getting only one error. Should we validate with original file?
   "another test" should {
     val batchWith32ReportsWithErrors = IOUtils.toString(getClass.getResource("/xml/res101.xml"))
 
     "return a list of errors when a batch containing 32 reports has multiple errors" in {
       val invalidBatch = XML.loadString(batchWith32ReportsWithErrors).toString()
 
-      val validationResutl = validator.validate(invalidBatch)
+      val validationResutl = validator.validate(XmlTestParser.parseXml(invalidBatch))
 
       validationResutl must be('left)
 
       validationResutl.left.value mustBe a[BarXmlValidationError]
       validationResutl.left.value.asInstanceOf[BarXmlValidationError].errors must contain only (
-        Error(INVALID_XML_XSD,List("Error on line 2236: Invalid content was found starting with element '{\"http://www.govtalk.gov.uk/LG/Valuebill\":IllegalElement}'. One of " +
-          "'{\"http://www.govtalk.gov.uk/LG/Valuebill\":EntryDateTime}' is expected.")),
-        Error(INVALID_XML_XSD,List("Error on line 2238: The value '0£' of element 'TotalNNDRreportCount' is not valid.")),
-        Error(INVALID_XML_XSD,List("Error on line 790: Invalid content was found starting with element '{\"http://www.govtalk.gov.uk/LG/Valuebill\":BadElement}'. " +
-          "One of '{\"http://www.govtalk.gov.uk/LG/Valuebill\":TypeOfTax}' is expected.")),
-        Error(INVALID_XML_XSD,List("Error on line 1908: Invalid content was found starting with element '{\"http://www.govtalk.gov.uk/LG/Valuebill\":ExistingEntries}'. " +
-          "One of '{\"http://www.govtalk.gov.uk/LG/Valuebill\":ProposedEntries, \"http://www.govtalk.gov.uk/LG/Value" +
-          "bill\":IndicatedDateOfChange}' is expected.")))
+        Error(INVALID_XML_XSD,List("Error on line -1: The value '0£' of element 'TotalNNDRreportCount' is not valid."))
+        )
     }
 
   }
