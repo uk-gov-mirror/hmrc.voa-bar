@@ -13,6 +13,8 @@ object Dependencies {
   private val autobarsXsdVersion = "8.0.0"
   private val guiceUtilsVersion = "4.2.2"
   private val catsCoreVersion = "1.5.0"
+  private val saxonHeVersion = "9.9.1-1"
+  private val xercesVersion = "2.12.0"
 
   lazy val appDependencies: Seq[ModuleID] = compile ++ test()
 
@@ -24,7 +26,10 @@ object Dependencies {
     "uk.gov.hmrc" %% "http-caching-client"          % httpCachingClientVersion,
     "uk.gov.hmrc" %% "play-reactivemongo"           % playReactivemongoVersion,
     "net.codingwell" %% "scala-guice"               % guiceUtilsVersion,
-    "org.typelevel" %% "cats-core"                  % catsCoreVersion
+    "org.typelevel" %% "cats-core"                  % catsCoreVersion,
+    "net.sf.saxon" % "Saxon-HE"                     % saxonHeVersion,
+    "xerces" % "xercesImpl"                         % xercesVersion
+
   )
 
   def test(scope: String = "test,it") = Seq(
