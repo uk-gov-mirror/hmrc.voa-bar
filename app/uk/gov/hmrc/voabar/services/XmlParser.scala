@@ -33,15 +33,7 @@ import scala.xml.parsing.NoBindingFactoryAdapter
 
 class XmlParser {
 
-  val saxFactory = javax.xml.parsers.SAXParserFactory.newInstance()
-  saxFactory.setNamespaceAware(false) // Scala parser is little naive. Must be false! Otherwise all namespace information is lost.
-  saxFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
-  saxFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false)
-  saxFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
-  saxFactory.setFeature("http://xml.org/sax/features/external-general-entities", false)
-
-
-  val documentBuilderFactory = DocumentBuilderFactory.newInstance
+  val documentBuilderFactory = DocumentBuilderFactory.newInstance("org.apache.xerces.jaxp.DocumentBuilderFactoryImpl", null)
   documentBuilderFactory.setNamespaceAware(true)
   documentBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
   documentBuilderFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false)
@@ -91,7 +83,11 @@ val xml = XML.load(new CharArrayReader(charWriter.toCharArray))
     Try {
       val saxHandler = new NoBindingFactoryAdapter()
       saxHandler.scopeStack.push(TopScope)
-      TransformerFactory.newInstance.newTransformer.transform(new DOMSource(document), new SAXResult(saxHandler))
+      TransformerFactory
+        .newInstance("net.sf.saxon.TransformerFactoryImpl", null)
+        .newTransformer
+        .transform(new DOMSource(document), new SAXResult(saxHandler))
+
       saxHandler.scopeStack.pop
       saxHandler.rootElem
     } match {
