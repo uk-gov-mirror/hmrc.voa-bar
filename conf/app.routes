@@ -17,3 +17,5 @@ PUT         /submissions/user-info      @uk.gov.hmrc.voabar.controllers.Submissi
 GET         /user-report-upload/:id     @uk.gov.hmrc.voabar.controllers.UserReportUploadsController.getById(id)
 
 PUT         /user-report-upload         @uk.gov.hmrc.voabar.controllers.UserReportUploadsController.save
+
+PUT         /validate-upload/:baLogin   @uk.gov.hmrc.voabar.controllers.ValidateController.validate(baLogin: String)
