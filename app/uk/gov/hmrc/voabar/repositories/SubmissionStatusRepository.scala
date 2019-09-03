@@ -24,6 +24,7 @@ import javax.inject.{Inject, Singleton}
 import play.api.libs.json.{Format, Json}
 import play.api.{Configuration, Logger}
 import play.modules.reactivemongo.ReactiveMongoComponent
+import reactivemongo.api.commands.WriteResult
 import reactivemongo.api.{Cursor, ReadPreference}
 import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.bson.BSONDocument
@@ -55,23 +56,36 @@ class SubmissionStatusRepositoryImpl @Inject()(
       ,options = BSONDocument("expireAfterSeconds" -> ttl))
   )
 
-  def saveOrUpdate(reportStatus: ReportStatus, upsert: Boolean)
-  : Future[Either[BarError, Unit.type]] = {
-    val finder = BSONDocument(_Id -> reportStatus.id)
+
+  override def insertOrMerge(reportStatus: ReportStatus): Future[Either[BarError, Unit]] = {
+
+    insert(reportStatus).recoverWith[WriteResult] {
+      case WriteResult.Code(11000) => {
+        Logger.error("alredy exist in database, need to update")
+        merge(reportStatus)
+      }
+    }.map { result =>
+      Right(())
+    }.recover {
+      case e: Exception => Left(BarMongoError(e.getMessage, None))
+    }
+  }
+
+  private def merge(reportStatus: ReportStatus): Future[WriteResult] = {
+
+    val selector = BSONDocument("_id" -> reportStatus.id)
+
     val modifierBson = set(BSONDocument(
       "created" -> reportStatus.created.toString,
       "checksum" -> reportStatus.checksum,
       "url" -> reportStatus.url,
-      "errors" -> reportStatus.errors.getOrElse(Seq()).map(e => BSONDocument(
-        "values" -> e.values,
-        "code" -> e.code
-      )),
-      "filename" -> reportStatus.filename.getOrElse(""),
-      "status" -> reportStatus.status)
+      "filename" -> reportStatus.filename.getOrElse(""))
     )
 
-    atomicSaveOrUpdate(reportStatus.id, upsert, finder, modifierBson)
+    collection.update.one(q = selector, u = modifierBson, upsert = false, multi = false)
+
   }
+
 
   def saveOrUpdate(userId: String, reference: String, upsert: Boolean)
   : Future[Either[BarError, Unit.type]] = {
@@ -182,7 +196,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
       )
     )
 
-    collection.update(_id(submissionId), modifier).map { updateResult =>
+    collection.update.one(_id(submissionId), modifier, upsert = true, multi = false).map { updateResult =>
 
       if (updateResult.ok && updateResult.n == 1) {
         Right(true)
@@ -200,7 +214,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
       )
     )
 
-    collection.update(_id(submissionId), modifier).map { updateResult =>
+    collection.update.one(_id(submissionId), modifier, upsert = true, multi = false).map { updateResult =>
       if (updateResult.ok && updateResult.n == 1) {
         Right(true)
       } else {
@@ -212,8 +226,6 @@ class SubmissionStatusRepositoryImpl @Inject()(
 
 @ImplementedBy(classOf[SubmissionStatusRepositoryImpl])
 trait SubmissionStatusRepository {
-
-  val collectionName = "submissions"
 
   def addError(submissionId: String, error: Error): Future[Either[BarError, Boolean]]
 
@@ -227,7 +239,9 @@ trait SubmissionStatusRepository {
 
   def getAll(): Future[Either[BarError, Seq[ReportStatus]]]
 
-  def saveOrUpdate(reportStatus: ReportStatus, upsert: Boolean): Future[Either[BarError, Unit.type]]
+  def insertOrMerge(reportStatus: ReportStatus): Future[Either[BarError, Unit]]
+
+  ///def saveOrUpdate(reportStatus: ReportStatus, upsert: Boolean): Future[Either[BarError, Unit.type]]
 
   def saveOrUpdate(userId: String, reference: String, upsert: Boolean): Future[Either[BarError, Unit.type]]
 }

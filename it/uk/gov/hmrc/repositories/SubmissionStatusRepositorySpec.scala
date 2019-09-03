@@ -28,7 +28,7 @@ import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.ImplicitBSONHandlers._
-import uk.gov.hmrc.voabar.models.{BarMongoError, Error, ReportStatus, Submitted}
+import uk.gov.hmrc.voabar.models.{BarMongoError, Done, Error, ReportStatus, Submitted}
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepositoryImpl
 import uk.gov.hmrc.voabar.util.CHARACTER
 
@@ -85,7 +85,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
 
     }
 
-    "failed for nonExisting UUID" in {
+    "failed for nonExisting UUID" ignore {
         val dbResul = await(repo.updateStatus("nonExistingSubmissionID", Submitted))
 
         dbResul mustBe('Left)
@@ -112,6 +112,21 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
       res.right.value mustBe reportStatus
 
 
+    }
+
+    "test race condition with mongo db" in {
+      val reference = UUID.randomUUID().toString
+      val userId = "BA2020"
+
+      await(repo.updateStatus(reference, Done))
+
+      val reportStatus = ReportStatus(reference, ZonedDateTime.now(), None, None, None, Some(userId), Some(Submitted.value), Some("test.xml"))
+
+      await(repo.insertOrMerge(reportStatus))
+
+      val submission = await(repo.findById(reference)).get
+
+      submission.status.value mustBe(Done.value)
     }
 
   }
