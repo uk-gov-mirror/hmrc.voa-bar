@@ -85,7 +85,7 @@ class SubmissionStatusController @Inject() (
   }
 
   private def saveSubmission(reportStatus: ReportStatus, upsert: Boolean): Future[Either[Result, Unit.type]] = {
-    submissionStatusRepository.saveOrUpdate(reportStatus, upsert).map(_.fold(
+    submissionStatusRepository.insertOrMerge(reportStatus).map(_.fold(
       _ => Left(InternalServerError),
       _ => Right(Unit)
     ))
