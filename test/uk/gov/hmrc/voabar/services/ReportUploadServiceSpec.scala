@@ -30,6 +30,7 @@ import org.mockito.Mockito.when
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyZeroInteractions
 import org.mockito.Matchers.anyString
+import org.mockito.Matchers.anyObject
 import org.mockito.Matchers.any
 import org.mockito.Matchers.{eq => meq}
 import org.mockito.Mockito
@@ -166,7 +167,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
     "handle email Submission error" in {
 
       val emailConnector = mock[EmailConnector]
-      when(emailConnector.sendEmail(anyString(), anyString(), anyString(), anyString(), anyString(), anyString())).thenReturn {
+      when(emailConnector.sendEmail(anyString(), anyObject(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString())).thenReturn {
         Future.failed(new RuntimeException("email sending failed"))
       }
 
@@ -255,7 +256,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
 
   def aEmailConnector(): EmailConnector = {
     val emailConnector = mock[EmailConnector]
-    when(emailConnector.sendEmail(anyString, anyString, anyString, anyString, anyString, anyString)).thenAnswer(new Answer[Future[Unit]] {
+    when(emailConnector.sendEmail(anyString(), anyObject(), anyString, anyString, anyString, anyString, anyString, anyString)).thenAnswer(new Answer[Future[Unit]] {
       override def answer(invocationOnMock: InvocationOnMock): Future[Unit] = Future.successful({})
     })
 
