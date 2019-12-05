@@ -19,6 +19,7 @@ package uk.gov.hmrc.voabar.connectors
 import com.google.inject.{ImplementedBy, Singleton}
 import com.typesafe.config.ConfigException
 import javax.inject.Inject
+import models.Purpose.Purpose
 import play.api.{Configuration, Environment}
 import play.api.libs.json._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
@@ -46,6 +47,8 @@ class DefaultEmailConnector @Inject() (val http: HttpClient,
 
   def sendEmail(
                  baRefNumber: String,
+                 purpose: Purpose,
+                 transactionId: String,
                  username: String,
                  password: String,
                  fileName: String,
@@ -55,9 +58,10 @@ class DefaultEmailConnector @Inject() (val http: HttpClient,
     if (needsToSendEmail) {
       val json = Json.obj(
         "to" -> JsArray(Seq(JsString(email))),
-        "templateId" -> JsString("bars_alert"),
+        "templateId" -> JsString("bars_alert_transaction"),
         "parameters" -> JsObject(Seq(
-          "baRefNumber" -> JsString(s"""BA : $baRefNumber"""),
+          "baRefNumber" -> JsString(s"""BA : $baRefNumber Type: $purpose"""),
+          "transactionId" -> JsString(s"""Transaction id : $transactionId"""),
           "fileName" -> JsString(s"""File name : $fileName"""),
           "dateSubmitted" -> JsString(s"""Date Submitted : $dateSubmitted"""),
           "errorList" -> JsString(s"""Errors $errorList""")
@@ -77,6 +81,8 @@ class DefaultEmailConnector @Inject() (val http: HttpClient,
 trait EmailConnector {
   def sendEmail(
                  baRefNumber: String,
+                 purpose: Purpose,
+                 transactionId: String,
                  username: String,
                  password: String,
                  fileName: String,

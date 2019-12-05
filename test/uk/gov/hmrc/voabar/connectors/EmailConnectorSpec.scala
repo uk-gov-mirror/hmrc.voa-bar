@@ -16,8 +16,9 @@
 
 package uk.gov.hmrc.voabar.connectors
 
+import models.Purpose
 import org.mockito.Matchers.{any, anyString}
-import org.mockito.Mockito.{verify, when, times}
+import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
@@ -43,6 +44,8 @@ class EmailConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoS
   private implicit val hc = mock[HeaderCarrier]
   private val username = "username"
   private val password = "password"
+  private val baCode = "BA1234"
+  private val purpose = Purpose.CT
   private val submissionId = "submissionId"
   private val filename = "filename.xml"
   private val date = "2000-01-01"
@@ -74,7 +77,7 @@ class EmailConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoS
       val httpMock = getHttpMock(Status.OK)
       val connector = new DefaultEmailConnector(httpMock, getConfiguration(), utils, environment)
 
-      connector.sendEmail(submissionId, username, password, filename, date, "")
+      connector.sendEmail(baCode, purpose, submissionId, username, password, filename, date, "")
 
       verify(httpMock)
         .POST[JsObject, Unit](anyString, any[JsObject], any[Seq[(String, String)]])(any[Writes[JsObject]], any[HttpReads[Unit]], any[HeaderCarrier], any[ExecutionContext])
@@ -83,7 +86,7 @@ class EmailConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoS
       val httpMock = getHttpMock(Status.OK)
       val connector = new DefaultEmailConnector(httpMock, getConfiguration(sendEmail = false), utils, environment)
 
-      connector.sendEmail(submissionId, username, password, filename, date, "")
+      connector.sendEmail(baCode, purpose, submissionId, username, password, filename, date, "")
 
       verify(httpMock, times(0))
         .POST[JsObject, Unit](anyString, any[JsObject], any[Seq[(String, String)]])(any[Writes[JsObject]], any[HttpReads[Unit]], any[HeaderCarrier], any[ExecutionContext])

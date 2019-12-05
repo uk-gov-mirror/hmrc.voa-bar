@@ -23,6 +23,7 @@ import cats.data.EitherT
 import cats.implicits._
 import javax.inject.Inject
 import javax.xml.transform.dom.DOMSource
+import models.Purpose
 import org.w3c.dom.Document
 import play.api.Logger
 import services.EbarsValidator
@@ -83,6 +84,8 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
                                    password: String
                                    ): Future[Either[BarEmailError, Unit.type]] = {
     emailConnector.sendEmail(
+      reportStatus.baCode.getOrElse("Unknown BA"),
+      Purpose.CT, // Note: This will need to be dynamic when NDR processing is added to the service
       reportStatus.id,
       username,
       password,
