@@ -19,14 +19,12 @@ package uk.gov.hmrc.voabar.connectors
 import com.google.inject.ImplementedBy
 import com.typesafe.config.ConfigException
 import javax.inject.{Inject, Singleton}
-import play.api.Mode.Mode
-import play.api.Play
-import play.api.{Configuration, Environment, Logger}
+import play.api.{Configuration,Logger}
 import play.mvc.Http.Status
 import uk.gov.hmrc.crypto.{ApplicationCrypto, PlainText}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, HttpResponse}
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
-import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.voabar.Utils
 import uk.gov.hmrc.voabar.models.EbarsRequests._
 import uk.gov.hmrc.voabar.models.LoginDetails
@@ -37,19 +35,15 @@ import scala.concurrent.ExecutionContext
 
 @Singleton
 class DefaultLegacyConnector @Inject()(val http: HttpClient,
-                                val configuration: Configuration,
+                                servicesConfig: ServicesConfig,
                                 utils: Utils,
-                                environment: Environment) extends LegacyConnector with  ServicesConfig {
+                                       applicationCrypto: ApplicationCrypto) extends LegacyConnector {
 
-  lazy val crypto = new ApplicationCrypto(configuration.underlying).JsonCrypto
+  def  crypto = applicationCrypto.JsonCrypto
 
-  override protected def mode: Mode = environment.mode
+  val autoBarsSubmitUrl = servicesConfig.getConfString("autobars-stubs.submit_url", throw new ConfigException.Missing("autobars-stubs.submit_url"))
 
-  override protected def runModeConfiguration: Configuration = configuration
-
-  val autoBarsSubmitUrl = getConfString("autobars-stubs.submit_url", throw new ConfigException.Missing("autobars-stubs.submit_url"))
-
-  val autoBarsStubBaseUrl = baseUrl("autobars-stubs") + "/autobars-stubs"
+  val autoBarsStubBaseUrl = servicesConfig.baseUrl("autobars-stubs") + "/autobars-stubs"
 
 
   override def validate(loginDetails: LoginDetails)(implicit executionContext: ExecutionContext,

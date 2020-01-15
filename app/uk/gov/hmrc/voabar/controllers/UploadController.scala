@@ -18,9 +18,9 @@ package uk.gov.hmrc.voabar.controllers
 
 import javax.inject.{Inject, Singleton}
 import play.api.Configuration
-import play.api.mvc.{Action, AnyContent, Result}
+import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import uk.gov.hmrc.crypto.{ApplicationCrypto, Crypted}
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.{BackendController, BaseController}
 import uk.gov.hmrc.voabar.models.UploadDetails
 import uk.gov.hmrc.voabar.services.ReportUploadService
 
@@ -28,8 +28,8 @@ import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success, Try}
 
 @Singleton
-class UploadController @Inject()(reportUploadService: ReportUploadService, configuration: Configuration)
-                                (implicit ec: ExecutionContext) extends BaseController {
+class UploadController @Inject()(reportUploadService: ReportUploadService, configuration: Configuration, controllerComponents: ControllerComponents)
+                                (implicit ec: ExecutionContext) extends BackendController(controllerComponents) {
 
   lazy val crypto = new ApplicationCrypto(configuration.underlying).JsonCrypto
 

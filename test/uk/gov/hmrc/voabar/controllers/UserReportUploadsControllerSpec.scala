@@ -27,6 +27,7 @@ import play.api.test.Helpers.{status, _}
 import org.mockito.Mockito.when
 import org.mockito.Matchers.any
 import uk.gov.hmrc.voabar.models.BarMongoError
+import play.api.test.Helpers.stubControllerComponents
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -47,7 +48,7 @@ class UserReportUploadsControllerSpec extends PlaySpec with MockitoSugar {
     "save a user report upload successfully" in {
       val userReportUploadsRepositoryMock = mock[UserReportUploadsRepository]
       when(userReportUploadsRepositoryMock.save(any[UserReportUpload])) thenReturn Future.successful(Right(Unit))
-      val userReportUploadsController = new UserReportUploadsController(userReportUploadsRepositoryMock)
+      val userReportUploadsController = new UserReportUploadsController(userReportUploadsRepositoryMock, stubControllerComponents())
 
       val response = userReportUploadsController.save()(fakeRequest)
 
@@ -56,7 +57,7 @@ class UserReportUploadsControllerSpec extends PlaySpec with MockitoSugar {
     "return an error status when saving fails" in {
       val userReportUploadsRepositoryMock = mock[UserReportUploadsRepository]
       when(userReportUploadsRepositoryMock.save(any[UserReportUpload])) thenReturn Future.successful(Left(error))
-      val userReportUploadsController = new UserReportUploadsController(userReportUploadsRepositoryMock)
+      val userReportUploadsController = new UserReportUploadsController(userReportUploadsRepositoryMock, stubControllerComponents())
 
       val response = userReportUploadsController.save()(fakeRequest)
 
@@ -65,7 +66,7 @@ class UserReportUploadsControllerSpec extends PlaySpec with MockitoSugar {
     "get by id returns user data correctly" in {
       val userReportUploadsRepositoryMock = mock[UserReportUploadsRepository]
       when(userReportUploadsRepositoryMock.getById(any[String])) thenReturn Future.successful(Right(Some(userReportUpload)))
-      val userReportUploadsController = new UserReportUploadsController(userReportUploadsRepositoryMock)
+      val userReportUploadsController = new UserReportUploadsController(userReportUploadsRepositoryMock, stubControllerComponents())
 
       val response = userReportUploadsController.getById(id)(fakeRequest).run()
 
@@ -75,7 +76,7 @@ class UserReportUploadsControllerSpec extends PlaySpec with MockitoSugar {
     "return bad status if an error occurs" in {
       val userReportUploadsRepositoryMock = mock[UserReportUploadsRepository]
       when(userReportUploadsRepositoryMock.getById(any[String])) thenReturn Future.successful(Left(error))
-      val userReportUploadsController = new UserReportUploadsController(userReportUploadsRepositoryMock)
+      val userReportUploadsController = new UserReportUploadsController(userReportUploadsRepositoryMock, stubControllerComponents())
 
       val response = userReportUploadsController.getById(id)(fakeRequest).run()
 

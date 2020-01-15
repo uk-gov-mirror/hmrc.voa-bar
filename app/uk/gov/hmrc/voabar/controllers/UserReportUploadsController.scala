@@ -21,16 +21,17 @@ import cats.implicits._
 import javax.inject.{Inject, Singleton}
 import play.api.Logger
 import play.api.libs.json.{JsSuccess, JsValue, Json}
-import play.api.mvc.{Action, Request, Result}
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import play.api.mvc.{Action, ControllerComponents, Request, Result}
+import uk.gov.hmrc.play.bootstrap.controller.{BackendController}
 import uk.gov.hmrc.voabar.repositories.{UserReportUpload, UserReportUploadsRepository}
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class UserReportUploadsController @Inject() (
-                                            userReportUploadsRepository: UserReportUploadsRepository
-                                            )(implicit ec: ExecutionContext) extends BaseController{
+class UserReportUploadsController @Inject() (userReportUploadsRepository: UserReportUploadsRepository,
+                                             controllerComponents: ControllerComponents
+                                            )(implicit ec: ExecutionContext) extends BackendController(controllerComponents) {
+
   def getById(id: String) = Action.async(parse.empty) { implicit request =>
     userReportUploadsRepository.getById(id).map(_.fold(
       _ => InternalServerError,

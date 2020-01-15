@@ -18,15 +18,17 @@ package uk.gov.hmrc.voabar.controllers
 
 import javax.inject.{Inject, Singleton}
 import play.api.Logger
-import play.api.mvc.Action
+import play.api.mvc.{Action, ControllerComponents}
 import uk.gov.hmrc.play.HeaderCarrierConverter
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.{BackendController, BaseController}
 import uk.gov.hmrc.voabar.services.ValidationService
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class ValidateController @Inject() (validationService: ValidationService)(implicit ec: ExecutionContext) extends BaseController {
+class ValidateController @Inject() (validationService: ValidationService,
+                                    controllerComponents: ControllerComponents)(implicit ec: ExecutionContext)
+  extends BackendController(controllerComponents) {
 
   val logger = Logger("v2-validation")
 
