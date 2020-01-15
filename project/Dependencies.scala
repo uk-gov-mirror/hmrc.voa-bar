@@ -33,7 +33,7 @@ object Dependencies {
 
   )
 
-  val dependencyOverrides = Set(
+  val dependencyOverrides = Seq(
     "com.typesafe.akka" %% "akka-stream"    % akkaVersion     force(),
     "com.typesafe.akka" %% "akka-protobuf"  % akkaVersion     force(),
     "com.typesafe.akka" %% "akka-slf4j"     % akkaVersion     force(),
