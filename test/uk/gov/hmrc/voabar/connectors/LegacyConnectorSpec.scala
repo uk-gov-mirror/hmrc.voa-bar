@@ -35,6 +35,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 import play.api.test.Helpers._
 import uk.gov.hmrc.crypto.{ApplicationCrypto, PlainText}
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.voabar.Utils
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 
@@ -43,9 +44,9 @@ import scala.io.Source
 class LegacyConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar {
 
   private def injector: Injector = app.injector
-  private val configuration = injector.instanceOf[Configuration]
-  private val environment = injector.instanceOf[Environment]
-  private val crypto = new ApplicationCrypto(configuration.underlying)
+
+  private def servicesConfig = app.injector.instanceOf[ServicesConfig]
+  private def crypto = app.injector.instanceOf[ApplicationCrypto]
   private val utils = new Utils(crypto.JsonCrypto)
   private implicit val hc = mock[HeaderCarrier]
 
@@ -71,7 +72,7 @@ class LegacyConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with Mockito
   "LegacyConnector " must {
     "Send the contact details returning a 200 when it succeeds" in {
       val httpMock = getHttpMock(Status.OK)
-      val connector = new DefaultLegacyConnector(httpMock, configuration, utils, environment)
+      val connector = new DefaultLegacyConnector(httpMock, servicesConfig, utils, crypto)
       val result = await(connector.validate(goodLogin))
       result.isSuccess mustBe true
       result.get mustBe Status.OK
@@ -79,7 +80,7 @@ class LegacyConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with Mockito
 
     "return a failure representing the error when the send contact details method fails" in {
       val httpMock = getHttpMock(Status.INTERNAL_SERVER_ERROR)
-      val connector = new DefaultLegacyConnector(httpMock, configuration, utils, environment)
+      val connector = new DefaultLegacyConnector(httpMock, servicesConfig, utils, crypto)
       val result = await(connector.validate(goodLogin))
 
       result.isFailure mustBe true
@@ -90,7 +91,7 @@ class LegacyConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with Mockito
       val utilsMock = mock[Utils]
       when(utilsMock.decryptPassword(any[String])).thenReturn(password)
       when(utilsMock.generateHeader(any[LoginDetails])(any[ExecutionContext])).thenReturn(hc)
-      val connector = new DefaultLegacyConnector(httpMock, configuration, utilsMock, environment)
+      val connector = new DefaultLegacyConnector(httpMock, servicesConfig, utilsMock, crypto)
 
       connector.sendBAReport(baReportsRequest).map { result =>
         result mustBe Status.OK
@@ -103,7 +104,7 @@ class LegacyConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with Mockito
       val utilsMock = mock[Utils]
       when(utilsMock.decryptPassword(any[String])).thenReturn(password)
       when(utilsMock.generateHeader(any[LoginDetails])(any[ExecutionContext])).thenReturn(hc)
-      val connector = new DefaultLegacyConnector(httpMock, configuration, utilsMock, environment)
+      val connector = new DefaultLegacyConnector(httpMock, servicesConfig, utilsMock, crypto)
 
       connector.sendBAReport(baReportsRequest).map { _=>
         fail("we didn't expect successful future")
@@ -120,7 +121,7 @@ class LegacyConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with Mockito
         val urlCaptor = ArgumentCaptor.forClass(classOf[String])
         val httpMock = getHttpMock(Status.OK)
 
-        val connector = new DefaultLegacyConnector(httpMock, configuration, utils, environment)
+        val connector = new DefaultLegacyConnector(httpMock, servicesConfig, utils, crypto)
         connector.validate(goodLogin)
 
         verify(httpMock).POST(urlCaptor.capture, any(),any())(any(), any(), any(), any())
@@ -128,14 +129,14 @@ class LegacyConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with Mockito
       }
 
       "return a 200 if the data transfer call is successful" in {
-        val connector = new DefaultLegacyConnector(getHttpMock(Status.OK), configuration, utils, environment)
+        val connector = new DefaultLegacyConnector(getHttpMock(Status.OK), servicesConfig, utils, crypto)
         val result = await(connector.validate(goodLogin))
         result.isSuccess mustBe true
         result.get mustBe Status.OK
       }
 
       "throw an failure if the data transfer call fails" in {
-        val connector = new DefaultLegacyConnector(getHttpMock(Status.INTERNAL_SERVER_ERROR), configuration, utils, environment)
+        val connector = new DefaultLegacyConnector(getHttpMock(Status.INTERNAL_SERVER_ERROR), servicesConfig, utils, crypto)
         val result = await(connector.validate(goodLogin))
         assert(result.isFailure)
       }
@@ -143,7 +144,7 @@ class LegacyConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with Mockito
       "return a failure if the data transfer call throws an exception" in {
         val httpMock = mock[HttpClient]
         when(httpMock.POST(anyString, any(), any())(any(), any[HttpReads[Any]], any[HeaderCarrier], any())) thenReturn Future.successful(new RuntimeException)
-        val connector = new DefaultLegacyConnector(httpMock, configuration, utils, environment)
+        val connector = new DefaultLegacyConnector(httpMock, servicesConfig, utils, crypto)
         val result = await(connector.validate(goodLogin))
         assert(result.isFailure)
       }

@@ -26,6 +26,7 @@ import play.api.test.Helpers.{status, _}
 import uk.gov.hmrc.crypto.{ApplicationCrypto, PlainText}
 import uk.gov.hmrc.voabar.models.UploadDetails
 import uk.gov.hmrc.voabar.services.ReportUploadService
+import play.api.test.Helpers.stubControllerComponents
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -40,7 +41,7 @@ class UploadControllerSpec extends PlaySpec with MockitoSugar {
 
   val encryptedPassword = crypto.encrypt(PlainText("password")).value
 
-  val controller = new UploadController(reportUploadService, configuration)
+  val controller = new UploadController(reportUploadService, configuration, stubControllerComponents())
 
   def fakeRequestWithXML = {
     FakeRequest("POST", "/request?reference=1234")

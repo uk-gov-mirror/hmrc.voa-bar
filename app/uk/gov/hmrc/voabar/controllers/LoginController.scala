@@ -18,8 +18,8 @@ package uk.gov.hmrc.voabar.controllers
 
 import javax.inject.{Inject, Singleton}
 import play.api.Logger
-import play.api.mvc.{Action, AnyContent}
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import uk.gov.hmrc.play.bootstrap.controller.{BackendController, BaseController}
 
 import scala.concurrent.Future
 import uk.gov.hmrc.voabar.models.LoginDetails
@@ -30,7 +30,8 @@ import scala.util.{Failure, Success}
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
-class LoginController @Inject()(val legacyConnector: LegacyConnector) extends BaseController {
+class LoginController @Inject()(val legacyConnector: LegacyConnector, controllerComponents: ControllerComponents)
+  extends BackendController(controllerComponents) {
   def verifyLogin(json: Option[JsValue]): Either[String, LoginDetails] = {
     json match {
       case Some(value) => {

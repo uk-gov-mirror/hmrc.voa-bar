@@ -20,8 +20,8 @@ import cats.data.EitherT
 import cats.implicits._
 import javax.inject.{Inject, Singleton}
 import play.api.libs.json.{JsSuccess, JsValue}
-import play.api.mvc.{Action, Request, Result}
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import play.api.mvc.{Action, ControllerComponents, Request, Result}
+import uk.gov.hmrc.play.bootstrap.controller.{BackendController, BaseController}
 import uk.gov.hmrc.voabar.models.ReportStatus
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
 import play.api.libs.json.Json
@@ -30,8 +30,10 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class SubmissionStatusController @Inject() (
-                                           submissionStatusRepository: SubmissionStatusRepository
-                                           )(implicit ec: ExecutionContext) extends BaseController {
+                                           submissionStatusRepository: SubmissionStatusRepository,
+                                           controllerComponents: ControllerComponents
+                                           )(implicit ec: ExecutionContext) extends BackendController(controllerComponents) {
+
   private def getReportStatusesByUser(userId: String, filter: Option[String]): Future[Either[Result, Seq[ReportStatus]]] = {
     submissionStatusRepository.getByUser(userId, filter).map(_.fold(
       _ => Left(InternalServerError),

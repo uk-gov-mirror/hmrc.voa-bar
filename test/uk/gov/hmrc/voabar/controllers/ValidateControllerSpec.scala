@@ -22,10 +22,11 @@ import java.util.UUID
 
 import scala.concurrent.Future
 import org.scalatestplus.play._
-import play.api.libs.Files.TemporaryFile
+import play.api.libs.Files.{SingletonTemporaryFileCreator, TemporaryFile}
 import play.api.mvc._
 import play.api.test._
 import play.api.test.Helpers._
+import play.libs.Files.TemporaryFileCreator
 import uk.gov.hmrc.voabar.services.{BusinessRules, ValidationService, XmlParser, XmlValidator}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -38,7 +39,7 @@ class ValidateControllerSpec extends PlaySpec with Results {
 
   "Validate controller" should {
     "validate correct xml" in {
-      val controller = new ValidateController(aValidationService())
+      val controller = new ValidateController(aValidationService(), Helpers.stubControllerComponents())
       val response = controller.validate(BA_LOGIN).apply(aSucessfullRequest())
       status(response) mustBe(OK)
     }
@@ -53,7 +54,7 @@ class ValidateControllerSpec extends PlaySpec with Results {
 
     Files.copy(path, tempPath, StandardCopyOption.REPLACE_EXISTING)
 
-    val tempFile = TemporaryFile(tempPath.toFile)
+    val tempFile = SingletonTemporaryFileCreator.create(tempPath)
     FakeRequest(POST, "/sss").withBody(tempFile)
       .withHeaders("X-Request-ID" -> requestId)
 

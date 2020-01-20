@@ -20,8 +20,8 @@ lazy val playSettings : Seq[Setting[_]] = Seq.empty
 
 
 def oneForkedJvmPerTest(tests: Seq[TestDefinition]) =
-  tests map {
-    test => new Group(test.name, Seq(test), SubProcess(ForkOptions(runJVMOptions = Seq("-Dtest.name=" + test.name))))
+  tests map { test => 
+    new Group(test.name, Seq(test), SubProcess(ForkOptions().withRunJVMOptions(Vector(s"-Dtest.name=${test.name}"))))
   }
 
 lazy val microservice = Project(appName, file("."))
@@ -43,7 +43,7 @@ lazy val microservice = Project(appName, file("."))
     libraryDependencies ++= appDependencies,
     retrieveManaged := true,
     evictionWarningOptions in update := EvictionWarningOptions.default.withWarnScalaVersionEviction(false),
-    routesGenerator := StaticRoutesGenerator
+    dependencyOverrides := Dependencies.dependencyOverrides
   )
   .configs(IntegrationTest)
   .settings(inConfig(IntegrationTest)(Defaults.itSettings): _*)
