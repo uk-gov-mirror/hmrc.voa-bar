@@ -17,8 +17,11 @@
 package uk.gov.hmrc.voabar.services
 
 import java.io.FileInputStream
+import java.net.URL
 import java.time.ZonedDateTime
 
+import ebars.xml.BAreports
+import javax.xml.bind.JAXBContext
 import org.apache.commons.io.IOUtils
 import org.scalatest.{AsyncWordSpec, MustMatchers, OptionValues}
 import org.scalatest.mockito.MockitoSugar
@@ -57,6 +60,15 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
     "proces request " in {
       val reportUploadService = new ReportUploadService(aCorrectStatusRepository(), aValidationService(), aXmlParser(), aLegacyConnector(), aEmailConnector())
       val res = reportUploadService.upload("username", "password", aXmlUrl, uploadReference)
+      res.map { result =>
+        result mustBe "ok"
+      }
+    }
+
+    "proces request for jaxbInput " in {
+      val reportUploadService = new ReportUploadService(aCorrectStatusRepository(), aValidationService(), aXmlParser(), aLegacyConnector(), aEmailConnector())
+      val jaxbInput = aJaxbInput(getClass.getResource("/xml/CTValid1.xml"))
+      val res = reportUploadService.upload("username", "password", jaxbInput, uploadReference)
       res.map { result =>
         result mustBe "ok"
       }
@@ -213,6 +225,13 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
       override def answer(invocationOnMock: InvocationOnMock): Future[Either[BarError, ReportStatus]] = Future.successful(Right(reportStatus))
     })
     repository
+  }
+
+  def aJaxbInput(xml: URL) = {
+    val doc = aXmlParser().parse(xml).right.get
+    val jaxbContext = JAXBContext.newInstance("ebars.xml")
+    val xmlUnmarshaller = jaxbContext.createUnmarshaller()
+    xmlUnmarshaller.unmarshal(doc).asInstanceOf[BAreports]
   }
 
   def aValidationService(): ValidationService = {

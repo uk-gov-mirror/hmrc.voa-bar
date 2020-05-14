@@ -20,15 +20,18 @@ import java.time.ZonedDateTime
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
+import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
 import org.mockito.Mockito.when
 import org.mockito.Matchers.any
+import play.api.Configuration
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import uk.gov.hmrc.voabar.models.{BarMongoError, ReportStatus}
 import play.api.test.Helpers._
+import uk.gov.hmrc.crypto.{ApplicationCrypto, PlainText}
 import uk.gov.hmrc.voabar.services.WebBarsService
 
 import scala.concurrent.Future
@@ -46,9 +49,11 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
     url = Some("url.com"),
     baCode = Some(userId)
   )
+  val configuration = Configuration(ConfigFactory.load())
+  val crypto = new ApplicationCrypto(configuration.underlying).JsonCrypto
   val reportStatusJson = Json.toJson(reportStatus)
   val reportStatusesJson = Json.toJson(Seq(reportStatus))
-  val fakeRequest = FakeRequest("", "").withBody(reportStatusJson).withHeaders(("BA-Code", userId))
+  val fakeRequest = FakeRequest("", "").withBody(reportStatusJson).withHeaders(("BA-Code", userId), ("password" ->  crypto.encrypt(PlainText("gggg")).value))
   val error = BarMongoError("error")
 
   val webBarsServiceMock = mock[WebBarsService]
@@ -57,7 +62,7 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
     "save a new report status successfully" in {
       val submissionStatusRepositoryMock = mock[SubmissionStatusRepository]
       when(submissionStatusRepositoryMock.insertOrMerge(any[ReportStatus])) thenReturn(Future.successful(Right(())))
-      val submissionStatusController = new SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock)
+      val submissionStatusController = new SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
 
       val response = submissionStatusController.save()(fakeRequest)
 
@@ -66,7 +71,7 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
     "return invalid status when saving fails" in {
       val submissionStatusRepositoryMock = mock[SubmissionStatusRepository]
       when(submissionStatusRepositoryMock.insertOrMerge(any[ReportStatus])) thenReturn(Future.successful(Left(error)))
-      val submissionStatusController = new SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock)
+      val submissionStatusController = new SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
 
       val response = submissionStatusController.save()(fakeRequest)
 
@@ -75,7 +80,7 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
     "save a new report status user info successfully" in {
       val submissionStatusRepositoryMock = mock[SubmissionStatusRepository]
       when(submissionStatusRepositoryMock.saveOrUpdate(any[String], any[String], any[Boolean])) thenReturn(Future.successful(Right(Unit)))
-      val submissionStatusController = new SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock)
+      val submissionStatusController = new SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
 
       val response = submissionStatusController.saveUserInfo()(fakeRequest)
 
@@ -84,7 +89,7 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
     "return invalid status when saving user info fails" in {
       val submissionStatusRepositoryMock = mock[SubmissionStatusRepository]
       when(submissionStatusRepositoryMock.saveOrUpdate(any[String], any[String], any[Boolean])) thenReturn(Future.successful(Left(error)))
-      val submissionStatusController = new SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock)
+      val submissionStatusController = new SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
 
       val response = submissionStatusController.saveUserInfo()(fakeRequest)
 
@@ -93,7 +98,7 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
     "returns report statuses when search by user id" in {
       val submissionStatusRepositoryMock = mock[SubmissionStatusRepository]
       when(submissionStatusRepositoryMock.getByUser(any[String], any[Option[String]])) thenReturn(Future.successful(Right(Seq(reportStatus))))
-      val submissionStatusController = new SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock)
+      val submissionStatusController = new SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
 
       val response = submissionStatusController.getByUser()(fakeRequest).run()
 
@@ -103,7 +108,7 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
     "returns invalid error when search by user id unsuccessfully" in {
       val submissionStatusRepositoryMock = mock[SubmissionStatusRepository]
       when(submissionStatusRepositoryMock.getByUser(any[String], any[Option[String]])) thenReturn(Future.successful(Left(error)))
-      val submissionStatusController = new SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock)
+      val submissionStatusController = new SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
 
       val response = submissionStatusController.getByUser()(fakeRequest).run()
 
@@ -112,7 +117,7 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
     "returns report statuses when search by submission id" in {
       val submissionStatusRepositoryMock = mock[SubmissionStatusRepository]
       when(submissionStatusRepositoryMock.getByReference(any[String])) thenReturn(Future.successful(Right(reportStatus)))
-      val submissionStatusController = new SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock)
+      val submissionStatusController = new SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
 
       val response = submissionStatusController.getByReference(id)(fakeRequest).run()
 
@@ -122,7 +127,7 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
     "returns invalid error when search by submission id unsuccessfully" in {
       val submissionStatusRepositoryMock = mock[SubmissionStatusRepository]
       when(submissionStatusRepositoryMock.getByReference(any[String])) thenReturn(Future.successful(Left(error)))
-      val submissionStatusController = new SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock)
+      val submissionStatusController = new SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
 
       val response = submissionStatusController.getByReference(id)(fakeRequest).run()
 
@@ -131,7 +136,7 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
     "returns all report statuses" in {
       val submissionStatusRepositoryMock = mock[SubmissionStatusRepository]
       when(submissionStatusRepositoryMock.getAll()) thenReturn (Future.successful(Right(Seq(reportStatus))))
-      val submissionStatusController = new SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock)
+      val submissionStatusController = new SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
 
       val response = submissionStatusController.getAll()(fakeRequest).run()
 
@@ -142,7 +147,7 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
     "returns invalid error when search all unsuccessfully" in {
       val submissionStatusRepositoryMock = mock[SubmissionStatusRepository]
       when(submissionStatusRepositoryMock.getAll()) thenReturn(Future.successful(Left(error)))
-      val submissionStatusController = new SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock)
+      val submissionStatusController = new SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
 
       val response = submissionStatusController.getAll()(fakeRequest).run()
 

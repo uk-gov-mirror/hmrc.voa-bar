@@ -21,6 +21,7 @@ import java.io.StringWriter
 
 import cats.data.EitherT
 import cats.implicits._
+import ebars.xml.BAreports
 import javax.inject.Inject
 import javax.xml.transform.dom.DOMSource
 import models.Purpose
@@ -76,6 +77,30 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
         "failed"
       }
     }
+  }
+
+  def upload(username: String, password: String, baReports: BAreports, uploadReference: String)(implicit headerCarrier: HeaderCarrier) = {
+    val processingResult = for {
+      _ <- EitherT(statusRepository.update(uploadReference, Verified, baReports.getBAreportTrailer.getRecordCount.intValue()))
+      _ <- EitherT(ebarsUpload(baReports, username, password, uploadReference))
+      _ <- EitherT(statusRepository.updateStatus(uploadReference, Done))
+      _ <- EitherT(sendConfirmationEmail(uploadReference, username, password))
+    } yield ("ok")
+
+    processingResult.value
+      .recover {
+        case exception: Exception => {
+          Logger.warn("Unexpected error when processing file, trying to recover", exception)
+          Left(UnknownError(exception.getMessage))
+        }
+      }
+      .map {
+        case Right(v) => "ok"
+        case Left(a) => {
+          handleError(uploadReference, a, username, password)
+          "failed"
+        }
+      }
   }
 
   private def sendConfirmationEmail(
@@ -159,11 +184,21 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
 
 
   private def ebarsUpload(domDocument: Document, username: String, password: String, submissionId: String)(implicit headerCarrier: HeaderCarrier) : Future[Either[BarError, Boolean]] = {
+    Future {
+      Try {
+        ebarsValidator.fromXml(new DOMSource(domDocument)) //blocking operation
+      } match {
+        case Success(baReports) => ebarsUpload(baReports, username, password, submissionId)
+        case Failure(exception) => Future.successful(Left(BarEbarError(exception.getMessage)))
+      }
+    }.flatten
+
+  }
+
+  private def ebarsUpload(baReports: BAreports, username: String, password: String, submissionId: String)(implicit headerCarrier: HeaderCarrier) : Future[Either[BarError, Boolean]] = {
 
     val riskyConversion: Either[BarError, String] = Try {
-
-      val jaxbElement = ebarsValidator.fromXml(new DOMSource(domDocument))
-      ebarsValidator.toJson(jaxbElement)
+      ebarsValidator.toJson(baReports)
     } match {
       case Success(jsonString) => Right(jsonString)
       case Failure(exception) => Left(BarEbarError(exception.getMessage))
