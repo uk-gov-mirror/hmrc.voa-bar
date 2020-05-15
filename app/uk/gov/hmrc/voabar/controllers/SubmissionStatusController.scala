@@ -19,22 +19,28 @@ package uk.gov.hmrc.voabar.controllers
 import cats.data.EitherT
 import cats.implicits._
 import javax.inject.{Inject, Singleton}
+import play.api.Configuration
 import play.api.libs.json.{JsSuccess, JsValue}
 import play.api.mvc.{Action, ControllerComponents, Request, Result}
 import uk.gov.hmrc.play.bootstrap.controller.{BackendController, BaseController}
 import uk.gov.hmrc.voabar.models.ReportStatus
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
 import play.api.libs.json.Json
+import uk.gov.hmrc.crypto.{ApplicationCrypto, Crypted}
 import uk.gov.hmrc.voabar.services.WebBarsService
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success, Try}
 
 @Singleton
 class SubmissionStatusController @Inject() (
                                            submissionStatusRepository: SubmissionStatusRepository,
                                            controllerComponents: ControllerComponents,
-                                           webBarsService: WebBarsService
+                                           webBarsService: WebBarsService,
+                                           configuration: Configuration
                                            )(implicit ec: ExecutionContext) extends BackendController(controllerComponents) {
+
+  lazy val crypto = new ApplicationCrypto(configuration.underlying).JsonCrypto
 
   private def getReportStatusesByUser(userId: String, filter: Option[String]): Future[Either[Result, Seq[ReportStatus]]] = {
     submissionStatusRepository.getByUser(userId, filter).map(_.fold(
@@ -91,12 +97,7 @@ class SubmissionStatusController @Inject() (
   private def saveSubmission(reportStatus: ReportStatus, upsert: Boolean): Future[Either[Result, Unit.type]] = {
     submissionStatusRepository.insertOrMerge(reportStatus).map(_.fold(
       _ => Left(InternalServerError),
-      _ => {
-        if(reportStatus.report.isDefined) {
-          webBarsService.newSubmission(reportStatus.id) //Fire and forget.
-        }
-        Right(Unit)
-      }
+      _ => Right(Unit)
     ))
   }
 
@@ -110,11 +111,17 @@ class SubmissionStatusController @Inject() (
   }
 
   def save(upsert: Boolean = false) = Action.async(parse.tolerantJson) { request =>
+    val headers = request.headers
+
     (for {
-      reportStatus <- EitherT.fromEither[Future](parseReportStatus(request))
-      _ <- EitherT(saveSubmission(reportStatus, upsert))
+        baCode <- EitherT.fromEither[Future](headers.get("BA-Code").toRight(Unauthorized("BA-Code missing")))
+        encryptedPassword <- EitherT.fromEither[Future](headers.get("password").toRight(Unauthorized("password missing")))
+        password <- EitherT.fromEither[Future](decryptPassword(encryptedPassword))
+        reportStatus <- EitherT.fromEither[Future](parseReportStatus(request))
+        _ <- EitherT(saveSubmission(reportStatus, upsert))
+        _ = webBarsService.newSubmission(reportStatus, baCode, password)
     } yield NoContent)
-      .valueOr(_ => InternalServerError)
+    .valueOr(ex => InternalServerError)
   }
 
   def saveUserInfo() = Action.async(parse.tolerantJson) { request =>
@@ -123,5 +130,14 @@ class SubmissionStatusController @Inject() (
       _ <- EitherT(saveSubmissionUserInfo(reportStatus.baCode.get, reportStatus.id, true))
     } yield NoContent)
       .valueOr(_ => InternalServerError)
+  }
+
+  private def decryptPassword(encryptedPassword: String): Either[Result, String] = {
+    Try {
+      crypto.decrypt(Crypted(encryptedPassword))
+    } match {
+      case Success(password) => Right(password.value)
+      case Failure(exception) => Left(Unauthorized("Unable to decrypt password"))
+    }
   }
 }

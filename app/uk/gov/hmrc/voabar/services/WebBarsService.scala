@@ -20,35 +20,48 @@ import akka.actor.{ActorSystem, Scheduler}
 import com.google.inject.ImplementedBy
 import javax.inject.{Inject, Singleton}
 import play.api.Logger
-import uk.gov.hmrc.voabar.models.{Done, Verified}
+import play.api.libs.json.JsString
+import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.voabar.models.{Cr03Submission, Done, ReportStatus, Verified}
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
+import uk.gov.hmrc.voabar.util.{BillingAuthorities, Cr03SubmissionXmlGenerator}
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 
 @ImplementedBy(classOf[DefaultWebBarsService])
 trait WebBarsService {
-  def newSubmission(id: String): Unit
+  def newSubmission(reportStatus: ReportStatus, username: String, password: String): Unit
 }
 
 @Singleton
-class DefaultWebBarsService @Inject() (actorSystem: ActorSystem, submissionRepository: SubmissionStatusRepository)(
+class DefaultWebBarsService @Inject() (actorSystem: ActorSystem,submissionRepository: SubmissionStatusRepository, reportUploadService: ReportUploadService)(
   implicit ec: ExecutionContext) extends WebBarsService {
 
   val log = Logger(this.getClass)
 
-  override def newSubmission(id: String): Unit = {
-    log.debug(s"New WebBars report scheduled : ${id}")
-    actorSystem.scheduler.scheduleOnce(10 seconds) {
-      val update = submissionRepository.updateStatus(id, Verified)
-      update.onComplete { _ =>
-        log.debug(s"WebBars report ${id} updated to ${Verified}")
-        actorSystem.scheduler.scheduleOnce(10 seconds) {
-          submissionRepository.updateStatus(id, Done).onComplete { _ =>
-            log.debug(s"WebBars report ${id} updated to ${Done}")
-          }
-        }
-      }
+  def newSubmission(reportStatus: ReportStatus, username: String, password: String): Unit = {
+    if(reportStatus.report.isDefined) {
+      processReport(reportStatus, username, password)
+    }
+  }
+
+  def processReport(reportStatus: ReportStatus, username: String, password: String): Unit = Future {
+    val cr03Submission = reportStatus.report
+      .map(_.value)
+      .filter(x => x.get("type").map {case x: JsString => x.value == "Cr03Submission"}.getOrElse(false))
+      .flatMap(x => x.get("submission")).flatMap(x => Cr03Submission.format.reads(x).asOpt)
+
+    cr03Submission.foreach { submission =>
+      implicit val hc = HeaderCarrier()
+      val cr03SubmissionXmlGenerator = new Cr03SubmissionXmlGenerator(submission, username.substring(2).toInt,
+        BillingAuthorities.find(username).getOrElse("Unknown"), reportStatus.id)
+
+      reportUploadService.upload(username, password, cr03SubmissionXmlGenerator.generateXml(), reportStatus.id)
+    }
+  }.recover {
+    case x: Exception => {
+      log.warn(s"Unable to process webBars report : ${reportStatus}")
     }
   }
 
