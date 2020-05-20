@@ -17,6 +17,7 @@
 package uk.gov.hmrc.voabar.controllers
 
 import java.time.ZonedDateTime
+import java.util.UUID
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
@@ -153,5 +154,34 @@ class SubmissionStatusControllerSpec extends PlaySpec with MockitoSugar {
 
       status(response) mustBe INTERNAL_SERVER_ERROR
     }
+
+    "delete submission and return delete status" in {
+      val reference = UUID.randomUUID().toString
+      val deleteResult = Json.obj(
+        "code" -> Option.empty[String],
+        "n" -> 1,
+        "writeErrors" -> "",
+        "writeConcernError" -> ""
+      )
+      val submissionStatusRepositoryMock = mock[SubmissionStatusRepository]
+      when(submissionStatusRepositoryMock.deleteByReference(any[String], any[String])) thenReturn(Future.successful(Right(deleteResult)))
+      val submissionStatusController = new SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
+
+      val response = submissionStatusController.deleteByReference(reference).apply(fakeRequest.withHeaders("BA-Code" -> "BA1010")).run()
+
+      status(response) mustBe OK
+      contentAsJson(response) mustBe deleteResult
+    }
+
+    "Reject deletion when BA-Code is not in http header" in {
+      val reference = UUID.randomUUID().toString
+      val submissionStatusRepositoryMock = mock[SubmissionStatusRepository]
+      val submissionStatusController = new SubmissionStatusController(submissionStatusRepositoryMock, stubControllerComponents(), webBarsServiceMock, configuration)
+
+      val response = submissionStatusController.deleteByReference(reference).apply(fakeRequest.withHeaders(fakeRequest.headers.remove("BA-Code"))).run()
+
+      status(response) mustBe UNAUTHORIZED
+    }
+
   }
 }
