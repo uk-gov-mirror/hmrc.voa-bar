@@ -21,7 +21,7 @@ import java.time.ZonedDateTime
 import com.google.inject.ImplementedBy
 import com.typesafe.config.ConfigException
 import javax.inject.{Inject, Singleton}
-import play.api.libs.json.{Format, Json}
+import play.api.libs.json.{Format, JsValue, Json}
 import play.api.{Configuration, Logger}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.commands.WriteResult
@@ -50,6 +50,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
   private val ttlPath = s"$collectionName.timeToLiveInSeconds"
   private val ttl = config.getInt(ttlPath).getOrElse(throw new ConfigException.Missing(ttlPath))
 
+  private val log = Logger(this.getClass)
   override def indexes: Seq[Index] = Seq (
     Index(Seq("baCode" -> IndexType.Hashed), name = Some(s"${collectionName}_baCodeIdx")),
     Index(Seq("created" -> IndexType.Descending), name = Some(s"${collectionName}_createdIdx")
@@ -222,6 +223,21 @@ class SubmissionStatusRepositoryImpl @Inject()(
       }
     }
   }
+
+  override def deleteByReference(reference: String, user: String): Future[Either[BarError, JsValue]] = {
+    val deleteSelector = Json.obj(_Id -> reference, "baCode" -> user)
+    log.warn(s"Performing deletion on ${collectionName} with selector: ${deleteSelector}")
+    collection.delete.one(deleteSelector).map { deleteResult =>
+      val response = Json.obj(
+        "code" -> deleteResult.code,
+        "n" -> deleteResult.n,
+        "writeErrors" -> deleteResult.writeErrors.mkString(","),
+        "writeConcernError" -> deleteResult.writeConcernError.map(_.toString)
+      )
+      log.warn(s"Deletion on ${collectionName} done, returning response : ${response}")
+      Right(response)
+    }
+  }
 }
 
 @ImplementedBy(classOf[SubmissionStatusRepositoryImpl])
@@ -236,6 +252,8 @@ trait SubmissionStatusRepository {
   def getByUser(userId: String, filter: Option[String] = None) : Future[Either[BarError, Seq[ReportStatus]]]
 
   def getByReference(reference: String) : Future[Either[BarError, ReportStatus]]
+
+  def deleteByReference(reference: String, user: String) : Future[Either[BarError, JsValue]]
 
   def getAll(): Future[Either[BarError, Seq[ReportStatus]]]
 
