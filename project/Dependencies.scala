@@ -29,7 +29,8 @@ object Dependencies {
     "net.codingwell" %% "scala-guice"               % guiceUtilsVersion,
     "org.typelevel" %% "cats-core"                  % catsCoreVersion,
     "net.sf.saxon" % "Saxon-HE"                     % saxonHeVersion,
-    "xerces" % "xercesImpl"                         % xercesVersion
+    "xerces" % "xercesImpl"                         % xercesVersion,
+    "org.eclipse.persistence" % "org.eclipse.persistence.moxy" % "2.6.9"
 
   )
 
