@@ -61,11 +61,11 @@ class Cr03SubmissionXmlGeneratorSpec extends FlatSpec with MustMatchers with Eit
     day <- Gen.chooseNum(1,28)
   } yield(LocalDate.of(year, month, day))
 
-  def genAddress = for {
-    line1 <- genRestrictedString(max=35)
-    line2 <- genRestrictedString(max=35)
-    line3 <- Gen.option(genRestrictedString(max=35))
-    line4 <- Gen.option(genRestrictedString(max=35))
+  def genAddress(max:Int = 35) = for {
+    line1 <- genRestrictedString(max=max)
+    line2 <- genRestrictedString(max=max)
+    line3 <- Gen.option(genRestrictedString(max=max))
+    line4 <- Gen.option(genRestrictedString(max=max))
   }yield (Address(line1, line2, line3, line4, "BN12 4AX"))
 
   def genContactDetails = for {
@@ -90,8 +90,8 @@ class Cr03SubmissionXmlGeneratorSpec extends FlatSpec with MustMatchers with Eit
     baReport <- genRestrictedString(max = 12)
     baRef <- genRestrictedString(max = 25)
     uprn <- Gen.option(Gen.chooseNum(1l,999999999999l).map(_.toString))
-    address <- genAddress
-    contactAddress <- Gen.option(genAddress)
+    address <- genAddress(max = 100)
+    contactAddress <- Gen.option(genAddress())
     contactDetails <- genContactDetails
     effectiveDate <- genEffectiveDate
     (planningRef, noPlanningRef) <- genPlanningReference
