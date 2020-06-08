@@ -48,7 +48,7 @@ class LegacyConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with Mockito
   private def servicesConfig = app.injector.instanceOf[ServicesConfig]
   private def crypto = app.injector.instanceOf[ApplicationCrypto]
   private val utils = new Utils(crypto.JsonCrypto)
-  private implicit val hc = mock[HeaderCarrier]
+  private implicit val hc = HeaderCarrier()
 
   private val username = "ba0121"
   private val password = "wibble"
@@ -90,7 +90,7 @@ class LegacyConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with Mockito
       val httpMock = getHttpMock(Status.OK)
       val utilsMock = mock[Utils]
       when(utilsMock.decryptPassword(any[String])).thenReturn(password)
-      when(utilsMock.generateHeader(any[LoginDetails])(any[ExecutionContext])).thenReturn(hc)
+      when(utilsMock.generateHeader(any[LoginDetails], any[HeaderCarrier])).thenReturn(hc)
       val connector = new DefaultLegacyConnector(httpMock, servicesConfig, utilsMock, crypto)
 
       connector.sendBAReport(baReportsRequest).map { result =>
@@ -103,7 +103,7 @@ class LegacyConnectorSpec extends PlaySpec with GuiceOneAppPerSuite with Mockito
       val httpMock = getHttpMock(Status.INTERNAL_SERVER_ERROR)
       val utilsMock = mock[Utils]
       when(utilsMock.decryptPassword(any[String])).thenReturn(password)
-      when(utilsMock.generateHeader(any[LoginDetails])(any[ExecutionContext])).thenReturn(hc)
+      when(utilsMock.generateHeader(any[LoginDetails], any[HeaderCarrier])).thenReturn(hc)
       val connector = new DefaultLegacyConnector(httpMock, servicesConfig, utilsMock, crypto)
 
       connector.sendBAReport(baReportsRequest).map { _=>

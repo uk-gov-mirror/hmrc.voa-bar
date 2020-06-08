@@ -19,7 +19,8 @@ package uk.gov.hmrc.voabar.connectors
 import com.google.inject.ImplementedBy
 import com.typesafe.config.ConfigException
 import javax.inject.{Inject, Singleton}
-import play.api.{Configuration,Logger}
+import play.api.http.HeaderNames
+import play.api.{Configuration, Logger}
 import play.mvc.Http.Status
 import uk.gov.hmrc.crypto.{ApplicationCrypto, PlainText}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, HttpResponse}
@@ -74,6 +75,7 @@ class DefaultLegacyConnector @Inject()(val http: HttpClient,
   def sendBAReport(baReport: BAReportRequest)(implicit ec: ExecutionContext, headerCarrier: HeaderCarrier): Future[Int] = {
 
     val authHc = utils.generateHeader(LoginDetails(baReport.username, baReport.password), headerCarrier)
+      .withExtraHeaders(HeaderNames.CONTENT_TYPE ->  "text/plain; charset=UTF-8")
 
     http.POSTString(s"${autoBarsStubBaseUrl}/${autoBarsSubmitUrl}",
       baReport.propertyReport,
