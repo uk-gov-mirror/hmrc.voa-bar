@@ -48,7 +48,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
   ) with SubmissionStatusRepository with BSONBuilderHelpers {
 
   private val ttlPath = s"$collectionName.timeToLiveInSeconds"
-  private val ttl = config.getInt(ttlPath).getOrElse(throw new ConfigException.Missing(ttlPath))
+  private val ttl = config.get[Int](ttlPath)
 
   private val log = Logger(this.getClass)
   override def indexes: Seq[Index] = Seq (
@@ -62,13 +62,15 @@ class SubmissionStatusRepositoryImpl @Inject()(
 
     insert(reportStatus).recoverWith[WriteResult] {
       case WriteResult.Code(11000) => {
-        Logger.error("alredy exist in database, need to update")
+        Logger.error(s"Document ${reportStatus.id} already exist in database, need to update")
         merge(reportStatus)
       }
-    }.map { result =>
+    }.map { _ =>
       Right(())
     }.recover {
-      case e: Exception => Left(BarMongoError(e.getMessage, None))
+      case e: Exception =>
+        Logger.error(s"Couldn't insertOrMerge document  ${reportStatus.id}", e)
+        Left(BarMongoError(e.getMessage, None))
     }
   }
 

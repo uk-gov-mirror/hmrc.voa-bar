@@ -19,10 +19,10 @@ package uk.gov.hmrc.voabar.controllers
 import cats.data.EitherT
 import cats.implicits._
 import javax.inject.{Inject, Singleton}
-import play.api.Configuration
+import play.api.{Configuration, Logger}
 import play.api.libs.json.{JsSuccess, JsValue}
-import play.api.mvc.{Action, ControllerComponents, Request, Result}
-import uk.gov.hmrc.play.bootstrap.controller.{BackendController, BaseController}
+import play.api.mvc.{ControllerComponents, Request, Result}
+import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import uk.gov.hmrc.voabar.models.ReportStatus
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
 import play.api.libs.json.Json
@@ -40,6 +40,7 @@ class SubmissionStatusController @Inject() (
                                            configuration: Configuration
                                            )(implicit ec: ExecutionContext) extends BackendController(controllerComponents) {
 
+  val logger = Logger("SubmissionStatusController")
   lazy val crypto = new ApplicationCrypto(configuration.underlying).JsonCrypto
 
   private def getReportStatusesByUser(userId: String, filter: Option[String]): Future[Either[Result, Seq[ReportStatus]]] = {
@@ -95,6 +96,7 @@ class SubmissionStatusController @Inject() (
   }
 
   private def saveSubmission(reportStatus: ReportStatus, upsert: Boolean): Future[Either[Result, Unit.type]] = {
+    logger.info(s"Save submission $reportStatus upsert $upsert")
     submissionStatusRepository.insertOrMerge(reportStatus).map(_.fold(
       _ => Left(InternalServerError),
       _ => Right(Unit)
@@ -112,6 +114,8 @@ class SubmissionStatusController @Inject() (
 
   def save(upsert: Boolean = false) = Action.async(parse.tolerantJson) { request =>
     val headers = request.headers
+
+    logger.info(s"Saving submission upsert $upsert")
 
     (for {
         baCode <- EitherT.fromEither[Future](headers.get("BA-Code").toRight(Unauthorized("BA-Code missing")))
