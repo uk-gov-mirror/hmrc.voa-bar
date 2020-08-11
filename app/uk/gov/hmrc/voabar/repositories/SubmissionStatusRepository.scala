@@ -58,37 +58,22 @@ class SubmissionStatusRepositoryImpl @Inject()(
   )
 
 
-  override def insertOrMerge(reportStatus: ReportStatus): Future[Either[BarError, Unit]] = {
-
-    insert(reportStatus).recoverWith[WriteResult] {
-      case WriteResult.Code(11000) => {
-        Logger.error(s"Document ${reportStatus.id} already exist in database, need to update")
-        merge(reportStatus)
-      }
-    }.map { _ =>
-      Right(())
-    }.recover {
-      case e: Exception =>
-        Logger.error(s"Couldn't insertOrMerge document  ${reportStatus.id}", e)
-        Left(BarMongoError(e.getMessage, None))
-    }
-  }
-
-  private def merge(reportStatus: ReportStatus): Future[WriteResult] = {
-
-    val selector = BSONDocument("_id" -> reportStatus.id)
-
+  def saveOrUpdate(reportStatus: ReportStatus, upsert: Boolean): Future[Either[BarError, Unit.type]] = {
+    val finder = BSONDocument(_Id -> reportStatus.id)
     val modifierBson = set(BSONDocument(
       "created" -> reportStatus.created.toString,
       "checksum" -> reportStatus.checksum,
       "url" -> reportStatus.url,
-      "filename" -> reportStatus.filename.getOrElse(""))
+      "errors" -> reportStatus.errors.getOrElse(Seq()).map(e => BSONDocument(
+        "values" -> e.values,
+        "code" -> e.code
+      )),
+      "filename" -> reportStatus.filename.getOrElse(""),
+      "status" -> reportStatus.status)
     )
 
-    collection.update.one(q = selector, u = modifierBson, upsert = false, multi = false)
-
+    atomicSaveOrUpdate(reportStatus.id, upsert, finder, modifierBson)
   }
-
 
   def saveOrUpdate(userId: String, reference: String, upsert: Boolean)
   : Future[Either[BarError, Unit.type]] = {
@@ -259,9 +244,7 @@ trait SubmissionStatusRepository {
 
   def getAll(): Future[Either[BarError, Seq[ReportStatus]]]
 
-  def insertOrMerge(reportStatus: ReportStatus): Future[Either[BarError, Unit]]
-
-  ///def saveOrUpdate(reportStatus: ReportStatus, upsert: Boolean): Future[Either[BarError, Unit.type]]
+  def saveOrUpdate(reportStatus: ReportStatus, upsert: Boolean): Future[Either[BarError, Unit.type]]
 
   def saveOrUpdate(userId: String, reference: String, upsert: Boolean): Future[Either[BarError, Unit.type]]
 }

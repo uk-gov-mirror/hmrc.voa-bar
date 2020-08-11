@@ -69,7 +69,7 @@ class UploadControllerIntSpec extends PlaySpec with BeforeAndAfterAll with Optio
 
       val reportStatus = ReportStatus("1234", ZonedDateTime.now)
 
-      await(submissionRepository.insertOrMerge(reportStatus))
+      await(submissionRepository.saveOrUpdate(reportStatus, true))
 
       controller.upload()(fakeRequestWithXML)
 
