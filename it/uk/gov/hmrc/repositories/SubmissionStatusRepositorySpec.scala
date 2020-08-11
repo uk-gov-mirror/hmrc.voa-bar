@@ -114,21 +114,6 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
 
     }
 
-    "test race condition with mongo db" in {
-      val reference = UUID.randomUUID().toString
-      val userId = "BA2020"
-
-      await(repo.updateStatus(reference, Done))
-
-      val reportStatus = ReportStatus(reference, ZonedDateTime.now(), None, None, None, Some(userId), Some(Submitted.value), Some("test.xml"))
-
-      await(repo.insertOrMerge(reportStatus))
-
-      val submission = await(repo.findById(reference)).get
-
-      submission.status.value mustBe(Done.value)
-    }
-
   }
 
   override protected def afterAll(): Unit = {
