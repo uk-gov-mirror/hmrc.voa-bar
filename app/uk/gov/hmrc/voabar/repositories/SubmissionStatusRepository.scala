@@ -69,7 +69,8 @@ class SubmissionStatusRepositoryImpl @Inject()(
         "code" -> e.code
       )),
       "filename" -> reportStatus.filename.getOrElse(""),
-      "status" -> reportStatus.status)
+      "status" -> reportStatus.status,
+      "report" -> reportStatus.report)
     )
 
     atomicSaveOrUpdate(reportStatus.id, upsert, finder, modifierBson)
