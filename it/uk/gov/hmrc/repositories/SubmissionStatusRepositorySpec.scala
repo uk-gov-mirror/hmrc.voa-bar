@@ -28,9 +28,9 @@ import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.ImplicitBSONHandlers._
-import uk.gov.hmrc.voabar.models.{BarMongoError, Done, Error, ReportStatus, Submitted}
+import uk.gov.hmrc.voabar.models.{BarMongoError, Done, Error, Failed, Pending, ReportStatus, Submitted}
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepositoryImpl
-import uk.gov.hmrc.voabar.util.CHARACTER
+import uk.gov.hmrc.voabar.util.{CHARACTER, TIMEOUT_ERROR}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -114,6 +114,25 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
 
     }
 
+    "Change status to failed for submission after timeout" in {
+
+      val report = aReport().copy(created = ZonedDateTime.now().minusMinutes(121))
+
+      await(repo.saveOrUpdate(report, true))
+
+      val reportFromDb = await(repo.getByReference(report.id))
+
+      reportFromDb.right.value.status.value mustBe(Failed.value)
+
+      reportFromDb.right.value.errors.value mustBe(Seq(Error(TIMEOUT_ERROR)))
+
+    }
+
+  }
+
+  def aReport(): ReportStatus = {
+    ReportStatus(UUID.randomUUID().toString, ZonedDateTime.now(), None, None, None, Option("BA1010"), Some(Pending.value), None, None, None
+    )
   }
 
   override protected def afterAll(): Unit = {
