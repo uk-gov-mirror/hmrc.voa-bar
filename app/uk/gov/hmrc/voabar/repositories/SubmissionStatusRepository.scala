@@ -21,7 +21,7 @@ import java.time.ZonedDateTime
 import com.google.inject.ImplementedBy
 import com.typesafe.config.ConfigException
 import javax.inject.{Inject, Singleton}
-import play.api.libs.json.{Format, JsValue, Json}
+import play.api.libs.json.{Format, JsObject, JsValue, Json}
 import play.api.{Configuration, Logger}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.api.commands.WriteResult
@@ -30,7 +30,8 @@ import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import uk.gov.hmrc.mongo.{BSONBuilderHelpers, ReactiveRepository}
-import uk.gov.hmrc.voabar.models.{BarError, BarMongoError, Error, ReportStatus, ReportStatusType}
+import uk.gov.hmrc.voabar.models.{BarError, BarMongoError, Error, Failed, ReportStatus, ReportStatusType, Submitted}
+import uk.gov.hmrc.voabar.util.{ErrorCode, TIMEOUT_ERROR, UNKNOWN_ERROR}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -54,7 +55,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
   override def indexes: Seq[Index] = Seq (
     Index(Seq("baCode" -> IndexType.Hashed), name = Some(s"${collectionName}_baCodeIdx")),
     Index(Seq("created" -> IndexType.Descending), name = Some(s"${collectionName}_createdIdx")
-      ,options = BSONDocument("expireAfterSeconds" -> ttl))
+      ,options = BSONDocument("expireAfterSeconds" -> ttl)) //TODO - This is broken, data are store as String(VOA-2189)
   )
 
 
@@ -94,7 +95,9 @@ class SubmissionStatusRepositoryImpl @Inject()(
     )
     collection.find(finder).sort(Json.obj("created" -> -1)).cursor[ReportStatus](ReadPreference.primary)
       .collect[Seq](-1, Cursor.FailOnError[Seq[ReportStatus]]())
-      .map(Right(_))
+      .flatMap { res =>
+        Future.sequence(res.map(checkAndUpdateSubmissionStatus)).map(Right(_))
+      }
       .recover {
         case ex: Throwable => {
           val errorMsg = s"Couldn't retrieve BA reports with '$baCode'"
@@ -109,7 +112,9 @@ class SubmissionStatusRepositoryImpl @Inject()(
     val finder = BSONDocument(_Id -> reference)
     collection.find(finder).sort(Json.obj("created" -> -1)).cursor[ReportStatus](ReadPreference.primary)
       .collect[Seq](1, Cursor.FailOnError[Seq[ReportStatus]]())
-      .map(r => Right(r.head))
+      .flatMap { res =>
+        checkAndUpdateSubmissionStatus(res.head).map(Right(_))
+      }
       .recover {
         case ex: Throwable => {
           val errorMsg = s"Couldn't retrieve BA reports for reference $reference"
@@ -122,7 +127,9 @@ class SubmissionStatusRepositoryImpl @Inject()(
   override def getAll(): Future[Either[BarError, Seq[ReportStatus]]] = {
     collection.find(Json.obj()).sort(Json.obj("created" -> -1)).cursor[ReportStatus](ReadPreference.primary)
       .collect[Seq](-1, Cursor.FailOnError[Seq[ReportStatus]]())
-      .map(Right(_))
+      .flatMap { res =>
+        Future.sequence(res.map(checkAndUpdateSubmissionStatus)).map(Right(_))
+      }
       .recover {
         case ex: Throwable => {
           val errorMsg = s"Couldn't retrieve all BA reports"
@@ -226,6 +233,43 @@ class SubmissionStatusRepositoryImpl @Inject()(
       Right(response)
     }
   }
+
+  def checkAndUpdateSubmissionStatus(report: ReportStatus): Future[ReportStatus] = {
+    if(report.status == Failed.value ||  report.status == Submitted.value) {
+      Future.successful(report)
+    }else {
+      if(report.created.compareTo(ZonedDateTime.now().minusMinutes(120)) < 0) {
+        markSubmissionFailed(report)
+      }else {
+        Future.successful(report)
+      }
+    }
+  }
+
+  def markSubmissionFailed(report: ReportStatus): Future[ReportStatus] = {
+
+    val q = Json.obj(
+      "_id" -> report.id
+    )
+    val u = Json.obj(
+      "$set" -> Json.obj(
+        "status" -> Failed.value,
+               "errors" -> Json.arr(Error(TIMEOUT_ERROR))
+    ))
+
+    val updatedReport: Future[ReportStatus] = collection
+      .findAndUpdate(q, u, fetchNewObject = true, upsert = false)
+      .flatMap{ updateResult =>
+        val item: JsObject = updateResult.value.get
+        ReportStatus.format.reads(item).fold(
+          _ => Future.failed(new RuntimeException("xx")),
+          Future.successful(_)
+        )
+      }
+
+    updatedReport
+  }
+
 }
 
 @ImplementedBy(classOf[SubmissionStatusRepositoryImpl])
