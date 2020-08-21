@@ -48,6 +48,8 @@ class SubmissionStatusRepositoryImpl @Inject()(
     idFormat = implicitly[Format[String]]
   ) with SubmissionStatusRepository with BSONBuilderHelpers {
 
+  val timeoutMinutes = 120
+
   private val ttlPath = s"$collectionName.timeToLiveInSeconds"
   private val ttl = config.get[Int](ttlPath)
 
@@ -238,7 +240,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
     if(report.status == Failed.value ||  report.status == Submitted.value) {
       Future.successful(report)
     }else {
-      if(report.created.compareTo(ZonedDateTime.now().minusMinutes(120)) < 0) {
+      if(report.created.compareTo(ZonedDateTime.now().minusMinutes(timeoutMinutes)) < 0) {
         markSubmissionFailed(report)
       }else {
         Future.successful(report)
