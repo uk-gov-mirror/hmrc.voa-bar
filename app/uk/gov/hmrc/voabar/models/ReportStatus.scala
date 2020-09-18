@@ -22,7 +22,11 @@ import play.api.libs.json._
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 
 sealed trait ReportStatusType {
-  val value: String = getClass.asSubclass(getClass).getSimpleName.replace("$", "")
+  val value: String = {
+    val a: Class[_ <: ReportStatusType] = getClass.asSubclass(getClass)
+    val u: String = a.getSimpleName.replace("$", "")
+    u
+  }
 }
 
 case object Pending extends ReportStatusType
