@@ -132,7 +132,8 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
       import org.scalatest.prop.TableDrivenPropertyChecks._
       val finalStates = Table(("Final state", "errors"),
         (Submitted.value, Option.empty),
-        (Failed.value, Option(Seq(Error(INVALID_XML_XSD, Seq("Aditional", "Parameters")))))
+        (Done.value, Option.empty),
+        (Failed.value, Option(Seq(Error(INVALID_XML_XSD, Seq("Additional", "Parameters")))))
       )
 
       forAll (finalStates) { case (finalState: String, errors: Option[Seq[Error]]) =>
