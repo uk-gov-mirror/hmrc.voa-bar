@@ -237,7 +237,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
   }
 
   def checkAndUpdateSubmissionStatus(report: ReportStatus): Future[ReportStatus] = {
-    if(report.status == Failed.value ||  report.status == Submitted.value) {
+    if(report.status.map(x => x == Failed.value || x == Submitted.value).getOrElse(false)) {
       Future.successful(report)
     }else {
       if(report.created.compareTo(ZonedDateTime.now().minusMinutes(timeoutMinutes)) < 0) {
