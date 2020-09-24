@@ -9,7 +9,7 @@ object Dependencies {
   private val httpCachingClientVersion = "9.1.0-play-26"
   private val reactiveMongoVersion = "7.30.0-play-26"
   private val bootstrapVersion = "1.16.0"
-  private val autobarsXsdVersion = "9.0.0"
+  private val autobarsXsdVersion = "9.1.0"
   private val guiceUtilsVersion = "4.2.9"
   private val catsCoreVersion = "1.6.1"
   private val saxonHeVersion = "9.9.1-7"
