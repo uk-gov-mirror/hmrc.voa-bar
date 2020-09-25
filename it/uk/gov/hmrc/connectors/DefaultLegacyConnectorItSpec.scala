@@ -25,6 +25,8 @@ class DefaultLegacyConnectorItSpec extends PlaySpec with GuiceOneAppPerSuite {
 
   val ebarsValidator = new EbarsValidator()
 
+  val timeout = 1000 milliseconds
+
   "LegacyConnector" must {
     "send all request as UTF-8 with encoding in mime type" in {
 
@@ -55,7 +57,7 @@ class DefaultLegacyConnectorItSpec extends PlaySpec with GuiceOneAppPerSuite {
 
       val result = legacyConnector.sendBAReport(baReportReques)
 
-      val httpResult = Await.result(result, 300 millisecond)
+      val httpResult = Await.result(result, timeout)
       httpResult mustBe 200
 
       wireMockServer.verify(postRequestedFor(urlEqualTo("/autobars-stubs/v2/submit"))
