@@ -30,7 +30,7 @@ import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import uk.gov.hmrc.voabar.models.{BarMongoError, Done, Error, Failed, Pending, ReportStatus, Submitted}
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepositoryImpl
-import uk.gov.hmrc.voabar.util.{CHARACTER, TIMEOUT_ERROR}
+import uk.gov.hmrc.voabar.util.{CHARACTER, ErrorCode, INVALID_XML_XSD, TIMEOUT_ERROR}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -128,6 +128,28 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
 
     }
 
+    "Not change status or anything else for final submission state" in {
+      import org.scalatest.prop.TableDrivenPropertyChecks._
+      val finalStates = Table(("Final state", "errors"),
+        (Submitted.value, Option.empty),
+        (Done.value, Option.empty),
+        (Failed.value, Option(Seq(Error(INVALID_XML_XSD, Seq("Additional", "Parameters")))))
+      )
+
+      forAll (finalStates) { case (finalState: String, errors: Option[Seq[Error]]) =>
+        val report = aReport().copy(created = ZonedDateTime.now().minusDays(21), status = Option(finalState), errors = errors)
+
+        await(repo.insert(report))
+
+        val reportFromDb = await(repo.getByReference(report.id))
+
+        reportFromDb.right.value.status.value mustBe(finalState)
+
+        reportFromDb.right.value.errors mustBe errors
+
+        reportFromDb.right.value mustBe report
+      }
+    }
   }
 
   def aReport(): ReportStatus = {

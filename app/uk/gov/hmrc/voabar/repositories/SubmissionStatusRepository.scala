@@ -30,7 +30,7 @@ import reactivemongo.api.indexes.{Index, IndexType}
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import uk.gov.hmrc.mongo.{BSONBuilderHelpers, ReactiveRepository}
-import uk.gov.hmrc.voabar.models.{BarError, BarMongoError, Error, Failed, ReportStatus, ReportStatusType, Submitted}
+import uk.gov.hmrc.voabar.models.{BarError, BarMongoError, Done, Error, Failed, ReportStatus, ReportStatusType, Submitted}
 import uk.gov.hmrc.voabar.util.{ErrorCode, TIMEOUT_ERROR, UNKNOWN_ERROR}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -237,7 +237,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
   }
 
   def checkAndUpdateSubmissionStatus(report: ReportStatus): Future[ReportStatus] = {
-    if(report.status == Failed.value ||  report.status == Submitted.value) {
+    if(report.status.exists(x => x == Failed.value || x == Submitted.value || x == Done.value)) {
       Future.successful(report)
     }else {
       if(report.created.compareTo(ZonedDateTime.now().minusMinutes(timeoutMinutes)) < 0) {
