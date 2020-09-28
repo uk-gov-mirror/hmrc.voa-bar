@@ -1,0 +1,98 @@
+{
+    "BAreports": {
+        "SchemaId": "VbBAtoVOA",
+        "SchemaVersion": "4-0",
+        "BAreportHeader": {
+            "BillingAuthority": "Cornwall Council",
+            "BillingAuthorityIdentityCode": 815,
+            "ProcessDate": "2015-08-30",
+            "EntryDateTime": "2015-08-30T23:00:22"
+        },
+        "BApropertyReport": [{
+            "DateSent": ["2015-08-30"],
+            "TransactionIdentityBA": ["11010635004000"],
+            "BAidentityNumber": [815],
+            "BAreportNumber": ["100898"],
+            "TypeOfTax": [{
+                "CtaxReasonForReport": {
+                    "ReasonForReportCode": {
+                        "value": "CR03"
+                    },
+                    "ReasonForReportDescription": "New"
+                }
+            }],
+            "ExistingEntries": [{
+                "AssessmentProperties": [{
+                    "PropertyIdentity": {
+                        "UniquePropertyReferenceNumber": [10090525141],
+                        "BS7666Address": [{
+                            "SAON": [{
+                                "Description": ["MANAGERS ACCOMMODATION AT"]
+                            }],
+                            "PAON": [{
+                                "Description": ["BARBICAN INN"]
+                            }],
+                            "StreetDescription": ["BARBICAN ROAD"],
+                            "UniqueStreetReferenceNumber": [5700888],
+                            "Town": ["EAST LOOE"],
+                            "AdministrativeArea": ["CORNWALL"],
+                            "PostTown": ["LOOE"],
+                            "PostCode": ["PL13 1EY"],
+                            "UniquePropertyReferenceNumber": [10090525141]
+                        }],
+                        "PropertyGridCoords": [{
+                            "X": 0,
+                            "Y": 0
+                        }],
+                        "TextAddress": [{
+                            "AddressLine": ["MANAGERS ACCOM. THE BARBICAN INN", "BARBICAN ROAD", "EAST LOOE", "CORNWALL"],
+                            "Postcode": "PL13 1EY"
+                        }],
+                        "BAreference": ["11031818521880"]
+                    },
+                    "CurrentTax": {},
+                    "OccupierContact": {
+                        "OccupierName": {
+                            "PersonNameTitle": ["MR"],
+                            "PersonGivenName": ["M"],
+                            "PersonFamilyName": "FINNIMORE",
+                            "PersonRequestedName": "MR M FINNIMORE"
+                        },
+                        "ContactAddress": {
+                            "Line": ["THE BARBICAN INN", "BARBICAN ROAD", "EAST LOOE", "CORNWALL"],
+                            "PostCode": "PL13 1EY"
+                        }
+                    }
+                }]
+            }],
+            "ProposedEntries": [{
+                "AssessmentProperties": [{
+                    "PropertyIdentity": {
+                        "UniquePropertyReferenceNumber": [10091165174],
+                        "TextAddress": [{
+                            "AddressLine": ["4 NICKLEBY COURT", "LISKEARD", "CORNWALL"],
+                            "Postcode": "PL14 3FP"
+                        }],
+                        "BAreference": ["11010635004000"]
+                    },
+                    "OccupierContact": {
+                        "OccupierName": {
+                            "PersonNameTitle": ["MR"],
+                            "PersonGivenName": ["DEAN"],
+                            "PersonFamilyName": "JOBE",
+                            "PersonRequestedName": "MR DEAN JOBE"
+                        }
+                    }
+                }]
+            }],
+            "IndicatedDateOfChange": ["2015-05-01"],
+            "Remarks": ["THIS IS A BLUEPRINT TEST PLEASE DELETE / NO ACTION THIS REPORT"]
+        }],
+        "BAreportTrailer": {
+            "RecordCount": 1,
+            "EntryDateTime": "2015-08-30T23:01:43",
+            "TotalNNDRreportCount": 0,
+            "TotalCtaxReportCount": 1
+        }
+    }
+}
