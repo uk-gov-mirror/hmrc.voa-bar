@@ -1,0 +1,123 @@
+<BAreports SchemaId="BAtoVOA" SchemaVersion="4-0" xmlns="http://www.govtalk.gov.uk/LG/Valuebill"
+           xmlns:apd="http://www.govtalk.gov.uk/people/AddressAndPersonalDetails"
+           xmlns:pdt="http://www.govtalk.gov.uk/people/PersonDescriptives"
+           xmlns:bs7666="http://www.govtalk.gov.uk/people/bs7666">
+    <BAreportHeader>
+        <BillingAuthority>Ealing Council</BillingAuthority>
+        <BillingAuthorityIdentityCode>6950</BillingAuthorityIdentityCode>
+        <ProcessDate>2015-11-24</ProcessDate>
+        <EntryDateTime>2015-11-24T16:05:16</EntryDateTime>
+    </BAreportHeader>
+    <BApropertyReport>
+        <DateSent>2015-11-24</DateSent>
+        <TransactionIdentityBA>0002875006803B</TransactionIdentityBA>
+        <BAidentityNumber>6950</BAidentityNumber>
+        <BAreportNumber>173996</BAreportNumber>
+        <TypeOfTax>
+            <CtaxReasonForReport>
+                <ReasonForReportCode>CR14</ReasonForReportCode>
+                <ReasonForReportDescription>Minor Address Change</ReasonForReportDescription>
+            </CtaxReasonForReport>
+        </TypeOfTax>
+        <ExistingEntries>
+            <AssessmentProperties>
+                <PropertyIdentity>
+                    <bs7666:BS7666Address>
+                        <bs7666:SAON>
+                            <bs7666:Description>SECOND FLOOR FLAT</bs7666:Description>
+                        </bs7666:SAON>
+                        <bs7666:PAON>
+                            <bs7666:StartRange>
+                                <bs7666:Number>68</bs7666:Number>
+                            </bs7666:StartRange>
+                        </bs7666:PAON>
+                        <bs7666:StreetDescription>WINDSOR ROAD</bs7666:StreetDescription>
+                        <bs7666:UniqueStreetReferenceNumber>3367</bs7666:UniqueStreetReferenceNumber>
+                        <bs7666:Town>LONDON</bs7666:Town>
+                        <bs7666:PostTown>LONDON</bs7666:PostTown>
+                        <bs7666:PostCode>W5 3PH</bs7666:PostCode>
+                    </bs7666:BS7666Address>
+                    <TextAddress>
+                        <AddressLine>SECOND FLOOR FLAT</AddressLine>
+                        <AddressLine>68 WINDSOR ROAD</AddressLine>
+                        <AddressLine>LONDON</AddressLine>
+                        <Postcode>W5 3PH</Postcode>
+                    </TextAddress>
+                    <BAreference>0002875006803B</BAreference>
+                </PropertyIdentity>
+                <PropertyDescription>
+                    <PropertyDescriptionText>Not Known</PropertyDescriptionText>
+                </PropertyDescription>
+                <CurrentTax>
+                    <CouncilTaxBand>D</CouncilTaxBand>
+                </CurrentTax>
+                <OccupierContact>
+                    <OccupierName>
+                        <pdt:PersonNameTitle>MISS</pdt:PersonNameTitle>
+                        <pdt:PersonGivenName>ASTHA</pdt:PersonGivenName>
+                        <pdt:PersonFamilyName>SINGH</pdt:PersonFamilyName>
+                    </OccupierName>
+                    <OccupierContactNos>
+                        <Email>
+                            <apd:EmailAddress>astha.singh@yahoo.com</apd:EmailAddress>
+                        </Email>
+                    </OccupierContactNos>
+                </OccupierContact>
+            </AssessmentProperties>
+        </ExistingEntries>
+        <ProposedEntries>
+            <AssessmentProperties>
+                <PropertyIdentity>
+                    <bs7666:BS7666Address>
+                        <bs7666:SAON>
+                            <bs7666:Description>SECOND FLOOR FLAT</bs7666:Description>
+                        </bs7666:SAON>
+                        <bs7666:PAON>
+                            <bs7666:StartRange>
+                                <bs7666:Number>68</bs7666:Number>
+                            </bs7666:StartRange>
+                        </bs7666:PAON>
+                        <bs7666:StreetDescription>WINDSOR ROAD</bs7666:StreetDescription>
+                        <bs7666:UniqueStreetReferenceNumber>3367</bs7666:UniqueStreetReferenceNumber>
+                        <bs7666:Town>LONDON</bs7666:Town>
+                        <bs7666:PostTown>LONDON</bs7666:PostTown>
+                        <bs7666:PostCode>W5 3PH</bs7666:PostCode>
+                    </bs7666:BS7666Address>
+                    <TextAddress>
+                        <AddressLine>SECOND FLOOR FLAT</AddressLine>
+                        <AddressLine>68 WINDSOR ROAD</AddressLine>
+                        <AddressLine>LONDON</AddressLine>
+                        <Postcode>W5 3PH</Postcode>
+                    </TextAddress>
+                    <BAreference>0002875006803B</BAreference>
+                </PropertyIdentity>
+                <PropertyDescription>
+                    <PropertyDescriptionText>Not Known</PropertyDescriptionText>
+                </PropertyDescription>
+                <CurrentTax>
+                    <CouncilTaxBand>D</CouncilTaxBand>
+                </CurrentTax>
+                <OccupierContact>
+                    <OccupierName>
+                        <pdt:PersonNameTitle>MISS</pdt:PersonNameTitle>
+                        <pdt:PersonGivenName>ASTHA</pdt:PersonGivenName>
+                        <pdt:PersonFamilyName>SINGH</pdt:PersonFamilyName>
+                    </OccupierName>
+                    <OccupierContactNos>
+                        <Email>
+                            <apd:EmailAddress>astha.singh@yahoo.com</apd:EmailAddress>
+                        </Email>
+                    </OccupierContactNos>
+                </OccupierContact>
+            </AssessmentProperties>
+        </ProposedEntries>
+        <IndicatedDateOfChange>1993-04-01</IndicatedDateOfChange>
+        <Remarks>THIS IS A BLUEPRINT TEST.PLEASE DELETE/NO ACTION THIS REPORT</Remarks>
+    </BApropertyReport>
+    <BAreportTrailer>
+        <RecordCount>1</RecordCount>
+        <EntryDateTime>2015-11-24T16:05:16</EntryDateTime>
+        <TotalNNDRreportCount>0</TotalNNDRreportCount>
+        <TotalCtaxReportCount>1</TotalCtaxReportCount>
+    </BAreportTrailer>
+</BAreports>      

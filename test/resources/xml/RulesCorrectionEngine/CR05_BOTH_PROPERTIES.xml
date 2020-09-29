@@ -1,0 +1,127 @@
+<BAreports SchemaId="BAtoVOA" SchemaVersion="4-0" xmlns="http://www.govtalk.gov.uk/LG/Valuebill" xmlns:apd="http://www.govtalk.gov.uk/people/AddressAndPersonalDetails" xmlns:pdt="http://www.govtalk.gov.uk/people/PersonDescriptives" xmlns:bs7666="http://www.govtalk.gov.uk/people/bs7666" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<BAreportHeader>
+		<BillingAuthority>Cardiff County Council LIVE - On Sun</BillingAuthority>
+		<BillingAuthorityIdentityCode>6950</BillingAuthorityIdentityCode>
+		<ProcessDate>2015-11-11</ProcessDate>
+		<EntryDateTime>2015-11-11T15:13:45</EntryDateTime>
+	</BAreportHeader>
+	<BApropertyReport>
+		<DateSent>2015-11-11</DateSent>
+		<TransactionIdentityBA>2221440001100</TransactionIdentityBA>
+		<BAidentityNumber>6950</BAidentityNumber>
+		<BAreportNumber>164364</BAreportNumber>
+		<TypeOfTax>
+			<CtaxReasonForReport>
+				<ReasonForReportCode>CR05</ReasonForReportCode>
+				<ReasonForReportDescription>Delete change from Dom-New formerly Dom</ReasonForReportDescription>
+			</CtaxReasonForReport>
+		</TypeOfTax>
+		<ExistingEntries>
+			<AssessmentProperties>
+				<PropertyIdentity>
+					<bs7666:UniquePropertyReferenceNumber>100100069553</bs7666:UniquePropertyReferenceNumber>
+					<bs7666:BS7666Address>
+						<bs7666:SAON>
+							<bs7666:Description>GROUND FLOOR FLAT</bs7666:Description>
+						</bs7666:SAON>
+						<bs7666:PAON>
+							<bs7666:StartRange>
+								<bs7666:Number>11</bs7666:Number>
+							</bs7666:StartRange>
+						</bs7666:PAON>
+						<bs7666:StreetDescription>RUBY STREET</bs7666:StreetDescription>
+						<bs7666:UniqueStreetReferenceNumber>2221440</bs7666:UniqueStreetReferenceNumber>
+						<bs7666:Locality>ADAMSDOWN</bs7666:Locality>
+						<bs7666:Town>CARDIFF</bs7666:Town>
+						<bs7666:PostTown>CARDIFF</bs7666:PostTown>
+						<bs7666:PostCode>CF24 1LP</bs7666:PostCode>
+						<bs7666:UniquePropertyReferenceNumber>100100069553</bs7666:UniquePropertyReferenceNumber>
+					</bs7666:BS7666Address>
+					<TextAddress>
+						<AddressLine>GROUND FLOOR FLAT</AddressLine>
+						<AddressLine>11 RUBY STREET</AddressLine>
+						<AddressLine>ADAMSDOWN</AddressLine>
+						<AddressLine>CARDIFF</AddressLine>
+						<Postcode>CF24 1LP</Postcode>
+					</TextAddress>
+					<BAreference>2221440001100</BAreference>
+				</PropertyIdentity>
+				<PropertyDescription>
+					<PropertyDescriptionText>Not Known</PropertyDescriptionText>
+				</PropertyDescription>
+				<OccupierContact>
+					<OccupierName>
+						<pdt:PersonNameTitle>MR</pdt:PersonNameTitle>
+						<pdt:PersonGivenName>MOHAMMED</pdt:PersonGivenName>
+						<pdt:PersonFamilyName>MALIK</pdt:PersonFamilyName>
+					</OccupierName>
+					<ContactAddress>
+						<apd:Line>FLAT 1</apd:Line>
+						<apd:Line>131 CYNCOED ROAD</apd:Line>
+						<apd:Line>CYNCOED</apd:Line>
+						<apd:Line>CARDIFF</apd:Line>
+						<apd:PostCode>CF23 6AF</apd:PostCode>
+					</ContactAddress>
+				</OccupierContact>
+			</AssessmentProperties>
+		</ExistingEntries>
+		<ProposedEntries>
+			<AssessmentProperties>
+				<PropertyIdentity>
+					<bs7666:UniquePropertyReferenceNumber>100100069553</bs7666:UniquePropertyReferenceNumber>
+					<bs7666:BS7666Address>
+						<bs7666:SAON>
+							<bs7666:Description>GROUND FLOOR FLAT</bs7666:Description>
+						</bs7666:SAON>
+						<bs7666:PAON>
+							<bs7666:StartRange>
+								<bs7666:Number>11</bs7666:Number>
+							</bs7666:StartRange>
+						</bs7666:PAON>
+						<bs7666:StreetDescription>RUBY STREET</bs7666:StreetDescription>
+						<bs7666:UniqueStreetReferenceNumber>2221440</bs7666:UniqueStreetReferenceNumber>
+						<bs7666:Locality>ADAMSDOWN</bs7666:Locality>
+						<bs7666:Town>CARDIFF</bs7666:Town>
+						<bs7666:PostTown>CARDIFF</bs7666:PostTown>
+						<bs7666:PostCode>CF24 1LP</bs7666:PostCode>
+						<bs7666:UniquePropertyReferenceNumber>100100069553</bs7666:UniquePropertyReferenceNumber>
+					</bs7666:BS7666Address>
+					<TextAddress>
+						<AddressLine>ROMAIN - GROUND FLOOR FLAT</AddressLine>
+						<AddressLine>ROMAIN - 11 RUBY STREET</AddressLine>
+						<AddressLine>ROMAIN - ADAMSDOWN</AddressLine>
+						<AddressLine>ROMAIN - CARDIFF</AddressLine>
+						<Postcode>CF24 1LP</Postcode>
+					</TextAddress>
+					<BAreference>2221440001100</BAreference>
+				</PropertyIdentity>
+				<PropertyDescription>
+					<PropertyDescriptionText>Not Known</PropertyDescriptionText>
+				</PropertyDescription>
+				<OccupierContact>
+					<OccupierName>
+						<pdt:PersonNameTitle>MR</pdt:PersonNameTitle>
+						<pdt:PersonGivenName>MOHAMMED</pdt:PersonGivenName>
+						<pdt:PersonFamilyName>MALIK</pdt:PersonFamilyName>
+					</OccupierName>
+					<ContactAddress>
+						<apd:Line>FLAT 1</apd:Line>
+						<apd:Line>131 CYNCOED ROAD</apd:Line>
+						<apd:Line>CYNCOED</apd:Line>
+						<apd:Line>CARDIFF</apd:Line>
+						<apd:PostCode>CF23 6AF</apd:PostCode>
+					</ContactAddress>
+				</OccupierContact>
+			</AssessmentProperties>
+		</ProposedEntries>
+		<IndicatedDateOfChange>2007-04-01</IndicatedDateOfChange>
+		<PropertyPlanReferenceNumber>43242432432</PropertyPlanReferenceNumber>
+		<Remarks>THIS IS A BLUEPRINT TEST.PLEASE DELETE/NO ACTION THIS REPORT</Remarks>
+	</BApropertyReport>
+	<BAreportTrailer>
+		<RecordCount>52</RecordCount>
+		<EntryDateTime>2015-11-11T15:13:45</EntryDateTime>
+		<TotalNNDRreportCount>0</TotalNNDRreportCount>
+		<TotalCtaxReportCount>52</TotalCtaxReportCount>
+	</BAreportTrailer>
+</BAreports>                                                                                                                                 

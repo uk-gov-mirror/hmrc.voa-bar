@@ -1,0 +1,73 @@
+<BAreports SchemaId="BAtoVOA" SchemaVersion="4-0" xmlns="http://www.govtalk.gov.uk/LG/Valuebill"
+           xmlns:apd="http://www.govtalk.gov.uk/people/AddressAndPersonalDetails"
+           xmlns:pdt="http://www.govtalk.gov.uk/people/PersonDescriptives"
+           xmlns:bs7666="http://www.govtalk.gov.uk/people/bs7666" xmlns:xsi="http://www.w3.org/0835/XMLSchema-instance">
+    <BAreportHeader>
+        <BillingAuthority>EAST RIDING OF YORKSHIRE</BillingAuthority>
+        <BillingAuthorityIdentityCode>0835</BillingAuthorityIdentityCode>
+        <ProcessDate>2016-03-09</ProcessDate>
+        <EntryDateTime>2016-03-09T10:23:30</EntryDateTime>
+    </BAreportHeader>
+    <BApropertyReport>
+        <DateSent>2016-03-09</DateSent>
+        <TransactionIdentityBA>HES110119058N</TransactionIdentityBA>
+        <BAidentityNumber>0835</BAidentityNumber>
+        <BAreportNumber>41772</BAreportNumber>
+        <TypeOfTax>
+            <NNDRreasonForReport>
+                <ReasonForReportCode>9</ReasonForReportCode>
+                <ReasonForReportDescription>Other (Alterations)</ReasonForReportDescription>
+            </NNDRreasonForReport>
+        </TypeOfTax>
+        <ProposedEntries>
+            <AssessmentProperties>
+                <PropertyIdentity>
+                    <bs7666:BS7666Address>
+                        <bs7666:SAON>
+                            <bs7666:Description>SUITE 3 1ST FLOOR</bs7666:Description>
+                        </bs7666:SAON>
+                        <bs7666:PAON>
+                            <bs7666:Description>WESTCOTT HOUSE</bs7666:Description>
+                        </bs7666:PAON>
+                        <bs7666:StreetDescription>HESSLEWOOD HALL,FERRIBY ROAD</bs7666:StreetDescription>
+                        <bs7666:UniqueStreetReferenceNumber>8406</bs7666:UniqueStreetReferenceNumber>
+                        <bs7666:Town>HESSLE</bs7666:Town>
+                        <bs7666:AdministrativeArea>EAST RIDING OF YORKSHIRE</bs7666:AdministrativeArea>
+                        <bs7666:PostTown>HESSLE</bs7666:PostTown>
+                        <bs7666:PostCode>hu13 0pg</bs7666:PostCode>
+                    </bs7666:BS7666Address>
+                    <TextAddress>
+                        <AddressLine>SUITE 3 1ST FLOOR</AddressLine>
+                        <AddressLine>WESTCOTT HOUSE</AddressLine>
+                        <AddressLine>HESSLEWOOD HALL, FERRIBY ROAD</AddressLine>
+                        <AddressLine>HESSLE</AddressLine>
+                        <AddressLine>EAST RIDING OF YORKSHIRE</AddressLine>
+                        <Postcode>hu13 0pg</Postcode>
+                    </TextAddress>
+                    <BAreference>HES110119058N</BAreference>
+                </PropertyIdentity>
+                <PropertyDescription>
+                    <PrimaryDescriptionCode>CO</PrimaryDescriptionCode>
+                    <PropertyDescriptionText>Offices</PropertyDescriptionText>
+                </PropertyDescription>
+                <CurrentTax>
+                    <RateableValue>16250.00</RateableValue>
+                </CurrentTax>
+                <OccupierContact>
+                    <OrganisationName>HANDELSBANKEN PLC</OrganisationName>
+                </OccupierContact>
+            </AssessmentProperties>
+        </ProposedEntries>
+        <IndicatedDateOfChange>2016-01-28</IndicatedDateOfChange>
+        <SourceOfUpdate>Owner</SourceOfUpdate>
+        <Remarks>Per Debbie Barbor no kitchens toilets ceilings whilst undergoing
+            refurbishment.dab@brooklandsproperty.co.uk(M)07932 635229.MC.
+        </Remarks>
+    </BApropertyReport>
+    <BAreportTrailer>
+        <RecordCount>1</RecordCount>
+        <EntryDateTime>2016-03-09T10:23:30</EntryDateTime>
+        <TotalNNDRreportCount>1</TotalNNDRreportCount>
+        <TotalCtaxReportCount>0</TotalCtaxReportCount>
+    </BAreportTrailer>
+</BAreports>                                                                                                        
