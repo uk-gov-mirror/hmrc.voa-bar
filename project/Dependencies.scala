@@ -11,7 +11,6 @@ object Dependencies {
   private val bootstrapVersion = "1.16.0"
   private val autobarsXsdVersion = "9.1.0"
   private val guiceUtilsVersion = "4.2.9"
-  private val catsCoreVersion = "1.6.1"
   private val saxonHeVersion = "9.9.1-7"
   private val xercesVersion = "2.12.0"
 
@@ -24,7 +23,7 @@ object Dependencies {
     "uk.gov.hmrc" %% "autobars-xsd"                 % autobarsXsdVersion,
     "uk.gov.hmrc" %% "http-caching-client"          % httpCachingClientVersion,
     "net.codingwell" %% "scala-guice"               % guiceUtilsVersion,
-    "org.typelevel" %% "cats-core"                  % catsCoreVersion,
+    "org.typelevel" %% "cats-effect"                % "2.1.4",
     "net.sf.saxon" % "Saxon-HE"                     % saxonHeVersion,
     "xerces" % "xercesImpl"                         % xercesVersion,
     "org.eclipse.persistence" % "org.eclipse.persistence.moxy" % "2.6.9"

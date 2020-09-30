@@ -41,7 +41,7 @@ import scala.xml.{Node, XML}
 
 class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository,
                           validationService: ValidationService,
-                          xmlParser: XmlParser,
+                          submissionProcessingService: SubmissionProcessingService,
                           legacyConnector: LegacyConnector,
                           emailConnector: EmailConnector)(implicit executionContext: ExecutionContext) {
   val ebarsValidator = new EbarsValidator()
@@ -74,6 +74,10 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       case Right(v) => "ok"
       case Left(a) => {
         handleError(uploadReference, a, username, password)
+        //TODO - upload to V1 system
+        Future {
+          submissionProcessingService.processAsV1(xmlUrl, username, uploadReference, a)
+        }
         "failed"
       }
     }

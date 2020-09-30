@@ -51,6 +51,7 @@
     <logger name="application" level="DEBUG"/>
 
     <logger name="v2-validation" level="INFO"/>
+    <logger name="uk.gov.hmrc.voabar.services.SubmissionProcessingService" level="INFO" />
 
     <logger name="connector" level="TRACE">
         <appender-ref ref="STDOUT"/>

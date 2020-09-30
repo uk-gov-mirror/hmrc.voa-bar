@@ -16,18 +16,24 @@
 
 package uk.gov.hmrc.voabar.controllers
 
+import java.nio.file.Files
+import org.apache.commons.io.IOUtils
+
+
 import javax.inject.{Inject, Singleton}
 import play.api.Logger
 import play.api.mvc.{Action, ControllerComponents}
 import uk.gov.hmrc.play.HeaderCarrierConverter
 import uk.gov.hmrc.play.bootstrap.controller.{BackendController, BaseController}
-import uk.gov.hmrc.voabar.services.ValidationService
+import uk.gov.hmrc.voabar.services.{SubmissionProcessingService, ValidationService}
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class ValidateController @Inject() (validationService: ValidationService,
-                                    controllerComponents: ControllerComponents)(implicit ec: ExecutionContext)
+                                    controllerComponents: ControllerComponents,
+                                    submissionProcessingService: SubmissionProcessingService
+                                   )(implicit ec: ExecutionContext)
   extends BackendController(controllerComponents) {
 
   val logger = Logger("v2-validation")
@@ -40,7 +46,7 @@ class ValidateController @Inject() (validationService: ValidationService,
 
     val v1ProcessingStatus = request.headers.get("X-autobars-processing-status").getOrElse("None")
 
-    val url = request.body.file.toURI.toURL.toString //Safe conversion
+    val url = request.body.path.toUri.toURL.toString //Safe conversion
 
     Future {
       validationService.validate(url, baLogin) match {
@@ -51,6 +57,13 @@ class ValidateController @Inject() (validationService: ValidationService,
           logger.info(s"Validation successful, baLogin: ${baLogin}, v1-processing-status: ${v1ProcessingStatus}, requestId: ${requestId}")
         }
       }
+
+      val xmlAsString = IOUtils.toString(request.body.path.toUri, "UTF-8") //TODO - We need to change how we load xml.
+                                                                                     //TODO   It should be XML parser to decide which encoding he want.
+                                                                                     //TODO - Maybe some fuzzy encoding detection.
+
+      submissionProcessingService.processAsV1(xmlAsString, baLogin, requestId)
+
       Ok("")
     }
 
