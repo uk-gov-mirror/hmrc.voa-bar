@@ -1,0 +1,72 @@
+<BAreports SchemaId="BAtoVOA" SchemaVersion="4-0" xmlns="http://www.govtalk.gov.uk/LG/Valuebill" xmlns:apd="http://www.govtalk.gov.uk/people/AddressAndPersonalDetails" xmlns:pdt="http://www.govtalk.gov.uk/people/PersonDescriptives" xmlns:bs7666="http://www.govtalk.gov.uk/people/bs7666" xmlns:xsi="http://www.w3.org/6950/XMLSchema-instance">
+	<BAreportHeader>
+		<BillingAuthority>EAST RIDING OF YORKSHIRE</BillingAuthority>
+		<BillingAuthorityIdentityCode>6950</BillingAuthorityIdentityCode>
+		<ProcessDate>2015-05-20</ProcessDate>
+		<EntryDateTime>2015-05-20T09:50:37</EntryDateTime>
+	</BAreportHeader>
+	<BApropertyReport>
+		<DateSent>2015-05-20</DateSent>
+		<TransactionIdentityBA>WET012006000N</TransactionIdentityBA>
+		<BAidentityNumber>6950</BAidentityNumber>
+		<BAreportNumber>41348</BAreportNumber>
+		<TypeOfTax>
+			<NNDRreasonForReport>
+				<ReasonForReportCode>CR06</ReasonForReportCode>
+				<ReasonForReportDescription>Deleted - Ceased</ReasonForReportDescription>
+			</NNDRreasonForReport>
+		</TypeOfTax>
+		<ExistingEntries>
+			<AssessmentProperties>
+				<PropertyIdentity>
+					<bs7666:BS7666Address>
+						<bs7666:PAON>
+							<bs7666:StartRange>
+								<bs7666:Number>30</bs7666:Number>
+							</bs7666:StartRange>
+						</bs7666:PAON>
+						<bs7666:StreetDescription>MAIN STREET</bs7666:StreetDescription>
+						<bs7666:UniqueStreetReferenceNumber>8551</bs7666:UniqueStreetReferenceNumber>
+						<bs7666:Locality>WETWANG</bs7666:Locality>
+						<bs7666:Town>DRIFFIELD</bs7666:Town>
+						<bs7666:AdministrativeArea>EAST RIDING OF YORKSHIRE</bs7666:AdministrativeArea>
+						<bs7666:PostTown>DRIFFIELD</bs7666:PostTown>
+					</bs7666:BS7666Address>
+					<TextAddress>
+						<AddressLine>30 MAIN STREET</AddressLine>
+						<AddressLine>WETWANG</AddressLine>
+						<AddressLine>DRIFFIELD</AddressLine>
+						<AddressLine>EAST RIDING OF YORKSHIRE</AddressLine>
+					</TextAddress>
+					<BAreference>WET012006000N</BAreference>
+				</PropertyIdentity>
+				<PropertyDescription>
+					<PrimaryDescriptionCode>CO</PrimaryDescriptionCode>
+					<PropertyDescriptionText>Offices</PropertyDescriptionText>
+				</PropertyDescription>
+				<CurrentTax>
+					<RateableValue>4900.00</RateableValue>
+				</CurrentTax>
+				<OccupierContact>
+					<OrganisationName>EVERIK BUILDING SERVICES LIMITED</OrganisationName>
+					<ContactAddress>
+						<apd:Line>30 MAIN STREET</apd:Line>
+						<apd:Line>WETWANG</apd:Line>
+						<apd:Line>DRIFFIELD</apd:Line>
+						<apd:Line> </apd:Line>
+						<apd:PostCode>YO25 9XJ</apd:PostCode>
+					</ContactAddress>
+				</OccupierContact>
+			</AssessmentProperties>
+		</ExistingEntries>
+		<IndicatedDateOfChange>2015-06-01</IndicatedDateOfChange>
+		<SourceOfUpdate>Owner</SourceOfUpdate>
+		<Remarks>THIS IS A BLUEPRINT TEST.PLEASE DELETE/NO ACTION THIS REPORT</Remarks>
+	</BApropertyReport>
+	<BAreportTrailer>
+		<RecordCount>11</RecordCount>
+		<EntryDateTime>2015-05-20T09:50:37</EntryDateTime>
+		<TotalNNDRreportCount>11</TotalNNDRreportCount>
+		<TotalCtaxReportCount>0</TotalCtaxReportCount>
+	</BAreportTrailer>
+</BAreports>

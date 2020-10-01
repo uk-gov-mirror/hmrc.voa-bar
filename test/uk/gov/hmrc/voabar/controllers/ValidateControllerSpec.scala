@@ -27,7 +27,7 @@ import play.api.mvc._
 import play.api.test._
 import play.api.test.Helpers._
 import play.libs.Files.TemporaryFileCreator
-import uk.gov.hmrc.voabar.services.{BusinessRules, ValidationService, XmlParser, XmlValidator}
+import uk.gov.hmrc.voabar.services.{BusinessRules, SubmissionProcessingService, ValidationService, XmlParser, XmlValidator}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -39,7 +39,7 @@ class ValidateControllerSpec extends PlaySpec with Results {
 
   "Validate controller" should {
     "validate correct xml" in {
-      val controller = new ValidateController(aValidationService(), Helpers.stubControllerComponents())
+      val controller = new ValidateController(aValidationService(), Helpers.stubControllerComponents(), aSubmissionProcessingService())
       val response = controller.validate(BA_LOGIN).apply(aSucessfullRequest())
       status(response) mustBe(OK)
     }
@@ -60,6 +60,10 @@ class ValidateControllerSpec extends PlaySpec with Results {
 
   }
 
+
+  def aSubmissionProcessingService() = {
+    new SubmissionProcessingService(aValidationService())
+  }
 
   def aValidationService() = {
     new ValidationService(xmlValidator(), aXmlPasrser(), aBusinessRules())

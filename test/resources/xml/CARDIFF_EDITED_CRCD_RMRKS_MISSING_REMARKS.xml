@@ -1,0 +1,96 @@
+<BAreports SchemaId="BAtoVOA" SchemaVersion="4-0" xmlns="http://www.govtalk.gov.uk/LG/Valuebill"
+           xmlns:apd="http://www.govtalk.gov.uk/people/AddressAndPersonalDetails"
+           xmlns:pdt="http://www.govtalk.gov.uk/people/PersonDescriptives"
+           xmlns:bs7666="http://www.govtalk.gov.uk/people/bs7666">
+    <BAreportHeader>
+        <BillingAuthority>Cardiff County Council LIVE - On Sun</BillingAuthority>
+        <BillingAuthorityIdentityCode>6950</BillingAuthorityIdentityCode>
+        <ProcessDate>2015-11-11</ProcessDate>
+        <EntryDateTime>2015-11-11T15:13:45</EntryDateTime>
+    </BAreportHeader>
+    <BApropertyReport>
+        <DateSent>2015-11-11</DateSent>
+        <TransactionIdentityBA>2220880000140</TransactionIdentityBA>
+        <BAidentityNumber>6950</BAidentityNumber>
+        <BAreportNumber>164373</BAreportNumber>
+        <TypeOfTax>
+            <CtaxReasonForReport>
+                <ReasonForReportCode>CR03</ReasonForReportCode>
+                <ReasonForReportDescription>D New - C New (formerly Exempt)</ReasonForReportDescription>
+            </CtaxReasonForReport>
+        </TypeOfTax>
+        <ProposedEntries>
+            <AssessmentProperties>
+                <PropertyIdentity>
+                    <bs7666:BS7666Address>
+                        <bs7666:SAON>
+                            <bs7666:StartRange>
+                                <bs7666:Number>1</bs7666:Number>
+                                <bs7666:Suffix>/</bs7666:Suffix>
+                            </bs7666:StartRange>
+                            <bs7666:EndRange>
+                                <bs7666:Number>2</bs7666:Number>
+                            </bs7666:EndRange>
+                            <bs7666:Description>FLAT 1 (GND &amp; 1ST FLR FRONT LEFT MAIS)</bs7666:Description>
+                        </bs7666:SAON>
+                        <bs7666:PAON>
+                            <bs7666:StartRange>
+                                <bs7666:Number>3</bs7666:Number>
+                                <bs7666:Suffix>/</bs7666:Suffix>
+                            </bs7666:StartRange>
+                            <bs7666:EndRange>
+                                <bs7666:Number>4</bs7666:Number>
+                            </bs7666:EndRange>
+                        </bs7666:PAON>
+                        <bs7666:StreetDescription>HOWARD GARDENS</bs7666:StreetDescription>
+                        <bs7666:UniqueStreetReferenceNumber>2220880</bs7666:UniqueStreetReferenceNumber>
+                        <bs7666:Locality>ADAMSDOWN</bs7666:Locality>
+                        <bs7666:Town>CARDIFF</bs7666:Town>
+                        <bs7666:PostTown>CARDIFF</bs7666:PostTown>
+                        <bs7666:PostCode>  cf24   0ef  </bs7666:PostCode>
+                    </bs7666:BS7666Address>
+                    <TextAddress>
+                        <AddressLine>FLAT 1 (GND &amp; 1ST FLR FRONT LEFT MAIS)</AddressLine>
+                        <AddressLine>1/3 HOWARD GARDENS</AddressLine>
+                        <AddressLine>ADAMSDOWN</AddressLine>
+                        <AddressLine>CARDIFF</AddressLine>
+                        <Postcode>cf240ef</Postcode>
+                    </TextAddress>
+                    <BAreference>2220880000140</BAreference>
+                </PropertyIdentity>
+                <PropertyDescription>
+                    <PropertyDescriptionText>Not Known</PropertyDescriptionText>
+                </PropertyDescription>
+                <OccupierContact>
+                    <OccupierName>
+                        <pdt:PersonNameTitle>MISS</pdt:PersonNameTitle>
+                        <pdt:PersonGivenName>NATASHA</pdt:PersonGivenName>
+                        <pdt:PersonFamilyName>ETZMUSS-NOBLE</pdt:PersonFamilyName>
+                    </OccupierName>
+                    <ContactAddress>
+                        <apd:Line>FLAT 1</apd:Line>
+                        <apd:Line>1-3 HOWARD GARDENS</apd:Line>
+                        <apd:Line>ADAMSDOWN</apd:Line>
+                        <apd:Line>CARDIFF</apd:Line>
+                        <apd:PostCode>Cf240ef</apd:PostCode>
+                    </ContactAddress>
+                    <OccupierContactNos>
+                        <Telephone>
+                            <apd:TelNationalNumber>07809201959</apd:TelNationalNumber>
+                        </Telephone>
+                        <Email>
+                            <apd:EmailAddress>etzmussnoble.tash@gmail.com</apd:EmailAddress>
+                        </Email>
+                    </OccupierContactNos>
+                </OccupierContact>
+            </AssessmentProperties>
+        </ProposedEntries>
+        <IndicatedDateOfChange>2015-09-20</IndicatedDateOfChange>
+    </BApropertyReport>
+    <BAreportTrailer>
+        <RecordCount>52</RecordCount>
+        <EntryDateTime>2015-11-11T15:13:45</EntryDateTime>
+        <TotalNNDRreportCount>0</TotalNNDRreportCount>
+        <TotalCtaxReportCount>52</TotalCtaxReportCount>
+    </BAreportTrailer>
+</BAreports>                                                                                                                                 

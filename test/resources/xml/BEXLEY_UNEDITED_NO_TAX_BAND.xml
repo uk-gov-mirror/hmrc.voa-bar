@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BAreports xmlns="http://www.govtalk.gov.uk/LG/Valuebill"
+           xmlns:apd="http://www.govtalk.gov.uk/people/AddressAndPersonalDetails"
+           xmlns:bs7666="http://www.govtalk.gov.uk/people/bs7666"
+           xmlns:pdt="http://www.govtalk.gov.uk/people/PersonDescriptives"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://www.govtalk.gov.uk/LG/Valuebill ValuebillBAtoVOA-v4-0.xsd" SchemaId="VbBAtoVOA"
+           SchemaVersion="4-0">
+    <BAreportHeader>
+        <BillingAuthority>LONDON BOROUGH OF BEXLEY</BillingAuthority>
+        <BillingAuthorityIdentityCode>5120</BillingAuthorityIdentityCode>
+        <ProcessDate>2015-12-04</ProcessDate>
+        <EntryDateTime>2015-12-04T20:24:18</EntryDateTime>
+    </BAreportHeader>
+    <BApropertyReport>
+        <DateSent>2015-12-04</DateSent>
+        <TransactionIdentityBA>100103970430</TransactionIdentityBA>
+        <BAidentityNumber>5120</BAidentityNumber>
+        <BAreportNumber>18059</BAreportNumber>
+        <TypeOfTax>
+            <CtaxReasonForReport>
+                <ReasonForReportCode>CR09</ReasonForReportCode>
+                <ReasonForReportDescription>Other For Review</ReasonForReportDescription>
+            </CtaxReasonForReport>
+        </TypeOfTax>
+        <ExistingEntries>
+            <AssessmentProperties>
+                <PropertyIdentity>
+                    <bs7666:UniquePropertyReferenceNumber>100020224148</bs7666:UniquePropertyReferenceNumber>
+                    <TextAddress>
+                        <AddressLine>15 ATHOL ROAD</AddressLine>
+                        <AddressLine>ERITH</AddressLine>
+                        <AddressLine>KENT</AddressLine>
+                        <Postcode>DA8 1PT</Postcode>
+                    </TextAddress>
+                    <BAreference>100103970430</BAreference>
+                </PropertyIdentity>
+                <OccupierContact>
+                    <OccupierName>
+                        <pdt:PersonNameTitle>MR</pdt:PersonNameTitle>
+                        <pdt:PersonFamilyName>GOLDSBURG</pdt:PersonFamilyName>
+                        <pdt:PersonRequestedName>MR GOLDSBURG</pdt:PersonRequestedName>
+                    </OccupierName>
+                </OccupierContact>
+            </AssessmentProperties>
+        </ExistingEntries>
+        <IndicatedDateOfChange>2015-07-31</IndicatedDateOfChange>
+        <Remarks>PLEASE DELETE/SPLIT 1 INTO 6. THIS PROPERTY HAS BEEN SPLIT INTO 6 SELF CONTAINED FLATS. PLEASE DELETE PROPERTY FROM 31.07.2015.
+        </Remarks>
+    </BApropertyReport>
+    <BAreportTrailer>
+        <RecordCount>61</RecordCount>
+        <EntryDateTime>2015-12-04T20:24:33</EntryDateTime>
+        <TotalNNDRreportCount>0</TotalNNDRreportCount>
+        <TotalCtaxReportCount>61</TotalCtaxReportCount>
+    </BAreportTrailer>
+</BAreports>
