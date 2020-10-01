@@ -206,6 +206,26 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
 
   }
 
+  "SubmissionProcessingService" must {
+    "not crash ReportUploadService" in {
+      val submissionProcessingService = mock[SubmissionProcessingService]
+      when(submissionProcessingService.processAsV1(any[String], any[String], any[String], any[BarError]))
+        .thenThrow(new RuntimeException("This exception should not crash ReportUploadService"))
+
+      when(submissionProcessingService.processAsV1(any[String], any[String], any[String]))
+        .thenThrow(new RuntimeException("This exception should not crash ReportUploadService"))
+
+      val reportUploadService = new ReportUploadService(aCorrectStatusRepository(), aValidationThrowError(), submissionProcessingService, aLegacyConnector(), aEmailConnector())
+      val res = reportUploadService.upload("username", "password", aXmlUrl, uploadReference)
+
+      res.map { result =>
+        verify(submissionProcessingService, times(1)).processAsV1(any[String], any[String], any[String], any[BarError])
+        result mustBe "failed"
+      }
+
+    }
+  }
+
   def aCorrectStatusRepository(): SubmissionStatusRepository = {
     val repository = mock[SubmissionStatusRepository]
     val reportStatus = ReportStatus("submissionId", ZonedDateTime.now, filename = Some("filename.xml"), status = Some(Pending.value))
