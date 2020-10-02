@@ -75,7 +75,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       case Left(a) => {
         handleError(uploadReference, a, username, password)
         //TODO - upload to V1 system
-        Future {
+        Try {
           submissionProcessingService.processAsV1(xmlUrl, username, uploadReference, a)
         }
         "failed"
