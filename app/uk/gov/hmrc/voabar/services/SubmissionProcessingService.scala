@@ -16,9 +16,7 @@
 
 package uk.gov.hmrc.voabar.services
 
-import java.io.{ByteArrayInputStream, InputStream}
 import java.net.URL
-import java.nio.file.{Files, Path, Paths}
 
 import javax.inject.{Inject, Singleton}
 import org.apache.commons.io.IOUtils
@@ -72,35 +70,15 @@ class SubmissionProcessingService @Inject() (validationService: ValidationServic
   }
 
   def validateAsV2(correctedXml: Array[Byte], baLogin: String, requestId: String): Boolean = {
-    import cats.effect._
-
-    def acquire = IO {
-      Files.createTempFile("SubmissionProcessingService", "xml")
-    }
-
-    def release(path: Path) = IO {
-      Files.deleteIfExists(path)
-      ()
-    }.handleErrorWith { e =>
-      log.warn(s"Unable to delete file :${path}", e)
-      IO.unit
-    }
-
-    def run(tmpFile: Path) = IO {
-      Files.write(tmpFile, correctedXml)
-      validationService.validate(tmpFile.toUri.toURL.toString, baLogin) match {
-        case Left(errors) => {
-          log.info(s"Validation of fixed XML, baLogin: ${baLogin}, requestId: ${requestId}, errors: ${errors}")
-          false
-        }
-        case Right((document, node)) => {
-          log.info(s"Validation of fixed XML successful, baLogin: ${baLogin}, requestId: ${requestId}")
-          true
-        }
+    validationService.validate(correctedXml, baLogin) match {
+      case Left(errors) => {
+        log.info(s"Validation of fixed XML, baLogin: ${baLogin}, requestId: ${requestId}, errors: ${errors}")
+        false
+      }
+      case Right((document, node)) => {
+        log.info(s"Validation of fixed XML successful, baLogin: ${baLogin}, requestId: ${requestId}")
+        true
       }
     }
-
-    Resource.make(acquire)(release).use(run).unsafeRunSync()
   }
-
 }

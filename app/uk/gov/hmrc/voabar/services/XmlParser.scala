@@ -56,6 +56,17 @@ class XmlParser {
     }
   }
 
+  def parse(xml: Array[Byte]): Either[BarError, Document] = {
+
+    Try {
+      val docBuilder = documentBuilderFactory.newDocumentBuilder()
+      docBuilder.parse(new ByteArrayInputStream(xml))
+    } match {
+      case Success(value) => Right(value)
+      case Failure(x) => Left(BarXmlError(x.getMessage))
+    }
+  }
+
 
   private def addChild(node:Node,newNode:NodeSeq): Node = node match {
     case Elem(prefix,label,attrs,ns,child@_*) => Elem(prefix,label,attrs,ns,false,newNode: _*)

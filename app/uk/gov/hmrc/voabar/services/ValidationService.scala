@@ -47,6 +47,18 @@ class ValidationService @Inject()(xmlValidator: XmlValidator,
     }
   }
 
+  def validate(xml: Array[Byte], baLogin: String): Either[BarError, (Document, Node)] = {
+    for {
+      domTree <- xmlParser.parse(xml).right
+      _ <- xmlValidator.validate(domTree).right //validate against XML schema
+
+      scalaElement <- xmlParser.domToScala(domTree).right
+      _ <- businessValidation(scalaElement, baLogin).right
+    } yield {
+      (domTree, scalaElement)
+    }
+  }
+
   private def createUrl(url: String): Either[BarError, URL] = {
 
     Try {
