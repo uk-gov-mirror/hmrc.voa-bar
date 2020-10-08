@@ -22,14 +22,14 @@ import java.util.UUID
 import org.scalatest.EitherValues
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.Json
-import uk.gov.hmrc.voabar.models.{AddProperty, Address, CaravanRemoved, ContactDetails, Cr03Submission, RemoveProperty, ReportStatus}
-import uk.gov.hmrc.voabar.models.Cr03Submission.format
+import uk.gov.hmrc.voabar.models.{AddProperty, Address, CaravanRemoved, ContactDetails, Cr01Cr03Submission, RemoveProperty, ReportStatus}
+import uk.gov.hmrc.voabar.models.Cr01Cr03Submission.format
 
 class WebBarsServiceSpec extends PlaySpec with EitherValues {
   val legacyCr03Submission = {
     val address = Address("line 1 ]]>", "line2", Option("line3"), None, "BN12 4AX")
     val contactDetails = ContactDetails("John", "Doe", Option("john.doe@example.com"), Option("054252365447"))
-    Cr03Submission(None, None, None,"baReport", "baRef", Option("112541"), address, contactDetails,
+    Cr01Cr03Submission(None, None, None,"baReport", "baRef", Option("112541"), address, contactDetails,
       true, None, LocalDate.now(), true, Some("22212"), None, Option("comment")
     )
   }
@@ -56,7 +56,7 @@ class WebBarsServiceSpec extends PlaySpec with EitherValues {
   val newCr03Submission = {
     val address = Address("line 1 ]]>", "line2", Option("line3"), None, "BN12 4AX")
     val contactDetails = ContactDetails("John", "Doe", Option("john.doe@example.com"), Option("054252365447"))
-    Cr03Submission(Some(AddProperty), None, None,"baReport", "baRef", Option("112541"), address, contactDetails,
+    Cr01Cr03Submission(Some(AddProperty), None, None,"baReport", "baRef", Option("112541"), address, contactDetails,
       true, None, LocalDate.now(), true, Some("22212"), None, Option("comment")
     )
   }
@@ -85,7 +85,7 @@ class WebBarsServiceSpec extends PlaySpec with EitherValues {
   val cr01Submission = {
     val address = Address("line 1 ]]>", "line2", Option("line3"), None, "BN12 4AX")
     val contactDetails = ContactDetails("John", "Doe", Option("john.doe@example.com"), Option("054252365447"))
-    Cr03Submission(Some(RemoveProperty), Some(CaravanRemoved), None,"baReport", "baRef", Option("112541"), address, contactDetails,
+    Cr01Cr03Submission(Some(RemoveProperty), Some(CaravanRemoved), None,"baReport", "baRef", Option("112541"), address, contactDetails,
       true, None, LocalDate.now(), true, Some("22212"), None, Option("comment")
     )
   }

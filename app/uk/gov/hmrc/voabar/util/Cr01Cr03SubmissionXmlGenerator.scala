@@ -23,12 +23,12 @@ import ebars.xml.BApropertySplitMergeStructure.AssessmentProperties
 import ebars.xml.BAreportBodyStructure.TypeOfTax.CtaxReasonForReport
 import ebars.xml.{BApropertyIdentificationStructure, BApropertySplitMergeStructure, BAreportBodyStructure, BAreports, ContactDetailsStructure, CtaxReasonForReportCodeStructure, EmailStructure, OccupierContactStructure, PersonNameStructure, ReportHeaderStructure, ReportTrailerStructure, TelephoneStructure, TextAddressStructure, UKPostalAddressStructure}
 import javax.xml.datatype.DatatypeFactory
-import uk.gov.hmrc.voabar.models.{AddProperty, Cr03Submission, OtherReason}
+import uk.gov.hmrc.voabar.models.{AddProperty, Cr01Cr03Submission, OtherReason}
 import uk.gov.hmrc.voabar.util.DateConversion._
 
 import scala.collection.mutable.ListBuffer
 
-class Cr03SubmissionXmlGenerator(submission: Cr03Submission, baCode: Int, baName: String, submissionId: String) {
+class Cr01Cr03SubmissionXmlGenerator(submission: Cr01Cr03Submission, baCode: Int, baName: String, submissionId: String) {
 
   val OF = new ebars.xml.ObjectFactory()
 
