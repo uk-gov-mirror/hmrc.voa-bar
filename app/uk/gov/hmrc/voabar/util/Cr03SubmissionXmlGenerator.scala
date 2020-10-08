@@ -18,13 +18,12 @@ package uk.gov.hmrc.voabar.util
 
 import java.math.BigInteger
 import java.time.{Instant, LocalDate}
-import java.util.{GregorianCalendar, UUID}
 
 import ebars.xml.BApropertySplitMergeStructure.AssessmentProperties
 import ebars.xml.BAreportBodyStructure.TypeOfTax.CtaxReasonForReport
-import ebars.xml.{BApropertyIdentificationStructure, BApropertySplitMergeStructure, BAreportBodyStructure, BAreports, ContactDetailsStructure, CtaxReasonForReportCodeStructure, EmailStructure, OccupierContactStructure, PersonNameStructure, ReportHeaderStructure, ReportTrailerStructure, TelephoneStructure, TextAddressStructure, UKPostalAddressStructure, WorkHomeType, YesNoType}
-import javax.xml.datatype.{DatatypeFactory, XMLGregorianCalendar}
-import uk.gov.hmrc.voabar.models.Cr03Submission
+import ebars.xml.{BApropertyIdentificationStructure, BApropertySplitMergeStructure, BAreportBodyStructure, BAreports, ContactDetailsStructure, CtaxReasonForReportCodeStructure, EmailStructure, OccupierContactStructure, PersonNameStructure, ReportHeaderStructure, ReportTrailerStructure, TelephoneStructure, TextAddressStructure, UKPostalAddressStructure}
+import javax.xml.datatype.DatatypeFactory
+import uk.gov.hmrc.voabar.models.{AddProperty, Cr03Submission, OtherReason}
 import uk.gov.hmrc.voabar.util.DateConversion._
 
 import scala.collection.mutable.ListBuffer
@@ -66,9 +65,19 @@ class Cr03SubmissionXmlGenerator(submission: Cr03Submission, baCode: Int, baName
       bodyElements += OF.createBAreportBodyStructurePropertyPlanReferenceNumber(submission.planningRef.get)
     }
 
-    if(submission.comments.isDefined || submission.noPlanningReference.isDefined) {
+    if(submission.comments.isDefined || submission.noPlanningReference.isDefined || submission.removalReason.isDefined) {
+      val reasonForRemoval = submission.removalReason.map{
+        case OtherReason => submission.otherReason.getOrElse("Unknown reason") // TODO some validation
+        case rr => rr.xmlValue
+      }
+
       bodyElements += OF.createBAreportBodyStructureRemarks(
-        List(submission.noPlanningReference.map(_.xmlValue), submission.comments).flatten.mkString(" ")
+        List(
+          reasonForRemoval,
+          submission.noPlanningReference.map(_.xmlValue),
+          submission.comments
+        ).flatten.mkString(" ")
+
       )
     }
 
@@ -155,11 +164,15 @@ class Cr03SubmissionXmlGenerator(submission: Cr03Submission, baCode: Int, baName
 
   def typeOfTax = {
     val reasonForReportCode = new  CtaxReasonForReportCodeStructure()
-    reasonForReportCode.setValue(ebars.xml.CtaxReasonForReportCodeContentType.CR_03)
+    val (reasonForReportValue, reasonForReportDescription) =
+      submission.reasonReport.fold(
+        (ebars.xml.CtaxReasonForReportCodeContentType.CR_03,
+          AddProperty.reasonForCodeDescription))(rr => (rr.xmlValue,rr.reasonForCodeDescription))
+    reasonForReportCode.setValue(reasonForReportValue)
 
     val cTaxReport = new CtaxReasonForReport()
     cTaxReport.setReasonForReportCode(reasonForReportCode)
-    cTaxReport.setReasonForReportDescription("NEW")
+    cTaxReport.setReasonForReportDescription(reasonForReportDescription)
 
     val typeOfTax = OF.createBAreportBodyStructureTypeOfTax()
     typeOfTax.setCtaxReasonForReport(cTaxReport)

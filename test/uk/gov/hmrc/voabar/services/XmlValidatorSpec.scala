@@ -16,8 +16,6 @@
 
 package uk.gov.hmrc.voabar.services
 
-import java.net.URL
-
 import org.apache.commons.io.IOUtils
 import org.scalatest.EitherValues
 import org.scalatestplus.play.PlaySpec

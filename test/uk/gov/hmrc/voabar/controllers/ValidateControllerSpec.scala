@@ -16,17 +16,14 @@
 
 package uk.gov.hmrc.voabar.controllers
 
-import java.io.File
 import java.nio.file.{Files, Paths, StandardCopyOption}
 import java.util.UUID
 
-import scala.concurrent.Future
 import org.scalatestplus.play._
-import play.api.libs.Files.{SingletonTemporaryFileCreator, TemporaryFile}
+import play.api.libs.Files.SingletonTemporaryFileCreator
 import play.api.mvc._
 import play.api.test._
 import play.api.test.Helpers._
-import play.libs.Files.TemporaryFileCreator
 import uk.gov.hmrc.voabar.services.{BusinessRules, SubmissionProcessingService, ValidationService, XmlParser, XmlValidator}
 
 import scala.concurrent.ExecutionContext.Implicits.global

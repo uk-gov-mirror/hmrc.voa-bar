@@ -25,7 +25,8 @@ case class Address(line1: String, line2: String, line3: Option[String], line4: O
 object ContactDetails {implicit val format = Json.format[ContactDetails] }
 case class ContactDetails(firstName: String, lastName: String, email: Option[String], phoneNumber: Option[String])
 object Cr03Submission { val format = Json.format[Cr03Submission] }
-case class Cr03Submission(baReport: String, baRef: String, uprn: Option[String], address: Address,
+case class Cr03Submission(reasonReport: Option[ReasonReportType], removalReason: Option[RemovalReasonType], otherReason: Option[String],
+                           baReport: String, baRef: String, uprn: Option[String], address: Address,
                           propertyContactDetails: ContactDetails,
                           sameContactAddress: Boolean, contactAddress: Option[Address],
                           effectiveDate: LocalDate, havePlaningReference: Boolean,
