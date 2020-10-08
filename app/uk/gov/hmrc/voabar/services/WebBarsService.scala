@@ -16,18 +16,17 @@
 
 package uk.gov.hmrc.voabar.services
 
-import akka.actor.{ActorSystem, Scheduler}
+import akka.actor.ActorSystem
 import com.google.inject.ImplementedBy
 import javax.inject.{Inject, Singleton}
 import play.api.Logger
 import play.api.libs.json.JsString
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.voabar.models.{Cr03Submission, Done, ReportStatus, Verified}
+import uk.gov.hmrc.voabar.models.{Cr01Cr03Submission, ReportStatus}
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
-import uk.gov.hmrc.voabar.util.{BillingAuthorities, Cr03SubmissionXmlGenerator}
+import uk.gov.hmrc.voabar.util.{BillingAuthorities, Cr01Cr03SubmissionXmlGenerator}
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.concurrent.duration._
 
 @ImplementedBy(classOf[DefaultWebBarsService])
 trait WebBarsService {
@@ -46,18 +45,17 @@ class DefaultWebBarsService @Inject() (actorSystem: ActorSystem,submissionReposi
     }
   }
 
-  def processReport(reportStatus: ReportStatus, username: String, password: String): Unit = Future {
-    val cr03Submission = reportStatus.report
-      .map(_.value)
-      .filter(x => x.get("type").map {case x: JsString => x.value == "Cr03Submission"}.getOrElse(false))
-      .flatMap(x => x.get("submission")).flatMap(x => Cr03Submission.format.reads(x).asOpt)
 
-    cr03Submission.foreach { submission =>
+
+  def processReport(reportStatus: ReportStatus, username: String, password: String): Unit = Future {
+    val cr01cr03Submission = DefaultWebBarsService.readReport(reportStatus)
+
+    cr01cr03Submission.foreach { submission =>
       implicit val hc = HeaderCarrier()
-      val cr03SubmissionXmlGenerator = new Cr03SubmissionXmlGenerator(submission, username.substring(2).toInt,
+      val cr01cr03SubmissionXmlGenerator = new Cr01Cr03SubmissionXmlGenerator(submission, username.substring(2).toInt,
         BillingAuthorities.find(username).getOrElse("Unknown"), reportStatus.id)
 
-      reportUploadService.upload(username, password, cr03SubmissionXmlGenerator.generateXml(), reportStatus.id)
+      reportUploadService.upload(username, password, cr01cr03SubmissionXmlGenerator.generateXml(), reportStatus.id)
     }
   }.recover {
     case x: Exception => {
@@ -65,4 +63,17 @@ class DefaultWebBarsService @Inject() (actorSystem: ActorSystem,submissionReposi
     }
   }
 
+}
+
+object DefaultWebBarsService {
+
+  def readReport(reportStatus: ReportStatus): Option[Cr01Cr03Submission] = {
+    reportStatus.report
+      .map(_.value)
+      .filter(x => x.get("type").exists {
+        case JsString(typeValue) => typeValue == "Cr03Submission" || typeValue == "Cr01Cr03Submission"
+        case _ => false
+      })
+      .flatMap(x => x.get("submission")).flatMap(x => Cr01Cr03Submission.format.reads(x).asOpt)
+  }
 }

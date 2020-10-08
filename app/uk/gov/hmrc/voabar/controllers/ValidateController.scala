@@ -16,15 +16,14 @@
 
 package uk.gov.hmrc.voabar.controllers
 
-import java.nio.file.Files
 import org.apache.commons.io.IOUtils
 
 
 import javax.inject.{Inject, Singleton}
 import play.api.Logger
-import play.api.mvc.{Action, ControllerComponents}
+import play.api.mvc.ControllerComponents
 import uk.gov.hmrc.play.HeaderCarrierConverter
-import uk.gov.hmrc.play.bootstrap.controller.{BackendController, BaseController}
+import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import uk.gov.hmrc.voabar.services.{SubmissionProcessingService, ValidationService}
 
 import scala.concurrent.{ExecutionContext, Future}

@@ -88,7 +88,7 @@ class ValidationService @Inject()(xmlValidator: XmlValidator,
 
     val parsedBatch:Seq[Node] = xmlParser.oneReportPerBatch(xml)
 
-    val validations:List[(Node) => List[Error]] = List(
+    val validations:List[Node => List[Error]] = List(
       validationBACode(baLogin),
       validationBusinessRules(baLogin)
     )
