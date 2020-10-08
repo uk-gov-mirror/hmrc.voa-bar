@@ -16,14 +16,13 @@
 
 package uk.gov.hmrc.voabar.services
 
-import java.io.{ByteArrayInputStream, StringReader}
-import java.net.{URI, URL}
+import java.io.ByteArrayInputStream
+import java.net.URL
 
 import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.dom.DOMSource
 import javax.xml.transform.sax.SAXResult
-import org.apache.commons.io.input.ReaderInputStream
 import org.w3c.dom.Document
 import uk.gov.hmrc.voabar.models.{BarError, BarXmlError}
 

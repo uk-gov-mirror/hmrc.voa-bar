@@ -36,11 +36,18 @@ case object Derelict extends RemovalReasonType {
 case object Renovating extends RemovalReasonType {
   override def xmlValue: String = "It is being renovated"
 }
+
+// TODO Remove
 case object NotComplete extends RemovalReasonType {
   override def xmlValue: String = "Banded too soon or not complete."
 }
 
+// TODO remove
 case object BandedTooSoon extends RemovalReasonType {
+  override def xmlValue: String = "Banded too soon or not complete."
+}
+
+case object BandedTooSoonOrNotComplete extends RemovalReasonType {
   override def xmlValue: String = "Banded too soon or not complete."
 }
 
@@ -67,6 +74,7 @@ object RemovalReasonType {
         case JsString("Renovating") => JsSuccess(Renovating)
         case JsString("NotComplete") => JsSuccess(NotComplete)
         case JsString("BandedTooSoon") => JsSuccess(BandedTooSoon)
+        case JsString("BandedTooSoonOrNotComplete") => JsSuccess(BandedTooSoonOrNotComplete)
         case JsString("CaravanRemoved") => JsSuccess(CaravanRemoved)
         case JsString("Duplicate") => JsSuccess(Duplicate)
         case JsString("OtherReason") => JsSuccess(OtherReason)
@@ -74,14 +82,15 @@ object RemovalReasonType {
       }
     }
 
-    override def writes(o: RemovalReasonType): JsValue = {
-      o match  {
+    override def writes(rrt: RemovalReasonType): JsValue = {
+      rrt match  {
         case Demolition     => JsString("Demolition")
         case Disrepair      => JsString("Disrepair")
         case Derelict       => JsString("Derelict")
         case Renovating     => JsString("Renovating")
         case NotComplete    => JsString("NotComplete")
         case BandedTooSoon  => JsString("BandedTooSoon")
+        case BandedTooSoonOrNotComplete  => JsString("BandedTooSoonOrNotComplete")
         case CaravanRemoved => JsString("CaravanRemoved")
         case Duplicate      => JsString("Duplicate")
         case OtherReason    => JsString("OtherReason")
