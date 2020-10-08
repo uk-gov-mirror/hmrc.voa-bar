@@ -80,8 +80,6 @@ class WebBarsServiceSpec extends PlaySpec with EitherValues {
     Some(newCr03Report)
   )
 
-//
-
   val cr01Submission = {
     val address = Address("line 1 ]]>", "line2", Option("line3"), None, "BN12 4AX")
     val contactDetails = ContactDetails("John", "Doe", Option("john.doe@example.com"), Option("054252365447"))
@@ -122,9 +120,5 @@ class WebBarsServiceSpec extends PlaySpec with EitherValues {
     "readReport for new cr01" in {
       DefaultWebBarsService.readReport(cr01ReportStatus) mustBe Some(cr01Submission)
     }
-
   }
-
-
-
 }

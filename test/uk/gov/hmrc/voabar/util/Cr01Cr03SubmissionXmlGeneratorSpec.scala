@@ -123,7 +123,7 @@ class Cr01Cr03SubmissionXmlGeneratorSpec extends FlatSpec with MustMatchers with
     effectiveDate, planningRef.isDefined, planningRef, noPlanningRef, comment
   )
 
-  "CR03 generator" should "generate valid xml" in {
+  "CR01 CR03 generator" should "generate valid xml" in {
     val jaxbStructure =
       new Cr01Cr03SubmissionXmlGenerator(
         aCR03Submission(), 1010, "Brighton and Hove",
@@ -192,8 +192,6 @@ class Cr01Cr03SubmissionXmlGeneratorSpec extends FlatSpec with MustMatchers with
     Cr01Cr03Submission(None, None, None,"baReport", "baRef", Option("112541"), address, contactDetails,
       true, None, LocalDate.now(), true, Some("22212"), None, Option("comment")
     )
-
   }
-
 
 }
