@@ -18,13 +18,15 @@ package uk.gov.hmrc.voabar.services
 
 import javax.xml.bind.JAXBElement
 import javax.xml.namespace.QName
-
 import ebars.xml.CtaxReasonForReportCodeContentType._
-import ebars.xml.{BAreportBodyStructure, BAreports}
+import ebars.xml.{BAreportBodyStructure, BAreports, ObjectFactory}
 import models.EbarsBAreports._
 import models.Purpose
+import org.apache.commons.lang3.StringUtils
 
 import scala.util.{Success, Try}
+import collection.JavaConverters._
+
 
 /**
   * Created by rgallet on 12/02/16.
@@ -41,6 +43,7 @@ class RulesCorrectionEngine {
     CtRules.Cr05CopyProposedEntriesToExistingEntries,
     CtRules.Cr12CopyProposedEntriesToRemarks,
     PostcodesToUppercase,
+    RemarksTrimmer,
     RemarksFillDefault,
     RemovingInvalidTaxBand,
     PropertyDescriptionTextRemoval
@@ -53,6 +56,7 @@ class RulesCorrectionEngine {
     NdrRules.Rt01AndRt02AndRt03AndRt04RemoveExistingEntries,
     NdrRules.Rt05AndRt06AndRt07AndRt08AndRt09AndRt11RemoveProposedEntries,
     PostcodesToUppercase,
+    RemarksTrimmer,
     RemarksFillDefault
   )
 
@@ -65,6 +69,30 @@ class RulesCorrectionEngine {
 
 sealed trait Rule {
   def apply(baReports: BAreports)
+}
+
+/**
+ * Strip whitespace characters in remarks element.
+ */
+case object RemarksTrimmer extends Rule {
+  override def apply(baReports: BAreports) {
+    assert(baReports.getBApropertyReport.size() == 1,
+      s"Rules correction engine can update only single report, multiple or zero report present: ${baReports.getBApropertyReport.size()} report(s)")
+
+    val content = baReports.getBApropertyReport.get(0).getContent
+
+    EbarsXmlCutter.findRemarksIdx(baReports) foreach { idx =>
+      val remarks = content.get(idx).asInstanceOf[JAXBElement[String]]
+      remarks.getValue match {
+        case null | "" => //nothing
+        case _ =>  {
+          val newRemarksValue = StringUtils.strip(remarks.getValue)
+          remarks.setValue(newRemarksValue)
+        }
+      }
+    }
+  }
+
 }
 
 case object RemarksFillDefault extends Rule {

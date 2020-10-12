@@ -359,6 +359,24 @@ class RulesCorrectionEngineCtSpec extends WordSpecLike with Matchers with Option
     }
   }
 
+  "RemarksTrimmer" should {
+    "remove all whitespace at beginning and end" in {
+
+      val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/REMARKS_WITH_WHITESPACE.xml")))
+
+      EbarsXmlCutter.findRemarksIdx(reports) should have size (1)
+
+      RemarksTrimmer.apply(reports)
+
+      val indices = EbarsXmlCutter.findRemarksIdx(reports)
+
+      indices should have size (1)
+      val remarks = reports.getBApropertyReport.get(0).getContent.get(indices(0))
+
+      remarks.getValue.asInstanceOf[String] should be("THIS IS A BLUEPRINT TEST PLEASE DELETE / NO ACTION THIS REPORT")
+    }
+  }
+
   "RemarksFillDefault" should {
     "leave it alone if present" in {
 
