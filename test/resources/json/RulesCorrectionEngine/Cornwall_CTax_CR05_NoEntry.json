@@ -1,0 +1,34 @@
+{
+    "BAreports": {
+        "SchemaId": "VbBAtoVOA",
+        "SchemaVersion": "4-0",
+        "BAreportHeader": {
+            "BillingAuthority": "Cornwall Council",
+            "BillingAuthorityIdentityCode": 815,
+            "ProcessDate": "2015-08-30",
+            "EntryDateTime": "2015-08-30T23:00:22"
+        },
+        "BApropertyReport": [{
+            "DateSent": ["2015-08-30"],
+            "TransactionIdentityBA": ["11010635004000"],
+            "BAidentityNumber": [815],
+            "BAreportNumber": ["100898"],
+            "TypeOfTax": [{
+                "CtaxReasonForReport": {
+                    "ReasonForReportCode": {
+                        "value": "CR05"
+                    },
+                    "ReasonForReportDescription": "New"
+                }
+            }],
+            "IndicatedDateOfChange": ["2015-05-01"],
+            "Remarks": ["THIS IS A BLUEPRINT TEST PLEASE DELETE / NO ACTION THIS REPORT"]
+        }],
+        "BAreportTrailer": {
+            "RecordCount": 1,
+            "EntryDateTime": "2015-08-30T23:01:43",
+            "TotalNNDRreportCount": 0,
+            "TotalCtaxReportCount": 1
+        }
+    }
+}

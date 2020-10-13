@@ -1,0 +1,28 @@
+<BAreports SchemaId="BAtoVOA" SchemaVersion="4-0" xmlns="http://www.govtalk.gov.uk/LG/Valuebill" xmlns:apd="http://www.govtalk.gov.uk/people/AddressAndPersonalDetails" xmlns:pdt="http://www.govtalk.gov.uk/people/PersonDescriptives" xmlns:bs7666="http://www.govtalk.gov.uk/people/bs7666" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<BAreportHeader>
+		<BillingAuthority>Ealing Council</BillingAuthority>
+		<BillingAuthorityIdentityCode>6950</BillingAuthorityIdentityCode>
+		<ProcessDate>2015-11-24</ProcessDate>
+		<EntryDateTime>2015-11-24T16:05:16</EntryDateTime>
+	</BAreportHeader>
+<BApropertyReport>
+		<DateSent>2015-08-30</DateSent>
+		<TransactionIdentityBA>100899</TransactionIdentityBA>
+		<BAidentityNumber>6950</BAidentityNumber>
+		<BAreportNumber>110892</BAreportNumber>
+		<TypeOfTax>
+			<CtaxReasonForReport>
+				<ReasonForReportCode>CR06</ReasonForReportCode>
+				<ReasonForReportDescription>Composite</ReasonForReportDescription>
+			</CtaxReasonForReport>
+		</TypeOfTax>
+		<IndicatedDateOfChange>2015-08-20</IndicatedDateOfChange>
+		<Remarks>THIS IS A BLUEPRINT TEST.PLEASE DELETE/NO ACTION THIS REPORT</Remarks>
+	</BApropertyReport>
+	<BAreportTrailer>
+		<RecordCount>12</RecordCount>
+		<EntryDateTime>2015-11-11T14:02:16</EntryDateTime>
+		<TotalNNDRreportCount>0</TotalNNDRreportCount>
+		<TotalCtaxReportCount>12</TotalCtaxReportCount>
+	</BAreportTrailer>
+</BAreports>                     
