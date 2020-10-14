@@ -375,6 +375,13 @@ class RulesCorrectionEngineCtSpec extends WordSpecLike with Matchers with Option
 
       remarks.getValue.asInstanceOf[String] should be("THIS IS A BLUEPRINT TEST PLEASE DELETE / NO ACTION THIS REPORT")
     }
+
+    "Throw assertion error for submissions with more that one report" in {
+      val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/CTValid2.xml")))
+      assertThrows[AssertionError] {
+        RemarksTrimmer.apply(reports)
+      }
+    }
   }
 
   "RemarksFillDefault" should {
