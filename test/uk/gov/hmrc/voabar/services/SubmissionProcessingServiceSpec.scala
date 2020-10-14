@@ -27,6 +27,7 @@ class SubmissionProcessingServiceSpec extends PlaySpec with TableDrivenPropertyC
 
   val batchWith1Report = IOUtils.toString(getClass.getResource("/xml/CTValid1.xml"), "UTF-8")
   val batchWithMoreReports = IOUtils.toString(getClass.getResource("/xml/CTValid2.xml"), "UTF-8")
+  val wrongHeaderTrailer = IOUtils.toString(getClass.getResource("/xml/wrong-header-trailer.xml"), "UTF-8")
 
   val injector = new GuiceInjectorBuilder()
     .configure("key" -> "value")
@@ -42,6 +43,10 @@ class SubmissionProcessingServiceSpec extends PlaySpec with TableDrivenPropertyC
 
     "Process2 and fix already valid XML" in {
       submissionProcessingService.processAsV1(batchWithMoreReports, "BA5090", UUID.randomUUID().toString.toLowerCase) mustBe(true)
+    }
+
+    "Process and fix XML with wrong header and trailer" in {
+      submissionProcessingService.processAsV1(wrongHeaderTrailer, "BA5090", UUID.randomUUID().toString.toLowerCase()) mustBe(true)
     }
 
     "Correct all invalid XML and validate them successfully as V2 " in {

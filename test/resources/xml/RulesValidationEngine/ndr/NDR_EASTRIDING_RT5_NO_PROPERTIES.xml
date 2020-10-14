@@ -1,0 +1,31 @@
+<BAreports SchemaId="BAtoVOA" SchemaVersion="4-0" xmlns="http://www.govtalk.gov.uk/LG/Valuebill">
+    <BAreportHeader>
+        <BillingAuthority>EAST RIDING OF YORKSHIRE</BillingAuthority>
+        <BillingAuthorityIdentityCode>0114</BillingAuthorityIdentityCode>
+        <ProcessDate>2015-05-20</ProcessDate>
+        <EntryDateTime>2015-05-20T09:50:37</EntryDateTime>
+    </BAreportHeader>
+    <BApropertyReport>
+        <DateSent>2015-05-20</DateSent>
+        <TransactionIdentityBA>WET012006000N</TransactionIdentityBA>
+        <BAidentityNumber>0114</BAidentityNumber>
+        <BAreportNumber>41348</BAreportNumber>
+        <TypeOfTax>
+            <NNDRreasonForReport>
+                <ReasonForReportCode>5</ReasonForReportCode>
+                <ReasonForReportDescription>Deleted - Ceased</ReasonForReportDescription>
+            </NNDRreasonForReport>
+        </TypeOfTax>
+        <IndicatedDateOfChange>2015-06-01</IndicatedDateOfChange>
+        <SourceOfUpdate>Owner</SourceOfUpdate>
+        <Remarks>Please note that property to be redeveloped into 5 homes, please contact Pete (M)0123456144(John
+            Building Management Ltd t:015555 123456.
+        </Remarks>
+    </BApropertyReport>
+    <BAreportTrailer>
+        <RecordCount>1</RecordCount>
+        <EntryDateTime>2015-05-20T09:50:37</EntryDateTime>
+        <TotalNNDRreportCount>11</TotalNNDRreportCount>
+        <TotalCtaxReportCount>0</TotalCtaxReportCount>
+    </BAreportTrailer>
+</BAreports>

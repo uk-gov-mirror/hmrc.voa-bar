@@ -56,6 +56,9 @@ class SubmissionProcessingService @Inject() (validationService: ValidationServic
       submission.getBApropertyReport.clear()
       submission.getBApropertyReport.addAll(allReports.map(_.getBApropertyReport.get(0)).asJava)
 
+      FixHeader(submission)
+      FixCTaxTrailer(submission)
+
       val correctedXml = xmlValidator.toXml(submission).getBytes("UTF-8")
 
       validateAsV2(correctedXml, baLogin, requestId)

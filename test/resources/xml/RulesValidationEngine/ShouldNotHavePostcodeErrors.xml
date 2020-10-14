@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BAreports xmlns="http://www.govtalk.gov.uk/LG/Valuebill"
+           xmlns:apd="http://www.govtalk.gov.uk/people/AddressAndPersonalDetails"
+           xmlns:pdt="http://www.govtalk.gov.uk/people/PersonDescriptives"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://www.govtalk.gov.uk/LG/Valuebill ValuebillBAtoVOA-v4-0.xsd" SchemaId="VbBAtoVOA"
+           SchemaVersion="4-0">
+    <BAreportHeader>
+        <BillingAuthority>Cornwall Council</BillingAuthority>
+        <BillingAuthorityIdentityCode>6950</BillingAuthorityIdentityCode>
+        <ProcessDate>2015-08-30</ProcessDate>
+        <EntryDateTime>2015-08-30T23:00:22</EntryDateTime>
+    </BAreportHeader>
+    <BApropertyReport>
+        <DateSent>2015-08-30</DateSent>
+        <TransactionIdentityBA>14242655052001</TransactionIdentityBA>
+        <BAidentityNumber>6950</BAidentityNumber>
+        <BAreportNumber>100947</BAreportNumber>
+        <TypeOfTax>
+            <CtaxReasonForReport>
+                <ReasonForReportCode>CR03</ReasonForReportCode>
+                <ReasonForReportDescription>New</ReasonForReportDescription>
+            </CtaxReasonForReport>
+        </TypeOfTax>
+        <ProposedEntries>
+            <AssessmentProperties>
+                <PropertyIdentity>
+                    <TextAddress>
+                        <AddressLine>10 - 30 BIG HILL</AddressLine>
+                        <AddressLine>NOTHING HILL</AddressLine>
+                        <AddressLine>MALPAS</AddressLine>
+                        <AddressLine>CORNWALL</AddressLine>
+                        <Postcode>TR1 3EP</Postcode>
+                    </TextAddress>
+                    <BAreference>15698555052001</BAreference>
+                </PropertyIdentity>
+                <OccupierContact>
+                    <OccupierName>
+                        <pdt:PersonFamilyName>ORANGE ESTATES LTD</pdt:PersonFamilyName>
+                        <pdt:PersonRequestedName>ORANGE ESTATES LTD</pdt:PersonRequestedName>
+                    </OccupierName>
+                    <ContactAddress>
+                        <apd:Line>ORANGE HOUSE</apd:Line>
+                        <apd:Line>21 RANDOM STREET</apd:Line>
+                        <apd:Line>MALPAS</apd:Line>
+                        <apd:Line>CORNWALL</apd:Line>
+                    </ContactAddress>
+                </OccupierContact>
+            </AssessmentProperties>
+        </ProposedEntries>
+        <IndicatedDateOfChange>2015-01-01</IndicatedDateOfChange>
+        <Remarks>THIS IS A BLUEPRINT TEST PLEASE DELETE / NO ACTION THIS REPORT</Remarks>
+    </BApropertyReport>
+    <BAreportTrailer>
+        <RecordCount>82</RecordCount>
+        <EntryDateTime>2015-08-30T23:01:43</EntryDateTime>
+        <TotalNNDRreportCount>0</TotalNNDRreportCount>
+        <TotalCtaxReportCount>82</TotalCtaxReportCount>
+    </BAreportTrailer>
+</BAreports>

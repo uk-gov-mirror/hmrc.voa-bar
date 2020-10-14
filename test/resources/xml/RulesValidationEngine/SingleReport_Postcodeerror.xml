@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BAreports xmlns="http://www.govtalk.gov.uk/LG/Valuebill" xmlns:apd="http://www.govtalk.gov.uk/people/AddressAndPersonalDetails" xmlns:bs7666="http://www.govtalk.gov.uk/people/bs7666" xmlns:core="http://www.govtalk.gov.uk/core" xmlns:pdt="http://www.govtalk.gov.uk/people/PersonDescriptives" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.govtalk.gov.uk/LG/Valuebill ValuebillBAtoVOA-v4-0.xsd" SchemaId="VbBAtoVOA" SchemaVersion="4-0">
+	<BAreportHeader>
+		<BillingAuthority>Cornwall Council</BillingAuthority>
+		<BillingAuthorityIdentityCode>6950</BillingAuthorityIdentityCode>
+		<ProcessDate>2015-08-30</ProcessDate>
+		<EntryDateTime>2015-08-30T23:00:22</EntryDateTime>
+	</BAreportHeader>
+	<BApropertyReport>
+		<DateSent>2015-08-30</DateSent>
+		<TransactionIdentityBA>13274823042000</TransactionIdentityBA>
+		<BAidentityNumber>6950</BAidentityNumber>
+		<BAreportNumber>100933</BAreportNumber>
+		<TypeOfTax>
+			<CtaxReasonForReport>
+				<ReasonForReportCode>CR03</ReasonForReportCode>
+				<ReasonForReportDescription>New</ReasonForReportDescription>
+			</CtaxReasonForReport>
+		</TypeOfTax>
+		<ProposedEntries>
+			<AssessmentProperties>
+				<PropertyIdentity>
+					<bs7666:UniquePropertyReferenceNumber>010090880370</bs7666:UniquePropertyReferenceNumber>
+					<TextAddress>
+						<AddressLine>221B</AddressLine>
+						<AddressLine>BAKER STREET</AddressLine>
+						<AddressLine>GREAT LONDON</AddressLine>
+					</TextAddress>
+					<BAreference>13276543212000</BAreference>
+				</PropertyIdentity>
+				<OccupierContact>
+					<OccupierName>
+						<pdt:PersonNameTitle>MR</pdt:PersonNameTitle>
+						<pdt:PersonGivenName>SHERLOCK</pdt:PersonGivenName>
+						<pdt:PersonFamilyName>HOLMES</pdt:PersonFamilyName>
+						<pdt:PersonRequestedName>MR SHERLOCK HOLMES</pdt:PersonRequestedName>
+					</OccupierName>
+				</OccupierContact>
+			</AssessmentProperties>
+		</ProposedEntries>
+		<IndicatedDateOfChange>2015-07-03</IndicatedDateOfChange>
+		<Remarks>THIS IS A BLUEPRINT TEST.PLEASE DELETE/NO ACTION THIS REPORT</Remarks>
+	</BApropertyReport>
+
+	<BAreportTrailer>
+		<RecordCount>82</RecordCount>
+		<EntryDateTime>2015-08-30T23:01:43</EntryDateTime>
+		<TotalNNDRreportCount>0</TotalNNDRreportCount>
+		<TotalCtaxReportCount>82</TotalCtaxReportCount>
+	</BAreportTrailer>
+</BAreports>
