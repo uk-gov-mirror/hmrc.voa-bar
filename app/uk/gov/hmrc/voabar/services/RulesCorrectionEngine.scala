@@ -16,12 +16,14 @@
 
 package uk.gov.hmrc.voabar.services
 
+import java.io.{ByteArrayInputStream, FilterInputStream, InputStream}
 import java.math.BigInteger
 import java.time.{ZoneId, ZonedDateTime}
 import java.util.GregorianCalendar
 
 import ebars.xml.CtaxReasonForReportCodeContentType._
 import ebars.xml.{BAreportBodyStructure, BAreports}
+import io.inbot.utils.ReplacingInputStream
 import javax.xml.bind.JAXBElement
 import javax.xml.datatype.{DatatypeConstants, DatatypeFactory}
 import javax.xml.namespace.QName
@@ -72,6 +74,15 @@ class RulesCorrectionEngine {
 
 sealed trait Rule {
   def apply(baReports: BAreports)
+}
+
+object CorrectionInputStream {
+
+  def apply(input: InputStream): FilterInputStream = {
+    //In future we can add mode replacement. We want to replace on byte level to prevent problem with different XML charset.
+    new ReplacingInputStream(input, "&nbsp;", " ")
+  }
+
 }
 
 case object FixHeader extends Rule {

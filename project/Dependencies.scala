@@ -26,8 +26,8 @@ object Dependencies {
     "org.typelevel" %% "cats-effect"                % "2.1.4",
     "net.sf.saxon" % "Saxon-HE"                     % saxonHeVersion,
     "xerces" % "xercesImpl"                         % xercesVersion,
-    "org.eclipse.persistence" % "org.eclipse.persistence.moxy" % "2.6.9"
-
+    "org.eclipse.persistence" % "org.eclipse.persistence.moxy" % "2.6.9",
+    "io.inbot" % "inbot-utils" % "1.28"
   )
 
   def test(scope: String = "test,it") = Seq(
@@ -37,6 +37,7 @@ object Dependencies {
     "org.mockito" % "mockito-all" % mockitoAllVersion % scope,
     "org.scalacheck" %% "scalacheck" % "1.14.3" % scope,
     "com.github.tomakehurst" % "wiremock-jre8" % "2.26.3" % scope
+    //"commons-io" % "commons-io" % "2.8.0" % scope
   )
 
 }
