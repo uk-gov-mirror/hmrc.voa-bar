@@ -16,9 +16,11 @@
 
 package uk.gov.hmrc.voabar.services
 
+import java.io.ByteArrayInputStream
 import java.net.URL
 
 import javax.inject.{Inject, Singleton}
+import javax.xml.transform.stream.StreamSource
 import org.apache.commons.io.IOUtils
 import play.api.Logger
 import services.EbarsValidator
@@ -38,14 +40,16 @@ class SubmissionProcessingService @Inject() (validationService: ValidationServic
 
   def processAsV1(url: String, baLogin: String, requestId: String, error: BarError): Boolean = {
     log.info(s"Unable to process V2 upload with V2 validation. ${baLogin}, ${requestId}, error: ${error}")
-    val xml = IOUtils.toString(new URL(url), "UTF-8")
+    val xml = IOUtils.toByteArray(new URL(url))
     processAsV1(xml, baLogin, requestId)
   }
 
-  def processAsV1(xml: String, baLogin: String, requestId: String): Boolean = {
+  def processAsV1(xml: Array[Byte], baLogin: String, requestId: String): Boolean = {
 
     Try {
-      val submission = xmlValidator.fromXml(xml)
+      val source = new StreamSource(CorrectionInputStream(new ByteArrayInputStream(xml)))
+
+      val submission = xmlValidator.fromXml(source)
 
       val allReports = xmlValidator.split(submission)
 

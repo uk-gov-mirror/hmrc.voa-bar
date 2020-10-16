@@ -212,7 +212,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
       when(submissionProcessingService.processAsV1(any[String], any[String], any[String], any[BarError]))
         .thenThrow(new RuntimeException("This exception should not crash ReportUploadService"))
 
-      when(submissionProcessingService.processAsV1(any[String], any[String], any[String]))
+      when(submissionProcessingService.processAsV1(any[Array[Byte]], any[String], any[String]))
         .thenThrow(new RuntimeException("This exception should not crash ReportUploadService"))
 
       val reportUploadService = new ReportUploadService(aCorrectStatusRepository(), aValidationThrowError(), submissionProcessingService, aLegacyConnector(), aEmailConnector())

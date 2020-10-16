@@ -57,10 +57,7 @@ class ValidateController @Inject() (validationService: ValidationService,
         }
       }
 
-      val xmlAsString = IOUtils.toString(request.body.path.toUri, "UTF-8") //TODO - We need to change how we load xml.
-                                                                                     //TODO   It should be XML parser to decide which encoding he want.
-                                                                                     //TODO - Maybe some fuzzy encoding detection.
-
+      val xmlAsString = IOUtils.toByteArray(request.body.path.toUri)
       submissionProcessingService.processAsV1(xmlAsString, baLogin, requestId)
 
       Ok("")
