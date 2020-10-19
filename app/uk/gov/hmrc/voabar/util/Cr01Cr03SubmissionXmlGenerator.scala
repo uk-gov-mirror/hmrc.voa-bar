@@ -21,7 +21,10 @@ import java.time.{Instant, LocalDate}
 
 import ebars.xml.BApropertySplitMergeStructure.AssessmentProperties
 import ebars.xml.BAreportBodyStructure.TypeOfTax.CtaxReasonForReport
-import ebars.xml.{BApropertyIdentificationStructure, BApropertySplitMergeStructure, BAreportBodyStructure, BAreports, ContactDetailsStructure, CtaxReasonForReportCodeStructure, EmailStructure, OccupierContactStructure, PersonNameStructure, ReportHeaderStructure, ReportTrailerStructure, TelephoneStructure, TextAddressStructure, UKPostalAddressStructure}
+import ebars.xml.{BApropertyIdentificationStructure, BApropertySplitMergeStructure, BAreportBodyStructure, BAreports,
+  ContactDetailsStructure, CtaxReasonForReportCodeStructure, EmailStructure, OccupierContactStructure,
+  PersonNameStructure, ReportHeaderStructure, ReportTrailerStructure, TelephoneStructure, TextAddressStructure,
+  UKPostalAddressStructure}
 import javax.xml.datatype.DatatypeFactory
 import uk.gov.hmrc.voabar.models.{AddProperty, Cr01Cr03Submission, OtherReason}
 import uk.gov.hmrc.voabar.util.DateConversion._
