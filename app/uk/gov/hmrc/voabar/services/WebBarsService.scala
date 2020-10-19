@@ -80,7 +80,7 @@ class DefaultWebBarsService @Inject() (actorSystem: ActorSystem,submissionReposi
       val sw = new StringWriter
       jaxbMarshaller.marshal(employee, sw)
       val xmlContent = sw.toString
-      log.info(xmlContent)
+      log.debug(xmlContent)
     } catch {
       case e: JAXBException =>
        log.warn(e.getMessage, e)
