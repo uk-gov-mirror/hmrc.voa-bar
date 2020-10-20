@@ -16,21 +16,21 @@
 
 package uk.gov.hmrc.voabar.util
 
-import java.io.{ByteArrayOutputStream, StringWriter}
+import java.io.StringWriter
 import java.nio.file.Files
 import java.time.LocalDate
 import java.util.UUID
 
 import ebars.xml.BAreports
 import javax.xml.bind.{JAXBContext, Marshaller}
-import org.scalacheck.Gen.{alphaLowerChar, alphaUpperChar, frequency}
-import org.scalacheck.{Arbitrary, Gen}
+import org.scalacheck.Gen.frequency
+import org.scalacheck.Gen
 import org.scalatest.{EitherValues, FlatSpec, MustMatchers}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import uk.gov.hmrc.voabar.models.{Address, ContactDetails, Cr03Submission, NoPlanningApplicationSubmitted, NotApplicablePlanningPermission, NotRequiredPlanningPermission, PermittedDevelopment, WithoutPlanningPermission}
+import uk.gov.hmrc.voabar.models.{AddProperty, Address, BandedTooSoon, CaravanRemoved, ContactDetails, Cr01Cr03Submission, Demolition, Disrepair, Duplicate, NoPlanningApplicationSubmitted, NotApplicablePlanningPermission, NotComplete, NotRequiredPlanningPermission, OtherReason, PermittedDevelopment, RemovalReasonType, RemoveProperty, Renovating, WithoutPlanningPermission}
 import uk.gov.hmrc.voabar.services.{XmlParser, XmlValidator}
 
-class Cr03SubmissionXmlGeneratorSpec extends FlatSpec with MustMatchers with EitherValues with ScalaCheckPropertyChecks{
+class Cr01Cr03SubmissionXmlGeneratorSpec extends FlatSpec with MustMatchers with EitherValues with ScalaCheckPropertyChecks{
 
   implicit override val generatorDrivenConfig: PropertyCheckConfiguration = PropertyCheckConfiguration(minSuccessful = 2000)
 
@@ -86,7 +86,8 @@ class Cr03SubmissionXmlGeneratorSpec extends FlatSpec with MustMatchers with Eit
     }
   }
 
-  def getSubmission = for {
+  def getCr03Submission = for {
+    reportReason <- Gen.option(AddProperty)
     baReport <- genRestrictedString(max = 12)
     baRef <- genRestrictedString(max = 25)
     uprn <- Gen.option(Gen.chooseNum(1l,999999999999l).map(_.toString))
@@ -96,12 +97,37 @@ class Cr03SubmissionXmlGeneratorSpec extends FlatSpec with MustMatchers with Eit
     effectiveDate <- genEffectiveDate
     (planningRef, noPlanningRef) <- genPlanningReference
     comment <- Gen.option(genRestrictedString(max=226))
-  }yield (Cr03Submission(baReport, baRef, uprn, address, contactDetails, contactAddress.isEmpty, contactAddress, effectiveDate, planningRef.isDefined, planningRef, noPlanningRef, comment))
+  } yield Cr01Cr03Submission(reportReason, None, None,
+    baReport, baRef, uprn, address, contactDetails, contactAddress.isEmpty, contactAddress,
+    effectiveDate, planningRef.isDefined, planningRef, noPlanningRef, comment
+  )
 
-  implicit val arbt = Arbitrary(getSubmission)
+  def getCr01Submission = for {
+    reportReason <- Gen.some(RemoveProperty)
+    removalReason <- Gen.option(Gen.oneOf[RemovalReasonType](
+      Demolition, Disrepair, Renovating, NotComplete,
+      BandedTooSoon, CaravanRemoved, Duplicate, OtherReason))
+    otherReason <-  if (removalReason.contains(OtherReason))
+      Gen.some(genRestrictedString(max = 32)) else Gen.const(Option.empty[String])
+    baReport <- genRestrictedString(max = 12)
+    baRef <- genRestrictedString(max = 25)
+    uprn <- Gen.option(Gen.chooseNum(1l,999999999999l).map(_.toString))
+    address <- genAddress(max = 100)
+    contactAddress <- Gen.some(genAddress())
+    contactDetails <- genContactDetails
+    effectiveDate <- genEffectiveDate
+    (planningRef, noPlanningRef) <- genPlanningReference
+    comment <- Gen.option(genRestrictedString(max=150))
+  } yield Cr01Cr03Submission(reportReason, removalReason, otherReason,
+    baReport, baRef, uprn, address, contactDetails, contactAddress.isEmpty, contactAddress,
+    effectiveDate, planningRef.isDefined, planningRef, noPlanningRef, comment
+  )
 
-  "CR03 generator" should "generate valid xml" in {
-    val jaxbStructure = new Cr03SubmissionXmlGenerator(aCR03Submission(), 1010, "Brighton and Hove", UUID.randomUUID().toString).generateXml()
+  "CR01 CR03 generator" should "generate valid xml" in {
+    val jaxbStructure =
+      new Cr01Cr03SubmissionXmlGenerator(
+        aCR03Submission(), 1010, "Brighton and Hove",
+        UUID.randomUUID().toString).generateXml()
     val xml = printXml(jaxbStructure)
 
     validateXml(xml)
@@ -109,17 +135,34 @@ class Cr03SubmissionXmlGeneratorSpec extends FlatSpec with MustMatchers with Eit
     true must be(true)
   }
 
-  it should "generate valid XML for all generated submissions" in {
+  it should "generate valid XML for all generated CR03 submissions" in {
     val id = UUID.randomUUID().toString
-    forAll {(submission: Cr03Submission) =>
-      val jaxbStructure = new Cr03SubmissionXmlGenerator(submission, 1010, "Brighton and Hove", id).generateXml()
+    forAll(getCr03Submission) { submission: Cr01Cr03Submission =>
+      val jaxbStructure =
+        new Cr01Cr03SubmissionXmlGenerator(
+          submission, 1010,
+          "Brighton and Hove", id).generateXml()
       val xml = printXml(jaxbStructure)
 
       validateXml(xml)
 
       true must be(true)
     }
+  }
 
+  it should "generate valid XML for all generated CR01 submissions" in {
+    val id = UUID.randomUUID().toString
+    forAll(getCr01Submission) { submission: Cr01Cr03Submission =>
+      val jaxbStructure =
+        new Cr01Cr03SubmissionXmlGenerator(
+          submission, 1010,
+          "Brighton and Hove", id).generateXml()
+      val xml = printXml(jaxbStructure)
+
+      validateXml(xml)
+
+      true must be(true)
+    }
   }
 
   def validateXml(xml: String): Unit = {
@@ -132,7 +175,7 @@ class Cr03SubmissionXmlGeneratorSpec extends FlatSpec with MustMatchers with Eit
         Console.println(s"\n\n\n${validation.left}\n\n${xml}")
       }
 
-      validation.right.value mustBe(true)
+      validation.right.value mustBe true
 
   }
 
@@ -143,14 +186,12 @@ class Cr03SubmissionXmlGeneratorSpec extends FlatSpec with MustMatchers with Eit
   }
 
 
-  def aCR03Submission(): Cr03Submission = {
+  def aCR03Submission(): Cr01Cr03Submission = {
     val address = Address("line 1 ]]>", "line2", Option("line3"), None, "BN12 4AX")
     val contactDetails = ContactDetails("John", "Doe", Option("john.doe@example.com"), Option("054252365447"))
-    Cr03Submission("baReport", "baRef", Option("112541"), address, contactDetails,
+    Cr01Cr03Submission(None, None, None,"baReport", "baRef", Option("112541"), address, contactDetails,
       true, None, LocalDate.now(), true, Some("22212"), None, Option("comment")
     )
-
   }
-
 
 }

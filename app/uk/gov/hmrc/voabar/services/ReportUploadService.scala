@@ -17,8 +17,6 @@
 package uk.gov.hmrc.voabar.services
 
 
-import java.io.StringWriter
-
 import cats.data.EitherT
 import cats.implicits._
 import ebars.xml.BAreports
@@ -37,7 +35,7 @@ import uk.gov.hmrc.voabar.util._
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
-import scala.xml.{Node, XML}
+import scala.xml.Node
 
 class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository,
                           validationService: ValidationService,

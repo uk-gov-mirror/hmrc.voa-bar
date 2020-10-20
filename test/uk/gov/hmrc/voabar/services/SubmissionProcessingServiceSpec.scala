@@ -25,9 +25,9 @@ import play.api.inject.guice.GuiceInjectorBuilder
 
 class SubmissionProcessingServiceSpec extends PlaySpec with TableDrivenPropertyChecks {
 
-  val batchWith1Report = IOUtils.toString(getClass.getResource("/xml/CTValid1.xml"), "UTF-8")
-  val batchWithMoreReports = IOUtils.toString(getClass.getResource("/xml/CTValid2.xml"), "UTF-8")
-  val wrongHeaderTrailer = IOUtils.toString(getClass.getResource("/xml/wrong-header-trailer.xml"), "UTF-8")
+  val batchWith1Report = IOUtils.toByteArray(getClass.getResourceAsStream("/xml/CTValid1.xml"))
+  val batchWithMoreReports = IOUtils.toByteArray(getClass.getResourceAsStream("/xml/CTValid2.xml"))
+  val wrongHeaderTrailer = IOUtils.toByteArray(getClass.getResourceAsStream("/xml/wrong-header-trailer.xml"))
 
   val injector = new GuiceInjectorBuilder()
     .configure("key" -> "value")
@@ -59,7 +59,7 @@ class SubmissionProcessingServiceSpec extends PlaySpec with TableDrivenPropertyC
       )
 
       forAll(xml) { case  (xmlFile, baLogin) =>
-        val brokenXml = IOUtils.toString(getClass.getResource(xmlFile), "UTF-8")
+        val brokenXml = IOUtils.toByteArray(getClass.getResourceAsStream(xmlFile))
         submissionProcessingService.processAsV1(brokenXml, baLogin, UUID.randomUUID().toString.toLowerCase) mustBe(true)
       }
     }
