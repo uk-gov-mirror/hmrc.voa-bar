@@ -18,7 +18,9 @@ package uk.gov.hmrc.voabar.services
 
 import akka.actor.ActorSystem
 import com.google.inject.ImplementedBy
+import ebars.xml.BAreports
 import javax.inject.{Inject, Singleton}
+import javax.xml.bind.{JAXBContext, JAXBException}
 import play.api.Logger
 import play.api.libs.json.JsString
 import uk.gov.hmrc.http.HeaderCarrier
@@ -55,11 +57,33 @@ class DefaultWebBarsService @Inject() (actorSystem: ActorSystem,submissionReposi
       val cr01cr03SubmissionXmlGenerator = new Cr01Cr03SubmissionXmlGenerator(submission, username.substring(2).toInt,
         BillingAuthorities.find(username).getOrElse("Unknown"), reportStatus.id)
 
-      reportUploadService.upload(username, password, cr01cr03SubmissionXmlGenerator.generateXml(), reportStatus.id)
+      val areports = cr01cr03SubmissionXmlGenerator.generateXml()
+      log.debug("Generated report")
+      logReports(areports)
+      reportUploadService.upload(username, password, areports, reportStatus.id)
     }
   }.recover {
     case x: Exception => {
       log.warn(s"Unable to process webBars report : ${reportStatus}")
+    }
+  }
+
+  import javax.xml.bind.Marshaller
+  import java.io.StringWriter
+
+  // Temporary methods to help validate the ticket generation
+  private def logReports(employee: BAreports): Unit = {
+    try {
+      val jaxbContext = JAXBContext.newInstance(classOf[BAreports])
+      val jaxbMarshaller = jaxbContext.createMarshaller
+      jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, java.lang.Boolean.TRUE)
+      val sw = new StringWriter
+      jaxbMarshaller.marshal(employee, sw)
+      val xmlContent = sw.toString
+      log.debug(xmlContent)
+    } catch {
+      case e: JAXBException =>
+       log.warn(e.getMessage, e)
     }
   }
 
