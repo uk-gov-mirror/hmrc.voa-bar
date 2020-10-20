@@ -16,16 +16,18 @@
 
 package uk.gov.hmrc.voabar.services
 
+
+import java.io.{PrintWriter, StringWriter}
 import java.net.URL
 
 import javax.inject.{Inject, Singleton}
 import org.apache.commons.io.IOUtils
 import play.api.Logger
 import services.EbarsValidator
-import uk.gov.hmrc.voabar.models.BarError
+import uk.gov.hmrc.voabar.models.{BarError, JobStatusErrorsFromStub}
 
-import scala.util.Try
-import collection.JavaConverters._
+import scala.collection.JavaConverters._
+import scala.util.{Success, Try}
 
 @Singleton
 class SubmissionProcessingService @Inject() (validationService: ValidationService) {
@@ -33,6 +35,8 @@ class SubmissionProcessingService @Inject() (validationService: ValidationServic
   val log = Logger(getClass)
 
   val correctionEngine = new RulesCorrectionEngine
+
+  val rulesValidationEngine = new RulesValidationEngine
 
   val xmlValidator = new EbarsValidator
 
@@ -53,6 +57,17 @@ class SubmissionProcessingService @Inject() (validationService: ValidationServic
         correctionEngine.applyRules(report)
       }
 
+      val v1Errors = allReports.map { report =>
+        Try {
+          rulesValidationEngine.applyRules(report)
+        }
+      }.filterNot {
+        case Success(validationResult) => validationResult.errors.isEmpty
+        case _ => false
+      }.map { validationResult =>
+        validationResult.fold(x => JobStatusErrorsFromStub(s"JVM Error: ${stacktTraceToString(x)}", None, Seq.empty), identity)
+      }
+
       submission.getBApropertyReport.clear()
       submission.getBApropertyReport.addAll(allReports.map(_.getBApropertyReport.get(0)).asJava)
 
@@ -61,7 +76,7 @@ class SubmissionProcessingService @Inject() (validationService: ValidationServic
 
       val correctedXml = xmlValidator.toXml(submission).getBytes("UTF-8")
 
-      validateAsV2(correctedXml, baLogin, requestId)
+      validateAsV2(correctedXml, baLogin, requestId, v1Errors.toList)
 
     }.recover {
       case e: Exception => {
@@ -72,16 +87,23 @@ class SubmissionProcessingService @Inject() (validationService: ValidationServic
 
   }
 
-  def validateAsV2(correctedXml: Array[Byte], baLogin: String, requestId: String): Boolean = {
+  def validateAsV2(correctedXml: Array[Byte], baLogin: String, requestId: String, v1BusinessValidatioErrors: Seq[JobStatusErrorsFromStub]): Boolean = {
     validationService.validate(correctedXml, baLogin) match {
       case Left(errors) => {
-        log.info(s"Validation of fixed XML, baLogin: ${baLogin}, requestId: ${requestId}, errors: ${errors}")
+        log.info(s"Validation of fixed XML, baLogin: ${baLogin}, requestId: ${requestId}, errors: ${errors}, v1BusinessErrors: ${v1BusinessValidatioErrors}")
         false
       }
       case Right((document, node)) => {
-        log.info(s"Validation of fixed XML successful, baLogin: ${baLogin}, requestId: ${requestId}")
+        log.info(s"Validation of fixed XML successful, baLogin: ${baLogin}, requestId: ${requestId}, v1BusinessErrors: ${v1BusinessValidatioErrors}")
         true
       }
     }
   }
+
+  private def stacktTraceToString(throwable: Throwable): Unit = {
+    val writer = new StringWriter()
+    throwable.printStackTrace(new PrintWriter(writer, true))
+    writer.toString
+  }
+
 }
