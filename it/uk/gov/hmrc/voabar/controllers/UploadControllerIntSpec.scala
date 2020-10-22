@@ -21,7 +21,7 @@ import play.api.inject.bind
 import uk.gov.hmrc.crypto.{ApplicationCrypto, PlainText}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.voabar.models.{ReportStatus, UploadDetails}
-import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
+import uk.gov.hmrc.voabar.repositories.{SubmissionStatusRepository, SubmissionStatusRepositoryImpl}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -66,8 +66,10 @@ class UploadControllerIntSpec extends PlaySpec with BeforeAndAfterAll with Optio
   "Upload controller " must {
 
     "properly handle correct XML " in {
+      import scala.concurrent.ExecutionContext.Implicits.global
+      await(submissionRepository.asInstanceOf[SubmissionStatusRepositoryImpl].removeById("1234"))
 
-      val reportStatus = ReportStatus("1234", ZonedDateTime.now)
+      val reportStatus = ReportStatus("1234", ZonedDateTime.now, baCode = Option("BA5090"))
 
       await(submissionRepository.saveOrUpdate(reportStatus, true))
 
