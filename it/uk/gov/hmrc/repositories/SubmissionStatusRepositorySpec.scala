@@ -150,6 +150,24 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
         reportFromDb.right.value mustBe report
       }
     }
+
+    "Save baCode when saving or updating submission" in {
+      import uk.gov.hmrc.voabar.util._
+
+      val submissionToStore = ReportStatus(UUID.randomUUID().toString, ZonedDateTime.now,
+        Option(s"http://localhost:2211/${UUID.randomUUID()}"), Option("RandomCheckSum"),
+        Option(Seq(Error(UNKNOWN_TYPE_OF_TAX, Seq("Some", "Parameters")))),
+        Option("BA2020"),
+        Option(Submitted.value),
+        Option("filename.xml"),
+        Some(10),
+      )
+      await(repo.saveOrUpdate(submissionToStore,true))
+      val submissionFromDb = await(repo.getByReference(submissionToStore.id)).right.value
+      submissionFromDb.baCode.value mustBe(submissionToStore.baCode.get)
+
+    }
+
   }
 
   def aReport(): ReportStatus = {
