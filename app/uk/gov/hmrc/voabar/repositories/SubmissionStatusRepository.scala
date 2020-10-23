@@ -61,25 +61,10 @@ class SubmissionStatusRepositoryImpl @Inject()(
   )
 
   def saveOrUpdate(reportStatus: ReportStatus, upsert: Boolean): Future[Either[BarError, Unit.type]] = {
-    if(reportStatus.baCode.isEmpty) {
-      Future.successful(Left(BarMongoError("Unable to save submission without BA number.")))
-    }else {
-      val finder = BSONDocument(_Id -> reportStatus.id)
-      val modifierBson = set(BSONDocument(
-        "created" -> reportStatus.created.toString,
-        "checksum" -> reportStatus.checksum,
-        "url" -> reportStatus.url,
-        "errors" -> reportStatus.errors.getOrElse(Seq()).map(e => BSONDocument(
-          "values" -> e.values,
-          "code" -> e.code
-        )),
-        "baCode" -> reportStatus.baCode.get,
-        "filename" -> reportStatus.filename.getOrElse(""),
-        "status" -> reportStatus.status,
-        "report" -> reportStatus.report)
-      )
-      atomicSaveOrUpdate(reportStatus.id, upsert, finder, modifierBson)
-    }
+    //TODO - Please refactor(probably whole repository) and use as much as possible ReactiveRepository functionality.
+    val finder = BSONDocument(_Id -> reportStatus.id)
+    val reportData = Json.toJson(reportStatus).as[JsObject].-("_id")
+    atomicSaveOrUpdate(reportStatus.id, upsert, finder, set(reportData.as[BSONDocument]))
   }
 
   def saveOrUpdate(userId: String, reference: String, upsert: Boolean)
