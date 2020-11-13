@@ -16,46 +16,42 @@
 
 package uk.gov.hmrc.voabar.services
 
+import java.io.ByteArrayInputStream
 
 import cats.data.EitherT
 import cats.implicits._
 import ebars.xml.BAreports
 import javax.inject.Inject
 import javax.xml.transform.dom.DOMSource
+import javax.xml.transform.stream.StreamSource
 import models.Purpose
 import org.w3c.dom.Document
 import play.api.Logger
 import services.EbarsValidator
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.voabar.connectors.{EmailConnector, LegacyConnector}
-import uk.gov.hmrc.voabar.models._
+import uk.gov.hmrc.voabar.connectors.{EmailConnector, LegacyConnector, UpscanConnector}
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
+import uk.gov.hmrc.voabar.models._
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
 import uk.gov.hmrc.voabar.util._
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
-import scala.xml.Node
 
 class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository,
                           validationService: ValidationService,
                           submissionProcessingService: SubmissionProcessingService,
                           legacyConnector: LegacyConnector,
-                          emailConnector: EmailConnector)(implicit executionContext: ExecutionContext) {
+                          emailConnector: EmailConnector, upscanConnector: UpscanConnector)(implicit executionContext: ExecutionContext) {
   val ebarsValidator = new EbarsValidator()
 
-  private def numberReports(node: Node): Int = {
-    node \ "BApropertyReport" length
-  }
+  val logger = Logger(this.getClass)
 
   def upload(username: String, password: String, xmlUrl: String, uploadReference: String)(implicit headerCarrier: HeaderCarrier) = {
 
-
     val processingResult = for {
-      _ <- EitherT(statusRepository.updateStatus(uploadReference, Pending))
-      //TODO - add xml size validation - Is async, this is why here
-      xmlTree <- EitherT.fromEither[Future](validationService.validate(xmlUrl, username))
-      _ <- EitherT(statusRepository.update(uploadReference, Verified, numberReports(xmlTree._2)))
+      fixedXml <- downloadAndFixXml(xmlUrl)
+      xmlTree <- EitherT.fromEither[Future](validationService.validate(fixedXml, username))
       _ <- EitherT(ebarsUpload(xmlTree._1, username, password, uploadReference))
       _ <- EitherT(statusRepository.updateStatus(uploadReference, Done))
       _ <- EitherT(sendConfirmationEmail(uploadReference, username, password))
@@ -64,7 +60,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
     processingResult.value
         .recover {
           case exception: Exception => {
-            Logger.warn("Unexpected error when processing file, trying to recover", exception)
+            logger.warn("Unexpected error when processing file, trying to recover", exception)
             Left(UnknownError(exception.getMessage))
           }
         }
@@ -81,6 +77,57 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
     }
   }
 
+
+  /**
+   * Before we merge all validation from V1 and V2, we are doing multiple conversion
+   * between XML, JAXB, DomTree.
+   * After merge, please return BAreports
+   * @param url
+   * @return
+   */
+  def downloadAndFixXml(url: String)(implicit hc:HeaderCarrier) = {
+    import scala.collection.JavaConverters._
+    val correctionEngine = new RulesCorrectionEngine
+
+    def parseXml(rawXml: Array[Byte]): Either[BarError, BAreports] = Try {
+      val source = new StreamSource(CorrectionInputStream(new ByteArrayInputStream(rawXml)))
+      ebarsValidator.fromXml(source)
+    }.toEither.leftMap { e =>
+      logger.warn(s"Unable to parse XML", e)
+      BarXmlError(e.getMessage)
+    }
+
+    def fixXml(submission: BAreports):Either[BarError, Array[Byte]] = Try {
+
+      val allReports = ebarsValidator.split(submission)
+
+      allReports.foreach { report =>
+        correctionEngine.applyRules(report)
+      }
+
+      submission.getBApropertyReport.clear()
+
+      submission.getBApropertyReport.addAll(allReports.map(_.getBApropertyReport.get(0)).toList.asJava)
+
+      FixHeader(submission)
+      FixCTaxTrailer(submission)
+
+      ebarsValidator.toXml(submission).getBytes("UTF-8")
+
+    }.toEither.leftMap { e =>
+      logger.warn("Unable to automatically fix XML", e)
+      UnknownError("Unable to process upload")
+    }
+
+    for {
+      rawXml <- EitherT(upscanConnector.downloadReport(url))
+      submission <- EitherT.fromEither[Future](parseXml(rawXml))
+      xml <- EitherT.fromEither[Future](fixXml(submission))
+    } yield (xml)
+
+  }
+
+  //TODO - After merge of validation from V1 and V2, please use this method to send all data.
   def upload(username: String, password: String, baReports: BAreports, uploadReference: String)(implicit headerCarrier: HeaderCarrier) = {
     val processingResult = for {
       _ <- EitherT(statusRepository.update(uploadReference, Verified, baReports.getBAreportTrailer.getRecordCount.intValue()))
@@ -92,7 +139,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
     processingResult.value
       .recover {
         case exception: Exception => {
-          Logger.warn("Unexpected error when processing file, trying to recover", exception)
+          logger.warn("Unexpected error when processing file, trying to recover", exception)
           Left(UnknownError(exception.getMessage))
         }
       }
@@ -123,7 +170,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       .recover{
         case ex: Throwable => {
           val errorMsg = "Error while sending confirmation message"
-          Logger.error(errorMsg, ex)
+          logger.error(errorMsg, ex)
           Left(BarEmailError(ex.getMessage))
         }
       }
@@ -135,7 +182,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
     statusRepository.getByReference(baRef).flatMap(_.fold(
         e => {
           val errorMsg = "Error while retrieving report to be send via email"
-          Logger.error(errorMsg)
+          logger.error(errorMsg)
           Future.successful(Right(Unit))
         },
         reportStatus => sendConfirmationEmail(reportStatus, username, password)
@@ -143,7 +190,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
   }
 
   private def handleError(submissionId: String, barError: BarError, username: String, password: String): Unit = {
-    Logger.warn(s"handling error, submissionID: ${submissionId}, Error: ${barError}")
+    logger.warn(s"handling error, submissionID: ${submissionId}, Error: ${barError}")
 
     barError match {
       case BarXmlError(message) => {
@@ -171,7 +218,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       }
       case BarMongoError(error, updateWriteResult) => {
         //Something really, really bad, bad bad, we don't have mongo :(
-        Logger.warn(s"Mongo exception, unable to update status of submission, submissionId: ${submissionId}, detail : ${updateWriteResult}")
+        logger.warn(s"Mongo exception, unable to update status of submission, submissionId: ${submissionId}, detail : ${updateWriteResult}")
       }
       case BarEmailError(emailError) => {
         statusRepository.addError(submissionId, Error(UNKNOWN_ERROR, Seq(emailError))) //TODO probably put WARNING about email submission
