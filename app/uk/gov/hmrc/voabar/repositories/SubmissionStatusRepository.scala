@@ -17,17 +17,16 @@
 package uk.gov.hmrc.voabar.repositories
 
 import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
 import com.google.inject.ImplementedBy
-import com.typesafe.config.ConfigException
 import javax.inject.{Inject, Singleton}
-import play.api.libs.json.{Format, JsObject, JsValue, Json}
+import play.api.libs.json.{Format, JsObject, JsString, JsValue, Json}
 import play.api.{Configuration, Logger}
 import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.commands.WriteResult
 import reactivemongo.api.{Cursor, ReadPreference}
 import reactivemongo.api.indexes.{Index, IndexType}
-import reactivemongo.bson.BSONDocument
+import reactivemongo.bson.{BSONDocument, BSONLong}
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import uk.gov.hmrc.mongo.{BSONBuilderHelpers, ReactiveRepository}
 import uk.gov.hmrc.voabar.models.{BarError, BarMongoError, Done, Error, Failed, ReportStatus, ReportStatusType, Submitted}
@@ -80,10 +79,22 @@ class SubmissionStatusRepositoryImpl @Inject()(
 
   override def getByUser(baCode: String, filter: Option[String] = None)
   : Future[Either[BarError, Seq[ReportStatus]]] = {
-    val finder = filter.fold(BSONDocument("baCode" -> baCode))(f =>
-      BSONDocument("baCode" -> baCode, "status" -> f)
+
+    val isoDate = ZonedDateTime.now().minusDays(90)
+      .withHour(3) //Set 3AM to prevent submissions disapper during day.
+      .withMinute(0)
+      .format(DateTimeFormatter.ISO_DATE_TIME)
+
+    val q = Json.obj(
+      "baCode" -> baCode,
+      "created" -> Json.obj(
+        "$gt" -> isoDate
+      )
     )
-    collection.find(finder).sort(Json.obj("created" -> -1)).cursor[ReportStatus](ReadPreference.primary)
+
+    val finder = filter.fold(q)(f => q.+("status" -> JsString(f)))
+
+    collection.find(finder).sort(Json.obj("created" -> -1)).cursor[ReportStatus]()
       .collect[Seq](-1, Cursor.FailOnError[Seq[ReportStatus]]())
       .flatMap { res =>
         Future.sequence(res.map(checkAndUpdateSubmissionStatus)).map(Right(_))

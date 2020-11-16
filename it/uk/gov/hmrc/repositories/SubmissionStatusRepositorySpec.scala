@@ -24,8 +24,10 @@ import org.scalatest.{BeforeAndAfterAll, EitherValues}
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.json.Json
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 import play.modules.reactivemongo.ReactiveMongoComponent
+import reactivemongo.api.ReadConcern
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import uk.gov.hmrc.voabar.models.{BarMongoError, Done, Error, Failed, Pending, ReportStatus, Submitted}
@@ -168,6 +170,33 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
 
     }
 
+    "Not return submission older 90 days" in {
+      import uk.gov.hmrc.voabar.util._
+
+      await(repo.collection.delete(false).one(Json.obj()))
+
+      val submissionToStore = ReportStatus(UUID.randomUUID().toString, ZonedDateTime.now,
+        Option(s"http://localhost:2211/${UUID.randomUUID()}"), Option("RandomCheckSum"),
+        Option(Seq(Error(UNKNOWN_TYPE_OF_TAX, Seq("Some", "Parameters")))),
+        Option("BA2020"),
+        Option(Submitted.value),
+        Option("filename.xml"),
+        Some(10),
+      )
+      await(repo.saveOrUpdate(submissionToStore,true))
+      await(repo.saveOrUpdate(submissionToStore.copy(id = UUID.randomUUID().toString, created = ZonedDateTime.now().minusDays(91))
+        ,true))
+
+      val reports = await(repo.collection.count(None))
+
+      val submissionsFromDb = await(repo.getByUser("BA2020", None)).right.value
+
+      reports mustBe(2)
+
+      submissionsFromDb must have size(1)
+      submissionsFromDb must contain only(submissionToStore)
+
+    }
   }
 
   def aReport(): ReportStatus = {
