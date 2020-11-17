@@ -34,7 +34,7 @@ class UpscanConnectorSpec extends PlaySpec with FutureAwaits with DefaultAwaitTi
   "upscan connector" should {
     "Include requestId" in {
       WsTestClient.withClient { client =>
-        val connector = new UpscanConnector(client)
+        val connector = new DefaultUpscanConnector(client)
         implicit val hc = HeaderCarrier(requestId = Option(RequestId("this-is-request-id")))
         val response = await(connector.downloadReport(url))
         response mustBe('right)

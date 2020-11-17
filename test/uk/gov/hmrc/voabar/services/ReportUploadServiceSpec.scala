@@ -309,7 +309,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
   }
 
   def aUpscanConnector() = {
-    new UpscanConnector(null)(null) {
+    new UpscanConnector {
       override def downloadReport(url: String)(implicit hc: HeaderCarrier): Future[Either[BarError, Array[Byte]]] = {
         Future(Right(IOUtils.toByteArray(new URL(url).openStream())))
       }

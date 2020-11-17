@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.voabar.connectors
 
+import com.google.inject.ImplementedBy
 import javax.inject.{Inject, Singleton}
 import play.api.Logger
 import play.api.libs.ws.WSClient
@@ -24,9 +25,13 @@ import uk.gov.hmrc.voabar.models.{BarError, UnknownError}
 
 import scala.concurrent.{ExecutionContext, Future}
 
+@ImplementedBy(classOf[DefaultUpscanConnector])
+trait UpscanConnector {
+  def downloadReport(url: String)(implicit hc: HeaderCarrier): Future[Either[BarError, Array[Byte]]]
+}
 
 @Singleton
-class UpscanConnector @Inject() (httpClient: WSClient)(implicit ec: ExecutionContext) {
+class DefaultUpscanConnector @Inject() (httpClient: WSClient)(implicit ec: ExecutionContext) extends UpscanConnector {
 
   val logger = Logger(this.getClass)
 
