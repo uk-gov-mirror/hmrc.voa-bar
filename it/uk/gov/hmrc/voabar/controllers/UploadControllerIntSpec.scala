@@ -1,8 +1,11 @@
 package uk.gov.hmrc.voabar.controllers
 
+import java.net.URL
 import java.nio.file.Paths
 import java.time.ZonedDateTime
 
+import javax.inject.{Inject, Singleton}
+import org.apache.commons.io.IOUtils
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfterAll, EitherValues, OptionValues}
 import org.scalatestplus.play.PlaySpec
@@ -11,7 +14,7 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.{DefaultAwaitTimeout, FakeRequest, FutureAwaits}
 import play.modules.reactivemongo.ReactiveMongoComponent
 import reactivemongo.play.json.collection.JSONCollection
-import uk.gov.hmrc.voabar.connectors.LegacyConnector
+import uk.gov.hmrc.voabar.connectors.{LegacyConnector, UpscanConnector}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.when
 import org.mockito.invocation.InvocationOnMock
@@ -20,7 +23,7 @@ import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 import play.api.inject.bind
 import uk.gov.hmrc.crypto.{ApplicationCrypto, PlainText}
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.voabar.models.{ReportStatus, UploadDetails}
+import uk.gov.hmrc.voabar.models.{BarError, ReportStatus, UploadDetails}
 import uk.gov.hmrc.voabar.repositories.{SubmissionStatusRepository, SubmissionStatusRepositoryImpl}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -39,7 +42,10 @@ class UploadControllerIntSpec extends PlaySpec with BeforeAndAfterAll with Optio
 
   override def fakeApplication() = new GuiceApplicationBuilder()
     .configure("mongodb.uri" -> ("mongodb://localhost:27017/voa-bar"))
-    .bindings(bind[LegacyConnector].to(legacyConnector))
+    .bindings(
+      bind[LegacyConnector].to(legacyConnector),
+      bind[UpscanConnector].to[UploadControllerIntSpecUpscanConnector]
+    )
     .build()
 
   lazy val controller = app.injector.instanceOf[UploadController]
@@ -90,8 +96,16 @@ class UploadControllerIntSpec extends PlaySpec with BeforeAndAfterAll with Optio
   }
 
   override protected def afterAll(): Unit = {
- //   mongoComponent.mongoConnector.db().drop()
     mongoComponent.mongoConnector.close()
   }
 
 }
+
+@Singleton
+class UploadControllerIntSpecUpscanConnector @Inject() (implicit ec: ExecutionContext) extends UpscanConnector {
+
+  override def downloadReport(url: String)(implicit hc: HeaderCarrier): Future[Either[BarError, Array[Byte]]] = {
+    Future(Right(IOUtils.toByteArray(new URL(url).openStream())))
+  }
+}
+

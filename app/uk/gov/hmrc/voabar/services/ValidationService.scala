@@ -32,21 +32,6 @@ class ValidationService @Inject()(xmlValidator: XmlValidator,
                                   businessRules:BusinessRules
                                  ) {
 
-  def validate(xmlUrl: String, baLogin: String): Either[BarError, (Document, Node)] = {
-
-    for {
-      url <- createUrl(xmlUrl).right
-
-      domTree <- xmlParser.parse(url).right
-      _ <- xmlValidator.validate(domTree).right //validate against XML schema
-
-      scalaElement <- xmlParser.domToScala(domTree).right
-      _ <- businessValidation(scalaElement, baLogin).right
-    } yield {
-      (domTree, scalaElement)
-    }
-  }
-
   def validate(xml: Array[Byte], baLogin: String): Either[BarError, (Document, Node)] = {
     for {
       domTree <- xmlParser.parse(xml).right
@@ -56,20 +41,6 @@ class ValidationService @Inject()(xmlValidator: XmlValidator,
       _ <- businessValidation(scalaElement, baLogin).right
     } yield {
       (domTree, scalaElement)
-    }
-  }
-
-  private def createUrl(url: String): Either[BarError, URL] = {
-
-    Try {
-      new URL(url)
-    } match {
-      case Success(value) => Right(value)
-      case Failure(exception) => {
-        Logger.warn("Invalid xml URL ", exception)
-        Left(UnknownError(s"Invalid xml URL ${exception.getMessage}"))
-      }
-
     }
   }
 

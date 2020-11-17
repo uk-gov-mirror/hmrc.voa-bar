@@ -16,9 +16,7 @@
 
 package uk.gov.hmrc.voabar.controllers
 
-import org.apache.commons.io.IOUtils
-
-
+import org.apache.commons.io.{FileUtils, IOUtils}
 import javax.inject.{Inject, Singleton}
 import play.api.Logger
 import play.api.mvc.ControllerComponents
@@ -45,7 +43,7 @@ class ValidateController @Inject() (validationService: ValidationService,
 
     val v1ProcessingStatus = request.headers.get("X-autobars-processing-status").getOrElse("None")
 
-    val url = request.body.path.toUri.toURL.toString //Safe conversion
+    val url = FileUtils.readFileToByteArray(request.body.path.toFile)
 
     Future {
       validationService.validate(url, baLogin) match {

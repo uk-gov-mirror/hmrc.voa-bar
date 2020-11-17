@@ -16,8 +16,8 @@
 
 package uk.gov.hmrc.voabar.services
 
-import java.io.FileInputStream
 import java.net.URL
+import java.nio.file.Paths
 import java.time.ZonedDateTime
 
 import ebars.xml.BAreports
@@ -41,7 +41,7 @@ import org.mockito.Mockito.times
 import org.mockito.invocation.InvocationOnMock
 import org.mockito.stubbing.Answer
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.voabar.connectors.{EmailConnector, LegacyConnector}
+import uk.gov.hmrc.voabar.connectors.{EmailConnector, LegacyConnector, UpscanConnector}
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 import uk.gov.hmrc.voabar.models._
 import uk.gov.hmrc.voabar.util.{ATLEAST_ONE_PROPOSED, CHARACTER, INVALID_XML}
@@ -58,7 +58,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
 
   "ReportUploadServiceSpec" must {
     "proces request " in {
-      val reportUploadService = new ReportUploadService(aCorrectStatusRepository(), aValidationService(), aSubmissionProcessingService(), aLegacyConnector(), aEmailConnector())
+      val reportUploadService = new ReportUploadService(aCorrectStatusRepository(), aValidationService(), aSubmissionProcessingService(), aLegacyConnector(), aEmailConnector(), aUpscanConnector())
       val res = reportUploadService.upload("username", "password", aXmlUrl, uploadReference)
       res.map { result =>
         result mustBe "ok"
@@ -66,7 +66,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
     }
 
     "proces request for jaxbInput " in {
-      val reportUploadService = new ReportUploadService(aCorrectStatusRepository(), aValidationService(), aSubmissionProcessingService(), aLegacyConnector(), aEmailConnector())
+      val reportUploadService = new ReportUploadService(aCorrectStatusRepository(), aValidationService(), aSubmissionProcessingService(), aLegacyConnector(), aEmailConnector(), aUpscanConnector())
       val jaxbInput = aJaxbInput(getClass.getResource("/xml/CTValid1.xml"))
       val res = reportUploadService.upload("username", "password", jaxbInput, uploadReference)
       res.map { result =>
@@ -78,7 +78,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
 
       val statusRepository = aCorrectStatusRepository()
 
-      val reportUploadService = new ReportUploadService(statusRepository, aValidationThrowError(), aSubmissionProcessingService(), aLegacyConnector(), aEmailConnector())
+      val reportUploadService = new ReportUploadService(statusRepository, aValidationThrowError(), aSubmissionProcessingService(), aLegacyConnector(), aEmailConnector(), aUpscanConnector())
       val res = reportUploadService.upload("username", "password", aXmlUrl, uploadReference)
 
       res.map { result =>
@@ -88,7 +88,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
 
     }
 
-    "stop any work after update error" in {
+    "stop any work after update error" ignore { //Status update removed, we record only final status or error
       val statusRepository = mock[SubmissionStatusRepository]
       when(statusRepository.updateStatus(anyString(), any(classOf[ReportStatusType])))
         .thenReturn(Future.successful(Left(BarMongoError("mongo is broken", None))))
@@ -96,8 +96,8 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
       val legacyConnector = aLegacyConnector()
       val xmlParser = mock[XmlParser]
 
-      val reportUploadService = new ReportUploadService(statusRepository, validationService, aSubmissionProcessingService(), legacyConnector, aEmailConnector())
-      val res = reportUploadService.upload("username", "password", "<xm>ble</xml>", uploadReference)
+      val reportUploadService = new ReportUploadService(statusRepository, validationService, aSubmissionProcessingService(), legacyConnector, aEmailConnector(), aUpscanConnector())
+      val res = reportUploadService.upload("username", "password", aXmlUrl, uploadReference)
       res.map { result =>
         verify(statusRepository, times(1)).updateStatus(meq(uploadReference), meq(Pending))
         verifyZeroInteractions(validationService, legacyConnector, xmlParser)
@@ -106,9 +106,9 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
     }
 
     "handle full XML" in {
-      val baReport = IOUtils.toString(new FileInputStream("test/resources/xml/CTValid2.xml"))
-      val reportUploadService = new ReportUploadService(aCorrectStatusRepository(), aValidationService(), aSubmissionProcessingService(), aLegacyConnector(), aEmailConnector())
-      val res = reportUploadService.upload("username", "password", baReport, uploadReference)
+      val fullXmlUrl = Paths.get("test/resources/xml/CTValid2.xml").toAbsolutePath.toUri.toURL.toString
+      val reportUploadService = new ReportUploadService(aCorrectStatusRepository(), aValidationService(), aSubmissionProcessingService(), aLegacyConnector(), aEmailConnector(), aUpscanConnector())
+      val res = reportUploadService.upload("username", "password", fullXmlUrl, uploadReference)
       res.map { result =>
         result mustBe "ok"
       }
@@ -116,10 +116,10 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
 
 
     "Send submissions in a Single submission file" in {
-      val baReport = IOUtils.toString(new FileInputStream("test/resources/xml/CTValid2.xml"))
+      val baReport = Paths.get("test/resources/xml/CTValid2.xml").toAbsolutePath.toUri.toURL.toString
       val legacyConnector = aLegacyConnector()
 
-      val reportUploadService = new ReportUploadService(aCorrectStatusRepository(), aValidationService(), aSubmissionProcessingService(), legacyConnector, aEmailConnector())
+      val reportUploadService = new ReportUploadService(aCorrectStatusRepository(), aValidationService(), aSubmissionProcessingService(), legacyConnector, aEmailConnector(), aUpscanConnector())
       val res = reportUploadService.upload("username", "password", baReport, uploadReference)
 
       res.map { result =>
@@ -139,10 +139,10 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
     "persis BarXmlError" in {
 
       val validationService = mock[ValidationService]
-      when(validationService.validate(anyString(), anyString())).thenReturn(Left(BarXmlError("validation error")))
+      when(validationService.validate(any[Array[Byte]], anyString())).thenReturn(Left(BarXmlError("validation error")))
       val statusRepository = aCorrectStatusRepository()
-      val reportUploadService = new ReportUploadService(statusRepository, validationService, aSubmissionProcessingService(), aLegacyConnector(), aEmailConnector())
-      val resutl = reportUploadService.upload("u", "p", "<xml></xml>", "reference1")
+      val reportUploadService = new ReportUploadService(statusRepository, validationService, aSubmissionProcessingService(), aLegacyConnector(), aEmailConnector(), aUpscanConnector())
+      val resutl = reportUploadService.upload("u", "p", aXmlUrl, "reference1")
 
       resutl.map { value =>
         value mustBe("failed")
@@ -161,10 +161,10 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
       val xmlValidationError = BarXmlValidationError(errors)
 
       val validationService = mock[ValidationService]
-      when(validationService.validate(anyString(), anyString())).thenReturn(Left(xmlValidationError))
+      when(validationService.validate(any[Array[Byte]], anyString())).thenReturn(Left(xmlValidationError))
       val statusRepository = aCorrectStatusRepository()
-      val reportUploadService = new ReportUploadService(statusRepository, validationService, aSubmissionProcessingService(), aLegacyConnector(), aEmailConnector())
-      val resutl = reportUploadService.upload("u", "p", "<xml></xml>", "reference1")
+      val reportUploadService = new ReportUploadService(statusRepository, validationService, aSubmissionProcessingService(), aLegacyConnector(), aEmailConnector(), aUpscanConnector())
+      val resutl = reportUploadService.upload("u", "p", aXmlUrl, "reference1")
 
 
       resutl.map { value =>
@@ -183,7 +183,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
         Future.failed(new RuntimeException("email sending failed"))
       }
 
-      val reportUploadService = new ReportUploadService(aCorrectStatusRepository(), aValidationService(), aSubmissionProcessingService(), aLegacyConnector(),emailConnector)
+      val reportUploadService = new ReportUploadService(aCorrectStatusRepository(), aValidationService(), aSubmissionProcessingService(), aLegacyConnector(), emailConnector, aUpscanConnector())
       val res = reportUploadService.upload("username", "password", aXmlUrl, uploadReference)
       res.map { result =>
         result mustBe "failed"
@@ -197,7 +197,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
         Future.failed(new RuntimeException("Can't send data to ebars."))
       }
 
-      val reportUploadService = new ReportUploadService(aCorrectStatusRepository(), aValidationService(), aSubmissionProcessingService(), legacyConnector, aEmailConnector())
+      val reportUploadService = new ReportUploadService(aCorrectStatusRepository(), aValidationService(), aSubmissionProcessingService(), legacyConnector, aEmailConnector(), aUpscanConnector())
       val res = reportUploadService.upload("username", "password", aXmlUrl, uploadReference)
       res.map { result =>
         result mustBe "failed"
@@ -215,7 +215,7 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
       when(submissionProcessingService.processAsV1(any[Array[Byte]], any[String], any[String]))
         .thenThrow(new RuntimeException("This exception should not crash ReportUploadService"))
 
-      val reportUploadService = new ReportUploadService(aCorrectStatusRepository(), aValidationThrowError(), submissionProcessingService, aLegacyConnector(), aEmailConnector())
+      val reportUploadService = new ReportUploadService(aCorrectStatusRepository(), aValidationThrowError(), submissionProcessingService, aLegacyConnector(), aEmailConnector(), aUpscanConnector())
       val res = reportUploadService.upload("username", "password", aXmlUrl, uploadReference)
 
       res.map { result =>
@@ -262,14 +262,14 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
     val scalaNode = xmlParser.domToScala(domDocument).right.get
 
     val validationService = mock[ValidationService]
-    when(validationService.validate(anyString(), anyString())).thenReturn(Right((domDocument, scalaNode)))
+    when(validationService.validate(any[Array[Byte]], anyString())).thenReturn(Right((domDocument, scalaNode)))
 
     validationService
   }
 
   def aValidationThrowError() = {
     val validationService = mock[ValidationService]
-    when(validationService.validate(anyString(), anyString())).thenReturn(Left(BarXmlError("Failed")))
+    when(validationService.validate(any[Array[Byte]], anyString())).thenReturn(Left(BarXmlError("Failed")))
     validationService
   }
 
@@ -278,7 +278,10 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
   }
 
   def aSubmissionProcessingService(): SubmissionProcessingService = {
-    new SubmissionProcessingService(aValidationService())
+    val processingEngine = mock[SubmissionProcessingService]
+    when(processingEngine.processAsV1(anyObject(), anyString(), anyString())).thenReturn(true)
+    when(processingEngine.processAsV1(anyString(), anyString(), anyString(), anyObject())).thenReturn(true)
+    processingEngine
   }
 
   def aLegacyConnector(): LegacyConnector = {
@@ -303,6 +306,16 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
     })
 
     emailConnector
+  }
+
+  def aUpscanConnector() = {
+    new UpscanConnector {
+      override def downloadReport(url: String)(implicit hc: HeaderCarrier): Future[Either[BarError, Array[Byte]]] = {
+        Future(Right(IOUtils.toByteArray(new URL(url).openStream())))
+      }
+    }
+
+
   }
 
 }
