@@ -168,6 +168,28 @@ class SubmissionStatusRepositoryImpl @Inject()(
     BarMongoError(errorMsg)
   }
 
+
+  def addErrors(submissionId: String, errors: List[Error]): Future[Either[BarError, Boolean]] = {
+    val modifier = Json.obj(
+      "$push" -> Json.obj(
+        "errors" -> Json.obj(
+          "$each" -> errors
+        )
+      )
+    )
+
+    collection.update(false).one(_id(submissionId), modifier, multi = true)
+
+    collection.update(false).one(_id(submissionId), modifier).map { updateResult =>
+      if (updateResult.ok && updateResult.n == 1) {
+        Right(true)
+      } else {
+        Left(BarMongoError("unable record error message in mongo", Option(updateResult)))
+      }
+    }
+
+  }
+
   override def addError(submissionId: String, error: Error): Future[Either[BarError, Boolean]] = {
 
     val modifier = BSONDocument(

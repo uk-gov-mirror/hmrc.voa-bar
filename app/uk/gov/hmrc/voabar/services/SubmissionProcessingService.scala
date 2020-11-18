@@ -20,12 +20,13 @@ import java.io.{PrintWriter, StringWriter}
 import java.io.ByteArrayInputStream
 import java.net.URL
 
+import ebars.xml.BAreports
 import javax.inject.{Inject, Singleton}
 import javax.xml.transform.stream.StreamSource
 import org.apache.commons.io.IOUtils
 import play.api.Logger
 import services.EbarsValidator
-import uk.gov.hmrc.voabar.models.{BarError, JobStatusErrorsFromStub}
+import uk.gov.hmrc.voabar.models.{BaLogin, BarError, JobStatusErrorsFromStub}
 
 import scala.collection.JavaConverters._
 import scala.util.{Success, Try}
@@ -77,9 +78,7 @@ class SubmissionProcessingService @Inject() (validationService: ValidationServic
       FixHeader(submission)
       FixCTaxTrailer(submission)
 
-      val correctedXml = xmlValidator.toXml(submission).getBytes("UTF-8")
-
-      validateAsV2(correctedXml, baLogin, requestId, v1Errors.toList)
+      validateAsV2(submission, baLogin, requestId, v1Errors.toList)
 
     }.recover {
       case e: Exception => {
@@ -90,13 +89,13 @@ class SubmissionProcessingService @Inject() (validationService: ValidationServic
 
   }
 
-  def validateAsV2(correctedXml: Array[Byte], baLogin: String, requestId: String, v1BusinessValidatioErrors: Seq[JobStatusErrorsFromStub]): Boolean = {
-    validationService.validate(correctedXml, baLogin) match {
+  def validateAsV2(correctedXml: BAreports, baLogin: String, requestId: String, v1BusinessValidatioErrors: Seq[JobStatusErrorsFromStub]): Boolean = {
+    validationService.validate(correctedXml, BaLogin(baLogin, "")) match {
       case Left(errors) => {
         log.info(s"Validation of fixed XML, baLogin: ${baLogin}, requestId: ${requestId}, errors: ${errors}, v1BusinessErrors: ${v1BusinessValidatioErrors}")
         false
       }
-      case Right((document, node)) => {
+      case Right(_) => {
         log.info(s"Validation of fixed XML successful, baLogin: ${baLogin}, requestId: ${requestId}, v1BusinessErrors: ${v1BusinessValidatioErrors}")
         true
       }

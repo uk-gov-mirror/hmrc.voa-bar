@@ -16,65 +16,133 @@
 
 package uk.gov.hmrc.voabar.services
 
-import java.net.URL
-
-import javax.inject.{Inject, Singleton}
-import org.w3c.dom.Document
+import ebars.xml.{BApropertySplitMergeStructure, BAreportBodyStructure, BAreports, TextAddressStructure}
+import javax.inject.Singleton
+import javax.xml.bind.JAXBElement
 import play.api.Logger
-import uk.gov.hmrc.voabar.models.{BarError, BarValidationError, Error, UnknownError}
+import services.EbarsValidator
+import uk.gov.hmrc.voabar.models.{BaLogin, BarError, BarValidationError, Error}
+import uk.gov.hmrc.voabar.util._
 
-import scala.util.{Failure, Success, Try}
-import scala.xml.Node
+import scala.collection.JavaConverters._
+import scala.util.{Random, Try}
 
 @Singleton
-class ValidationService @Inject()(xmlValidator: XmlValidator,
-                                  xmlParser:XmlParser,
-                                  businessRules:BusinessRules
-                                 ) {
+class ValidationService {
+  val x = new EbarsValidator()
+  val log = Logger(this.getClass)
 
-  def validate(xml: Array[Byte], baLogin: String): Either[BarError, (Document, Node)] = {
-    for {
-      domTree <- xmlParser.parse(xml).right
-      _ <- xmlValidator.validate(domTree).right //validate against XML schema
+  val randomForDevelopment = Random //TODO remove after full development !!!!!
+                                    // DO NOT MERGE WITH THIS
 
-      scalaElement <- xmlParser.domToScala(domTree).right
-      _ <- businessValidation(scalaElement, baLogin).right
-    } yield {
-      (domTree, scalaElement)
-    }
-  }
+  def validate(submissions: BAreports, baLogin: BaLogin): Either[BarError, Unit] = {
 
-  private def businessValidation(xml:Node, baLogin: String):Either[BarError, Boolean] = {
-    val errors = xmlNodeValidation(xml, baLogin)
-
-    if(errors.isEmpty) {
-      Right(true)
+    //TODO make functional
+    val headerErros = validateHeaderTrailer(submissions, baLogin)
+    if(headerErros.isEmpty) {
+      val bodyErrros = validateBody(submissions)
+      if(bodyErrros.isEmpty) {
+        Right(())
+      }else {
+        Left(BarValidationError(bodyErrros))
+      }
     }else {
-      Left(BarValidationError(errors))
+      Left(BarValidationError(headerErros))
+    }
+  }
+
+  def validateBody(submissions: BAreports): List[Error] = {
+
+    x.split(submissions).flatMap { submission =>
+      validateSubmission(submission)
+    }.toList
+
+  }
+
+
+  /**
+   *
+   * @param submission only one submission!!!!.
+   * @return
+   */
+  def validateSubmission(submission: BAreports): List[Error] = {
+    assert(submission.getBApropertyReport.size() == 1, "Single submission validation can contain only one submission")
+
+    if(randomForDevelopment.nextBoolean()) {
+      List.empty
+    }else {
+      List(
+        Error(NONE_EXISTING, Seq.empty, createSubmissionDetailDescription(submission))
+      )
     }
 
   }
 
-  def xmlNodeValidation(xml:Node, baLogin: String): List[Error] = {
+  def createSubmissionDetailDescription(submission: BAreports): Option[String] = {
+    //TODO should we have assert or just return None, or take head ???
+    //TODO maybe delete after full development.
+    assert(submission.getBApropertyReport.size() == 1, "createPropertyDescription can create description for only one submission")
 
-    val parsedBatch:Seq[Node] = xmlParser.oneReportPerBatch(xml)
+    submission.getBApropertyReport.asScala.headOption.map { submission =>
+      val planningReference = submission.getContent.asScala
+        .find(x => x.getName.getLocalPart == "PropertyPlanReferenceNumber" && !x.isNil)
+        .flatMap { planningReference =>
+          Option(planningReference.asInstanceOf[JAXBElement[String]].getValue).map(_.trim).filter(_ != "")
+        }
 
-    val validations:List[Node => List[Error]] = List(
-      validationBACode(baLogin),
-      validationBusinessRules(baLogin)
-    )
-    parsedBatch.toList.flatMap{n => validations.flatMap(_.apply(n))}.distinct
+      val proposedEntries = extractUprn(submission, "ProposedEntries")
+        .map(x => s"UPRN: ${x._1.map(_.toString).getOrElse("NONE")}, Address: ${x._2.getOrElse("NONE")}")
+
+      val existingEntries = extractUprn(submission, "ExistingEntries")
+        .map(x => s"UPRN: ${x._1.map(_.toString).getOrElse("NONE")}, Address: ${x._2.getOrElse("NONE")}")
+
+      s"Planning ref: ${planningReference.getOrElse("NONE")}, Proposed: ${proposedEntries.mkString("|  ")},   " +
+        s"   Existing: ${existingEntries.mkString("|  ")}"
+    }
+  }
+
+  def extractUprn(submission: BAreportBodyStructure, entries: String) = {
+    Try {
+      submission.getContent.asScala.find(x => x.getName.getLocalPart == entries && !x.isNil)
+        .map(x => x.asInstanceOf[JAXBElement[BApropertySplitMergeStructure]].getValue)
+        .map(x => x.getAssessmentProperties.asScala.toList)
+        .fold(List.empty[BApropertySplitMergeStructure.AssessmentProperties])(identity)
+        .map { x =>
+          val address = x.getPropertyIdentity.getContent.asScala
+            .find(z => z.getName.getLocalPart == "TextAddress" && !z.isNil) //TextAddressStructure
+            .map(z => z.asInstanceOf[JAXBElement[TextAddressStructure]].getValue)
+            .map(z => {
+              z.getAddressLine.asScala.map(_.trim).filter(_ != "").mkString(", ") + Option(z.getPostcode).getOrElse("")
+            })
+
+          val propertyNumber = x.getPropertyIdentity.getContent.asScala
+            .find(z => z.getName.getLocalPart == "UniquePropertyReferenceNumber" && !z.isNil)
+            .flatMap(x => Option(x.asInstanceOf[JAXBElement[Long]].getValue))
+
+          (propertyNumber, address)
+        }
+    }.fold(t => {
+      Logger.warn("Unable to extract UPRN: ", t)
+      List.empty[(Option[Long], Option[String])]
+    }, identity)
+  }
+
+
+  def validateHeaderTrailer(submission: BAreports, baLogin: BaLogin): List[Error] = {
+    validationBACode(submission, baLogin)
 
   }
 
-  private def validationBACode(baLogin: String)(xml:Node): List[Error] = {
-    businessRules.baIdentityCodeErrors(xml, baLogin)
+
+  def validationBACode(submission: BAreports, baLogin: BaLogin): List[Error]  = {
+
+    Option(submission.getBAreportHeader.getBillingAuthorityIdentityCode) match {
+      case None => List(Error(BA_CODE_REPORT, Seq("'BAidentityNumber' missing.")))
+      case Some(baCode) if (baCode == 0) => List(Error(BA_CODE_REPORT, Seq("'BAidentityNumber' missing.")))
+      case Some(baCode) if (baCode == baLogin.baCode) => List.empty
+      case Some(wrongBaNumber) => List(Error(BA_CODE_MATCH, Seq(wrongBaNumber.toString)))
+    }
+
   }
 
-  private def validationBusinessRules(baLogin: String)(xml:Node):List[Error] = {
-    val reports:Seq[Node] = xml \ "BApropertyReport"
-    reports.flatMap(r => {
-      businessRules.reasonForReportErrors(r) ++ businessRules.bAidentityNumber(r, baLogin)
-    }).toList
-  }
 }

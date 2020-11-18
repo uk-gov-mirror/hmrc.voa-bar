@@ -16,15 +16,10 @@
 
 package uk.gov.hmrc.voabar.models
 
-import play.api.libs.json.Json
-import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
-import uk.gov.hmrc.voabar.util.ErrorCode
+case class BaLogin(login: String, password: String) {
 
-
-case class Error(code: ErrorCode, values: Seq[String] = Seq(), submissionDetail: Option[String] = None)
-
-object Error {
-  implicit val format = Json.format[Error]
-  implicit val errorHandler: BSONHandler[BSONDocument, Error] =  Macros.handler[Error]
+  def baCode = {
+    login.substring(2).toInt
+  }
 
 }

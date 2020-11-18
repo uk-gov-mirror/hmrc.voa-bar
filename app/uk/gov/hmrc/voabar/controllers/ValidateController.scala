@@ -45,18 +45,20 @@ class ValidateController @Inject() (validationService: ValidationService,
 
     val url = FileUtils.readFileToByteArray(request.body.path.toFile)
 
-    Future {
-      validationService.validate(url, baLogin) match {
-        case Left(errors) => {
-          logger.info(s"Validation failed, baLogin: ${baLogin}, requestId: ${requestId}, v1-processing-status: ${v1ProcessingStatus} errors: ${errors}")
-        }
-        case Right((document, node)) => {
-          logger.info(s"Validation successful, baLogin: ${baLogin}, v1-processing-status: ${v1ProcessingStatus}, requestId: ${requestId}")
-        }
-      }
+    //TODO What we should do? Process with new pipeline?
 
-      val xmlAsString = IOUtils.toByteArray(request.body.path.toUri)
-      submissionProcessingService.processAsV1(xmlAsString, baLogin, requestId)
+    Future {
+//      validationService.validate(url, baLogin) match {
+//        case Left(errors) => {
+//          logger.info(s"Validation failed, baLogin: ${baLogin}, requestId: ${requestId}, v1-processing-status: ${v1ProcessingStatus} errors: ${errors}")
+//        }
+//        case Right((document, node)) => {
+//          logger.info(s"Validation successful, baLogin: ${baLogin}, v1-processing-status: ${v1ProcessingStatus}, requestId: ${requestId}")
+//        }
+//      }
+//
+//      val xmlAsString = IOUtils.toByteArray(request.body.path.toUri)
+//      submissionProcessingService.processAsV1(xmlAsString, baLogin, requestId)
 
       Ok("")
     }

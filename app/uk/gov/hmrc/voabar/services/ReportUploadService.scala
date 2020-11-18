@@ -49,10 +49,12 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
 
   def upload(username: String, password: String, xmlUrl: String, uploadReference: String)(implicit headerCarrier: HeaderCarrier) = {
 
+    val baLogin = BaLogin(username, password)
+
     val processingResult = for {
-      fixedXml <- downloadAndFixXml(xmlUrl)
-      xmlTree <- EitherT.fromEither[Future](validationService.validate(fixedXml, username))
-      _ <- EitherT(ebarsUpload(xmlTree._1, username, password, uploadReference))
+      submissions <- downloadAndFixXml(xmlUrl)
+      _ <- EitherT.fromEither[Future](validationService.validate(submissions, baLogin))
+      _ <- EitherT(ebarsUpload(submissions, username, password, uploadReference))
       _ <- EitherT(statusRepository.updateStatus(uploadReference, Done))
       _ <- EitherT(sendConfirmationEmail(uploadReference, username, password))
     } yield ("ok")
@@ -68,10 +70,6 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       case Right(v) => "ok"
       case Left(a) => {
         handleError(uploadReference, a, username, password)
-        //TODO - upload to V1 system
-        Try {
-          submissionProcessingService.processAsV1(xmlUrl, username, uploadReference, a)
-        }
         "failed"
       }
     }
@@ -97,7 +95,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       BarXmlError(e.getMessage)
     }
 
-    def fixXml(submission: BAreports):Either[BarError, Array[Byte]] = Try {
+    def fixXml(submission: BAreports):Either[BarError, BAreports] = Try {
 
       val allReports = ebarsValidator.split(submission)
 
@@ -112,7 +110,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       FixHeader(submission)
       FixCTaxTrailer(submission)
 
-      ebarsValidator.toXml(submission).getBytes("UTF-8")
+      submission
 
     }.toEither.leftMap { e =>
       logger.warn("Unable to automatically fix XML", e)
@@ -206,7 +204,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       }
 
       case BarValidationError(errors) => {
-        Future.sequence(errors.map(x => statusRepository.addError(submissionId, x)))
+        Future.sequence(errors.map(x => statusRepository.addError(submissionId, x))) //TODO add errors + flatMap
         statusRepository.updateStatus(submissionId, Failed)
           .map(_ => sendConfirmationEmail(submissionId, username, password))
       }
@@ -223,7 +221,8 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
       case BarEmailError(emailError) => {
         statusRepository.addError(submissionId, Error(UNKNOWN_ERROR, Seq(emailError))) //TODO probably put WARNING about email submission
         statusRepository.updateStatus(submissionId, Done)
-      }case UnknownError(detail) => {
+      }
+      case UnknownError(detail) => {
         statusRepository.addError(submissionId, Error(UNKNOWN_ERROR, Seq(detail)))
         statusRepository.updateStatus(submissionId, Failed)
           .map(_ => sendConfirmationEmail(submissionId, username, password))
