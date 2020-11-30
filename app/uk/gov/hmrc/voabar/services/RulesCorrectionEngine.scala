@@ -402,8 +402,8 @@ case object PostcodesToUppercase extends Rule {
 
     def sanitising(postcode: String) = {
       Try {
-        val trimmed = postcode.toUpperCase.trim.replaceAll("\\s", "")
-        trimmed.substring(0, trimmed.length - 3) + " " + trimmed.substring(trimmed.length - 3)
+        val trimmed = postcode.toUpperCase.trim.replaceAll("\\s", "")       //TODO - implement as webBars
+        trimmed.substring(0, trimmed.length - 3) + " " + trimmed.substring(trimmed.length - 3) // and validate, if not valid keep original postcode
       } match {
         case Success(v) => v
         case _ => postcode

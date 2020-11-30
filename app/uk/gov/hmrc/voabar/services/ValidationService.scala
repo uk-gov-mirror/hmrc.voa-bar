@@ -21,7 +21,7 @@ import javax.inject.Singleton
 import javax.xml.bind.JAXBElement
 import play.api.Logger
 import services.EbarsValidator
-import uk.gov.hmrc.voabar.models.{BaLogin, BarError, BarValidationError, Error}
+import uk.gov.hmrc.voabar.models.{BaLogin, BarError, BarSubmissionValidationError, BarValidationError, Error, ReportError}
 import uk.gov.hmrc.voabar.util._
 
 import scala.collection.JavaConverters._
@@ -39,19 +39,19 @@ class ValidationService {
 
     //TODO make functional
     val headerErros = validateHeaderTrailer(submissions, baLogin)
-    if(headerErros.isEmpty) {
+    if (headerErros.isEmpty) {
       val bodyErrros = validateBody(submissions)
-      if(bodyErrros.isEmpty) {
+      if (bodyErrros.isEmpty) {
         Right(())
-      }else {
-        Left(BarValidationError(bodyErrros))
+      } else {
+        Left(BarSubmissionValidationError(bodyErrros))
       }
-    }else {
+    } else {
       Left(BarValidationError(headerErros))
     }
   }
 
-  def validateBody(submissions: BAreports): List[Error] = {
+  def validateBody(submissions: BAreports): List[ReportError] = {
 
     x.split(submissions).flatMap { submission =>
       validateSubmission(submission)
@@ -65,84 +65,95 @@ class ValidationService {
    * @param submission only one submission!!!!.
    * @return
    */
-  def validateSubmission(submission: BAreports): List[Error] = {
+  def validateSubmission(submission: BAreports): Option[ReportError] = {
     assert(submission.getBApropertyReport.size() == 1, "Single submission validation can contain only one submission")
 
-    if(randomForDevelopment.nextBoolean()) {
-      List.empty
-    }else {
-      List(
-        Error(NONE_EXISTING, Seq.empty, createSubmissionDetailDescription(submission))
-      )
-    }
+    val validation = new RulesValidationEngine
+    val errors = validation.applyRules(submission)
+
+    Option(errors)
+      .filter(_.nonEmpty)
+      .map(x => createSubmissionDetailDescription(submission).copy(errors = x))
 
   }
 
-  def createSubmissionDetailDescription(submission: BAreports): Option[String] = {
+  def createSubmissionDetailDescription(submission: BAreports) = {
     //TODO should we have assert or just return None, or take head ???
     //TODO maybe delete after full development.
     assert(submission.getBApropertyReport.size() == 1, "createPropertyDescription can create description for only one submission")
 
     submission.getBApropertyReport.asScala.headOption.map { submission =>
-      val planningReference = submission.getContent.asScala
-        .find(x => x.getName.getLocalPart == "PropertyPlanReferenceNumber" && !x.isNil)
-        .flatMap { planningReference =>
-          Option(planningReference.asInstanceOf[JAXBElement[String]].getValue).map(_.trim).filter(_ != "")
-        }
+      val reportNumber = submission.getContent.asScala.find(x => x.getName.getLocalPart == "BAreportNumber" && !x.isNil)
+        .map(x => x.asInstanceOf[JAXBElement[String]].getValue.trim)
+        .filter(_ != "")
 
-      val proposedEntries = extractUprn(submission, "ProposedEntries")
-        .map(x => s"UPRN: ${x._1.map(_.toString).getOrElse("NONE")}, Address: ${x._2.getOrElse("NONE")}")
+      val baTransaction = submission.getContent.asScala.find(x => x.getName.getLocalPart == "TransactionIdentityBA" & !x.isNil)
+        .map(x => x.asInstanceOf[JAXBElement[String]].getValue.trim)
+        .filter(_ != "")
 
-      val existingEntries = extractUprn(submission, "ExistingEntries")
-        .map(x => s"UPRN: ${x._1.map(_.toString).getOrElse("NONE")}, Address: ${x._2.getOrElse("NONE")}")
+      val uprn = (extractUPRN(submission, "ProposedEntries") ++ extractUPRN(submission, "ExistingEntries"))
+        .distinct
+        .sorted
 
-      s"Planning ref: ${planningReference.getOrElse("NONE")}, Proposed: ${proposedEntries.mkString("|  ")},   " +
-        s"   Existing: ${existingEntries.mkString("|  ")}"
-    }
+      ReportError(reportNumber, baTransaction, uprn, Seq.empty)
+    }.getOrElse(ReportError(None, None, Seq.empty, Seq.empty))
   }
 
-  def extractUprn(submission: BAreportBodyStructure, entries: String) = {
+
+  def extractUPRN(submission: BAreportBodyStructure, entries: String) = {
     Try {
       submission.getContent.asScala.find(x => x.getName.getLocalPart == entries && !x.isNil)
         .map(x => x.asInstanceOf[JAXBElement[BApropertySplitMergeStructure]].getValue)
-        .map(x => x.getAssessmentProperties.asScala.toList)
-        .fold(List.empty[BApropertySplitMergeStructure.AssessmentProperties])(identity)
-        .map { x =>
-          val address = x.getPropertyIdentity.getContent.asScala
-            .find(z => z.getName.getLocalPart == "TextAddress" && !z.isNil) //TextAddressStructure
-            .map(z => z.asInstanceOf[JAXBElement[TextAddressStructure]].getValue)
-            .map(z => {
-              z.getAddressLine.asScala.map(_.trim).filter(_ != "").mkString(", ") + Option(z.getPostcode).getOrElse("")
-            })
-
-          val propertyNumber = x.getPropertyIdentity.getContent.asScala
+        .toList.flatMap(x => x.getAssessmentProperties.asScala.toList)
+        .flatMap { x =>
+          val UPRN = x.getPropertyIdentity.getContent.asScala
             .find(z => z.getName.getLocalPart == "UniquePropertyReferenceNumber" && !z.isNil)
-            .flatMap(x => Option(x.asInstanceOf[JAXBElement[Long]].getValue))
-
-          (propertyNumber, address)
+            .map(z => z.asInstanceOf[JAXBElement[Long]].getValue)
+          UPRN
         }
-    }.fold(t => {
-      Logger.warn("Unable to extract UPRN: ", t)
-      List.empty[(Option[Long], Option[String])]
+    }.fold(e => {
+      log.warn("Unable to extract UPRN: ", e)
+      List.empty[Long]
     }, identity)
   }
 
+  /*
+   * Uncle Bob say it should be deleted, but it's so handy and also document hacks in autobars.
+
+  def extractProperties(submission: BAreportBodyStructure, entries: String) = {
+    Try {
+      submission.getContent.asScala.find(x => x.getName.getLocalPart == entries && !x.isNil)
+        .map(x => x.asInstanceOf[JAXBElement[BApropertySplitMergeStructure]].getValue)
+        .toList.flatMap(x => x.getAssessmentProperties.asScala.toList)
+        .flatMap { x =>
+          val address = x.getPropertyIdentity.getContent.asScala
+            .find(z => z.getName.getLocalPart == "TextAddress" && !z.isNil)
+            .map(z => z.asInstanceOf[JAXBElement[TextAddressStructure]].getValue)
+            .map(z => {
+              z.getAddressLine.asScala.map(_.trim).filter(_ != "").mkString("", ", ", " ") + Option(z.getPostcode).getOrElse("")
+            })
+            .filterNot(x => entries == "ExistingEntries" && x.contains("[PROPOSED]")) //TODO - FIX bug in ebars.
+                                                                                      // uk.gov.hmrc.voabar.services.CtRules.Cr05CopyProposedEntriesToExistingEntries
+          address
+        }
+    }.fold(e => {
+      log.warn("Unable to extract Properties: ", e)
+      List.empty[String]
+    }, identity)
+  }
+ */
 
   def validateHeaderTrailer(submission: BAreports, baLogin: BaLogin): List[Error] = {
     validationBACode(submission, baLogin)
-
   }
 
-
-  def validationBACode(submission: BAreports, baLogin: BaLogin): List[Error]  = {
-
+  def validationBACode(submission: BAreports, baLogin: BaLogin): List[Error] = {
     Option(submission.getBAreportHeader.getBillingAuthorityIdentityCode) match {
       case None => List(Error(BA_CODE_REPORT, Seq("'BAidentityNumber' missing.")))
       case Some(baCode) if (baCode == 0) => List(Error(BA_CODE_REPORT, Seq("'BAidentityNumber' missing.")))
       case Some(baCode) if (baCode == baLogin.baCode) => List.empty
       case Some(wrongBaNumber) => List(Error(BA_CODE_MATCH, Seq(wrongBaNumber.toString)))
     }
-
   }
 
 }

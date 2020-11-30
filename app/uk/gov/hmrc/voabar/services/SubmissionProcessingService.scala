@@ -26,7 +26,7 @@ import javax.xml.transform.stream.StreamSource
 import org.apache.commons.io.IOUtils
 import play.api.Logger
 import services.EbarsValidator
-import uk.gov.hmrc.voabar.models.{BaLogin, BarError, JobStatusErrorsFromStub}
+import uk.gov.hmrc.voabar.models.{BaLogin, BarError}
 
 import scala.collection.JavaConverters._
 import scala.util.{Success, Try}
@@ -66,10 +66,11 @@ class SubmissionProcessingService @Inject() (validationService: ValidationServic
           rulesValidationEngine.applyRules(report)
         }
       }.filterNot {
-        case Success(validationResult) => validationResult.errors.isEmpty
+        case Success(validationResult) => false //validationResult.errors.isEmpty
         case _ => false
       }.map { validationResult =>
-        validationResult.fold(x => JobStatusErrorsFromStub(s"JVM Error: ${stacktTraceToString(x)}", None, Seq.empty), identity)
+        //validationResult.fold(x => JobStatusErrorsFromStub(s"JVM Error: ${stacktTraceToString(x)}", None, Seq.empty), identity)
+        ???
       }
 
       submission.getBApropertyReport.clear()
@@ -89,7 +90,7 @@ class SubmissionProcessingService @Inject() (validationService: ValidationServic
 
   }
 
-  def validateAsV2(correctedXml: BAreports, baLogin: String, requestId: String, v1BusinessValidatioErrors: Seq[JobStatusErrorsFromStub]): Boolean = {
+  def validateAsV2(correctedXml: BAreports, baLogin: String, requestId: String, v1BusinessValidatioErrors: Seq[String]): Boolean = {
     validationService.validate(correctedXml, BaLogin(baLogin, "")) match {
       case Left(errors) => {
         log.info(s"Validation of fixed XML, baLogin: ${baLogin}, requestId: ${requestId}, errors: ${errors}, v1BusinessErrors: ${v1BusinessValidatioErrors}")

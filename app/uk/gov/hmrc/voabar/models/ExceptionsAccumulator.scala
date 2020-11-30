@@ -25,44 +25,28 @@ import play.api.libs.json.Json
   * Monad style baby!
   */
 
-case class JobStatusErrorFromStub(code: String, value: String)
 
-case class JobStatusErrorsFromStub(message: String, propertyReferenceNumbers: Option[Seq[Long]], errors: Seq[JobStatusErrorFromStub])
+sealed trait ExceptionsAccumulator[A <: ReportErrorDetail, B <: BAreports] {
 
-case class JobStatusErrors(transactionId: String, reportNumber: String, message: String, code: Option[String], propertyReferenceNumbers: Option[Seq[Long]])
-
-case object JobStatusErrorFromStub {
-  implicit val errorFormat = Json.format[JobStatusErrorFromStub]
-  implicit val errorReads = Json.reads[JobStatusErrorFromStub]
-}
-
-case object JobStatusErrorsFromStub {
-  implicit val errorsFormat = Json.format[JobStatusErrorsFromStub]
-}
-
-sealed trait ExceptionsAccumulator[A <: JobStatusErrorFromStub, B <: BAreports] {
-
-  def get: JobStatusErrorsFromStub
+  def get: Seq[ReportErrorDetail]
 
   def map(f: B => Option[A]): ExceptionsAccumulator[A, B]
 
   def flatMap(f: B => ExceptionsAccumulator[A, B]): ExceptionsAccumulator[A, B]
 }
 
-case class EmptyReportValidation[A <: JobStatusErrorFromStub, B <: BAreports]() extends ExceptionsAccumulator[A, B] {
+case class EmptyReportValidation[A <: ReportErrorDetail, B <: BAreports]() extends ExceptionsAccumulator[A, B] {
 
-  override def get: JobStatusErrorsFromStub = JobStatusErrorsFromStub("EmptyReportValidation", None, Seq.empty[JobStatusErrorFromStub])
+  override def get: Seq[ReportErrorDetail] = Seq.empty[ReportErrorDetail]
 
   override def flatMap(f: (B) => ExceptionsAccumulator[A, B]): ExceptionsAccumulator[A, B] = EmptyReportValidation()
 
   override def map(f: (B) => Option[A]): ExceptionsAccumulator[A, B] = EmptyReportValidation()
 }
 
-case class ReportValidation[A <: JobStatusErrorFromStub, B <: BAreports](errors: Seq[A], report: B) extends ExceptionsAccumulator[A, B] {
+case class ReportValidation[A <: ReportErrorDetail, B <: BAreports](errors: Seq[A], report: B) extends ExceptionsAccumulator[A, B] {
 
-  import models.EbarsBAreports._
-
-  override def get: JobStatusErrorsFromStub = JobStatusErrorsFromStub("ReportValidation", Some(report.uniquePropertyReferenceNumbers), errors)
+  override def get: Seq[ReportErrorDetail] = errors
 
   override def map(f: (B) => Option[A]): ExceptionsAccumulator[A, B] = {
     f(report) match {

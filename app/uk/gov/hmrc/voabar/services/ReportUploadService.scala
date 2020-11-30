@@ -17,6 +17,7 @@
 package uk.gov.hmrc.voabar.services
 
 import java.io.ByteArrayInputStream
+import java.time.ZonedDateTime
 
 import cats.data.EitherT
 import cats.implicits._
@@ -207,6 +208,11 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
         Future.sequence(errors.map(x => statusRepository.addError(submissionId, x))) //TODO add errors + flatMap
         statusRepository.updateStatus(submissionId, Failed)
           .map(_ => sendConfirmationEmail(submissionId, username, password))
+      }
+
+      case BarSubmissionValidationError(errors) => {
+        statusRepository.saveOrUpdate(ReportStatus(id = submissionId, baCode = Option(username), created = ZonedDateTime.now(),
+          reportErrors = errors, status = Option(Failed.value)), true)
       }
 
       case BarEbarError(ebarError) => {

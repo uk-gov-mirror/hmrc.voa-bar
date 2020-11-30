@@ -16,23 +16,25 @@
 
 package uk.gov.hmrc.voabar.models
 
-import reactivemongo.api.commands.UpdateWriteResult
+import play.api.libs.json.Json
+import uk.gov.hmrc.voabar.util.JavaEnumUtils
 
-sealed trait BarError
+case class ReportErrorDetail(errorCode: ReportErrorDetailCode, values: Seq[String] = Seq.empty[String])
+
+object ReportErrorDetail {
+  implicit val errorCodeFormat = JavaEnumUtils.format[ReportErrorDetailCode]
+  implicit val format = Json.format[ReportErrorDetail]
+
+}
 
 
-case class BarXmlError(message: String) extends BarError
 
-case class BarXmlValidationError(errors: List[Error]) extends BarError
+case class ReportError(reportNumber: Option[String],
+                       baTransaction: Option[String],
+                       uprn: Seq[Long],
+                       errors: Seq[ReportErrorDetail]
+                      )
 
-case class BarValidationError(errors: List[Error]) extends BarError
-
-case class BarSubmissionValidationError(errors: List[ReportError]) extends BarError
-
-case class BarMongoError(error: String, updateWriteResult: Option[UpdateWriteResult] = None) extends BarError
-
-case class BarEbarError(ebarError: String) extends BarError
-
-case class BarEmailError(ebarError: String) extends BarError
-
-case class UnknownError(detail: String) extends BarError
+object ReportError {
+  implicit val format = Json.format[ReportError]
+}
