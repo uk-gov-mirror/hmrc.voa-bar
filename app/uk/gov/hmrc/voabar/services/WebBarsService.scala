@@ -24,7 +24,7 @@ import javax.xml.bind.{JAXBContext, JAXBException}
 import play.api.Logger
 import play.api.libs.json.JsString
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.voabar.models.{Cr01Cr03Submission, ReportStatus}
+import uk.gov.hmrc.voabar.models.{Cr01Cr03Submission, LoginDetails, ReportStatus}
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
 import uk.gov.hmrc.voabar.util.{BillingAuthorities, Cr01Cr03SubmissionXmlGenerator}
 
@@ -60,7 +60,7 @@ class DefaultWebBarsService @Inject() (actorSystem: ActorSystem,submissionReposi
       val areports = cr01cr03SubmissionXmlGenerator.generateXml()
       log.debug("Generated report")
       logReports(areports)
-      reportUploadService.upload(username, password, areports, reportStatus.id)
+      reportUploadService.upload(LoginDetails(username, password), areports, reportStatus.id)
     }
   }.recover {
     case x: Exception => {

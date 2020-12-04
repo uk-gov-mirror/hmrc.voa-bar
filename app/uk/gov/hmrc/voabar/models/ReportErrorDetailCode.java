@@ -34,5 +34,7 @@ public enum ReportErrorDetailCode {
     PropertyPlanReferenceNumberValidation,
 
     Rt01AndRt04AndRt03AndRt04MissingProposedEntryValidation,
-    Rt05AndRt06AndRt07AndRt08AndRt9AndRt11MissingExistingEntryValidation
+    Rt05AndRt06AndRt07AndRt08AndRt9AndRt11MissingExistingEntryValidation,
+    InvalidNdrCode,
+    NoNDRCode
 }

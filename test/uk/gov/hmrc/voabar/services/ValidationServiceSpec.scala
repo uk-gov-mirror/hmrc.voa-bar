@@ -16,95 +16,82 @@
 
 package uk.gov.hmrc.voabar.services
 
+import javax.xml.transform.stream.StreamSource
 import org.apache.commons.io.IOUtils
+import org.scalatest.EitherValues
 import org.scalatestplus.play.PlaySpec
-import uk.gov.hmrc.voabar.models.Error
+import services.EbarsValidator
+import uk.gov.hmrc.voabar.models.{BarValidationError, Error, LoginDetails}
 import uk.gov.hmrc.voabar.util._
 
 import scala.xml.{Node, XML}
 
-class ValidationServiceSpec extends PlaySpec {
+class ValidationServiceSpec extends PlaySpec with EitherValues {
 
-  val batchWith1Report = IOUtils.toString(getClass.getResource("/xml/CTValid1.xml"))
-  val batchWith4Reports = IOUtils.toString(getClass.getResource("/xml/CTValid2.xml"))
-  val batchWith32Reports = IOUtils.toString(getClass.getResource("/xml/res100.xml"))
-  val batchWith32ReportsWithErrors = IOUtils.toString(getClass.getResource("/xml/res101.xml"))
-  val batchWithWrongBaCodeInSubreport = IOUtils.toString(getClass.getResource("/xml/CTInvalidBAidentityNumber.xml"))
+  def batchWith1Report = aXml("/xml/CTValid1.xml")
+  def batchWith4Reports =  aXml("/xml/CTValid2.xml")
+  def batchWith32Reports =  aXml("/xml/res100.xml")
+  def batchWith32ReportsWithErrors =  aXml("/xml/res101.xml")
+  def batchWithWrongBaCodeInSubreport =  aXml("/xml/CTInvalidBAidentityNumber.xml")
 
-  val BA_LOGIN = "BA5090"
+  val BA_LOGIN = LoginDetails("BA5090", "BA5090")
 
 
   val xmlParser = new XmlParser
   val xmlValidator = new XmlValidator
   val reportBuilder = new MockBAReportBuilder
-  val businessRules= new BusinessRules()
-  def validationService(baCode:String): ValidationService = new ValidationService(
-    xmlValidator, xmlParser, businessRules)
+  val ebarsValidator = new EbarsValidator()
+
+  def validationService = new ValidationService()
 
   "Validation service" must {
 
     "sucessfully validate correct XML document" in {
-      val xmlBatchSubmissionAsString = IOUtils.toByteArray(getClass.getResource("/xml/CTValid1.xml"))
-      val validationResult = validationService("9999").validate(xmlBatchSubmissionAsString, BA_LOGIN)
+      val xmlBatchSubmissionAsString = aXml("/xml/CTValid1.xml")
+      val validationResult = validationService.validate(xmlBatchSubmissionAsString, BA_LOGIN)
       validationResult mustBe ('right)
     }
 
     "return Left for not valid XML" in {
-      val xmlBatchSubmissionAsString =  IOUtils.toByteArray(getClass.getResource("/xml/CTInvalid1.xml"))
-      val validationResult = validationService("9999").validate(xmlBatchSubmissionAsString, BA_LOGIN)
+      val xmlBatchSubmissionAsString =  aXml("/xml/CTInvalid1.xml")
+      val validationResult = validationService.validate(xmlBatchSubmissionAsString, BA_LOGIN)
       validationResult mustBe ('left)
     }
 
     "return an empty list (no errors) when passed a valid batch with one report" in {
-      val validBatch: Node = XML.loadString(batchWith1Report)
-      validationService("9999").xmlNodeValidation(validBatch, BA_LOGIN).isEmpty mustBe true
+      validationService.validate(batchWith1Report, BA_LOGIN) mustBe 'right
     }
 
     "return an empty list (no errors) when passed a valid batch with 4 reports" in {
-      val validBatch: Node = XML.loadString(batchWith4Reports)
-      validationService("9999").xmlNodeValidation(validBatch, BA_LOGIN).isEmpty mustBe true
+      validationService.validate(batchWith4Reports, BA_LOGIN) mustBe 'right
     }
 
     "return an empty list (no errors) when passed a valid batch with 32 reports" in {
-      val validBatch: Node = XML.loadString(batchWith32Reports)
-      validationService("5243").xmlNodeValidation(validBatch, "BA5243").isEmpty mustBe true
+      validationService.validate(batchWith32Reports, LoginDetails("BA5243", "BA5243")) mustBe 'right
     }
 
     "return a list of 1 error when the BACode in the report header does " +
       "not match that in the HTTP request header" in {
-      val validBatch = XML.loadString(batchWith1Report)
-      validationService("0000").xmlNodeValidation(validBatch, "0000") mustBe List[Error](Error(
-        BA_CODE_MATCH, Seq()))
-    }
-
-
-    "return a list of 1 errors when the BACode in the report header does " +
-      "not match that in the HTTP request header" in {
-      val validBatch = XML.loadString(batchWith1Report)
-      val invalidBatch = reportBuilder.invalidateBatch(validBatch.head, Map("BillingAuthority" -> "BadElement"))
-      validationService("0000").xmlNodeValidation(invalidBatch.head, "0000") mustBe List[Error](
-        Error(BA_CODE_MATCH, Seq())
-      )
-    }
-
-    "return an empty list (no errors) when a batch containing 1 report has an illegal char within the property report" in {
-      val validBatch = XML.loadString(batchWith1Report)
-      val invalidBatch = reportBuilder.invalidateBatch(validBatch.head, Map(
-        "NAME" -> "name"
-      ))
-
-      validationService("9999").xmlNodeValidation(invalidBatch.head, BA_LOGIN).isEmpty mustBe true
+      validationService.validate(batchWith1Report, LoginDetails("BA0000", "BA0000")).left.value mustBe BarValidationError(List[Error](Error(
+        BA_CODE_MATCH, Seq("5090"))))
     }
 
     "return a list with 2 errors for wrong and missing BAidentityNumber in subreport" in {
-      val invalidBatch = XML.loadString(batchWithWrongBaCodeInSubreport)
 
-      validationService("BA9999").xmlNodeValidation(invalidBatch.head, "BA9999") must contain theSameElementsAs List (
-        Error(BA_CODE_MATCH, Seq()), Error(BA_CODE_REPORT, Seq("'BAidentityNumber' missing."))
-      )
+      val validationResult = validationService.validate(batchWithWrongBaCodeInSubreport, LoginDetails("BA9999", "BA9999"))
+      validationResult mustBe 'left
+      validationResult.left.value mustBe a[BarValidationError]
+      validationResult.left.value.asInstanceOf[BarValidationError].errors must have size(1)
+      //TODO - It is failing already on header. How I should validate each report? Maybe create another XML
+      validationResult.left.value.asInstanceOf[BarValidationError].errors must contain (Error(BA_CODE_MATCH,List("5090"),None))
+      //validationResult.left.value.asInstanceOf[BarValidationError].errors must contain (Error(BA_CODE_MATCH,List("5090"),None))
 
     }
 
+  }
+
+  def aXml(path: String) = {
+    ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream(path)))
   }
 
 }

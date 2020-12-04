@@ -21,7 +21,7 @@ import javax.inject.Singleton
 import javax.xml.bind.JAXBElement
 import play.api.Logger
 import services.EbarsValidator
-import uk.gov.hmrc.voabar.models.{BaLogin, BarError, BarSubmissionValidationError, BarValidationError, Error, ReportError}
+import uk.gov.hmrc.voabar.models.{BarError, BarSubmissionValidationError, BarValidationError, Error, LoginDetails, ReportError}
 import uk.gov.hmrc.voabar.util._
 
 import scala.collection.JavaConverters._
@@ -32,10 +32,7 @@ class ValidationService {
   val x = new EbarsValidator()
   val log = Logger(this.getClass)
 
-  val randomForDevelopment = Random //TODO remove after full development !!!!!
-                                    // DO NOT MERGE WITH THIS
-
-  def validate(submissions: BAreports, baLogin: BaLogin): Either[BarError, Unit] = {
+  def validate(submissions: BAreports, baLogin: LoginDetails): Either[BarError, Unit] = {
 
     //TODO make functional
     val headerErros = validateHeaderTrailer(submissions, baLogin)
@@ -143,11 +140,11 @@ class ValidationService {
   }
  */
 
-  def validateHeaderTrailer(submission: BAreports, baLogin: BaLogin): List[Error] = {
+  def validateHeaderTrailer(submission: BAreports, baLogin: LoginDetails): List[Error] = {
     validationBACode(submission, baLogin)
   }
 
-  def validationBACode(submission: BAreports, baLogin: BaLogin): List[Error] = {
+  def validationBACode(submission: BAreports, baLogin: LoginDetails): List[Error] = {
     Option(submission.getBAreportHeader.getBillingAuthorityIdentityCode) match {
       case None => List(Error(BA_CODE_REPORT, Seq("'BAidentityNumber' missing.")))
       case Some(baCode) if (baCode == 0) => List(Error(BA_CODE_REPORT, Seq("'BAidentityNumber' missing.")))

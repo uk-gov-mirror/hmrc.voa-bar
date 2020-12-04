@@ -21,7 +21,7 @@ import play.api.Configuration
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import uk.gov.hmrc.crypto.{ApplicationCrypto, Crypted}
 import uk.gov.hmrc.play.bootstrap.controller.{BackendController, BaseController}
-import uk.gov.hmrc.voabar.models.UploadDetails
+import uk.gov.hmrc.voabar.models.{LoginDetails, UploadDetails}
 import uk.gov.hmrc.voabar.services.ReportUploadService
 
 import scala.concurrent.ExecutionContext
@@ -42,7 +42,7 @@ class UploadController @Inject()(reportUploadService: ReportUploadService, confi
       encryptedPassword <- headers.get("password").toRight(Unauthorized("password missing")).right
       password <- decryptPassword(encryptedPassword).right
     }yield {
-      reportUploadService.upload(baCode, password, uploadDetails.xmlUrl, uploadDetails.reference)
+      reportUploadService.upload(LoginDetails(baCode, password), uploadDetails.xmlUrl, uploadDetails.reference)
       Ok("")
     }
     response.fold(identity, identity)
@@ -55,14 +55,6 @@ class UploadController @Inject()(reportUploadService: ReportUploadService, confi
     } match {
       case Success(password) => Right(password.value)
       case Failure(exception) => Left(Unauthorized("Unable to decrypt password"))
-    }
-  }
-
-  private def checkContentType(contentType: String): Either[Result, Boolean] = {
-    if("text/plain".equals(contentType)) {
-      Right(true)
-    }else {
-      Left(UnsupportedMediaType("only text/plain is supported"))
     }
   }
 

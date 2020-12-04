@@ -16,13 +16,13 @@
 
 package uk.gov.hmrc.voabar.services
 
-import ebars.xml.BAreports
+import ebars.xml.{BAreportBodyStructure, BAreports, CtaxReasonForReportCodeContentType}
 import ebars.xml.CtaxReasonForReportCodeContentType._
+import javax.xml.bind.JAXBElement
 import models.EbarsBAreports._
 import models.Purpose
 import uk.gov.hmrc.voabar.models.{EmptyReportValidation, ReportErrorDetail, ReportValidation}
 import uk.gov.hmrc.voabar.models.{ReportErrorDetailCode => ErrorCode}
-
 
 import scala.language.postfixOps
 
@@ -32,7 +32,7 @@ import scala.language.postfixOps
 class RulesValidationEngine {
 
   def applyRules(baReports: BAreports) = {
-    val v = baReports.purpose match {
+    val v = purpose(baReports) match {
       case Purpose.CT => ReportValidation(Seq.empty[ReportErrorDetail], baReports) map
         CtValidationRules.Cr01AndCr02MissingExistingEntryValidation.apply map
         CtValidationRules.Cr03AndCr04MissingProposedEntryValidation.apply map
@@ -44,6 +44,7 @@ class RulesValidationEngine {
         RemarksValidation.apply map
         PropertyPlanReferenceNumberValidation.apply
       case Purpose.NDR => ReportValidation(Seq.empty[ReportErrorDetail], baReports) map
+        NdrValidationRules.NdrCodeValidation.apply map
         NdrValidationRules.Rt01AndRt04AndRt03AndRt04MissingProposedEntryValidation.apply map
         NdrValidationRules.Rt05AndRt06AndRt07AndRt08AndRt9AndRt11MissingExistingEntryValidation.apply map
         TextAddressPostcodeValidation.apply map
@@ -55,6 +56,31 @@ class RulesValidationEngine {
 
     v.get
   }
+
+  /**
+   * Not final version, what if tax code is not there ? TODO - improve validation on report.
+   * @param baReports
+   * @return
+   */
+  def purpose(baReports: BAreports) = {
+    import collection.JavaConverters._
+    baReports.getBApropertyReport.asScala.headOption
+      .flatMap { report =>
+        report.getContent.asScala
+          .find(x => !x.isNil && x.getName.getLocalPart == "TypeOfTax")
+      }.map(x => x.asInstanceOf[JAXBElement[BAreportBodyStructure.TypeOfTax]].getValue)
+      .map { typeOfTaxElement =>
+        val cTax = Option(typeOfTaxElement.getCtaxReasonForReport).flatMap(x => Option(x.getReasonForReportCode))
+        val ndrTax = Option(typeOfTaxElement.getNNDRreasonForReport).flatMap(x => Option(x.getReasonForReportCode))
+        (cTax, ndrTax) match {
+          case (Some(ct), Some(ndr)) => throw new RuntimeException(s"Invalid tax, two codes in XML, ct: ${ct} ndr: ${ndr}")
+          case (Some(_), None) => Purpose.CT
+          case (None, Some(_)) => Purpose.NDR
+          case (None, None) => throw new RuntimeException(s"No tax code specified")
+        }
+      }.getOrElse(throw new RuntimeException(s"Unable to find type of tax"))
+  }
+
 }
 
 sealed trait ValidationRule {
@@ -86,6 +112,19 @@ case object NdrValidationRules {
         case Some(v) if Seq("5", "6", "7", "8", "9", "11").contains(v) && existing.isEmpty =>
           Some(ReportErrorDetail(ErrorCode.Rt05AndRt06AndRt07AndRt08AndRt9AndRt11MissingExistingEntryValidation))
         case _ => None
+      }
+    }
+  }
+
+  case object NdrCodeValidation extends ValidationRule {
+    val validCodes = (1 to 19).map(x => x.formatted("%02d")).toSet
+    override def apply: BAreports => Option[ReportErrorDetail] = { baReports =>
+      EbarsXmlCutter.CR(baReports) match {
+        case Some(v: String) if validCodes.contains(v) =>
+          None
+        case Some(v: String) => Some(ReportErrorDetail(ErrorCode.InvalidNdrCode, Seq(v)))
+        case Some(v: CtaxReasonForReportCodeContentType) => Some(ReportErrorDetail(ErrorCode.InvalidNdrCode, Seq(v.value())))
+        case None => Some(ReportErrorDetail(ErrorCode.NoNDRCode))
       }
     }
   }

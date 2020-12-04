@@ -51,9 +51,9 @@ object EbarsXmlCutter {
 
     bAreports.purpose match {
       case Purpose.CT =>
-        content(bAreports).asScala.find(e => e.getName.getLocalPart == "TypeOfTax")
-          .map(e => e.getValue.asInstanceOf[TypeOfTax])
-          .map(e => e.getCtaxReasonForReport)
+        content(bAreports).asScala.find(e => e.getName.getLocalPart == "TypeOfTax" && !e.isNil)
+          .flatMap(e => Option(e.getValue.asInstanceOf[TypeOfTax]))
+          .flatMap(e => Option(e.getCtaxReasonForReport))
           .map(e => e.getReasonForReportCode)
           .map(e => e.getValue) match {
           case None | Some(null) => None

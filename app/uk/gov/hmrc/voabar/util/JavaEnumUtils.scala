@@ -41,7 +41,6 @@ object JavaEnumUtils {
   }
 
   def format[T <: Enum[T]](implicit classTag: ClassTag[T]): Format[T] = {
-    //val classTag = implicitly[ClassTag[T]]
     Format(JavaEnumUtils.enumReads[T](classTag.runtimeClass.asInstanceOf[Class[T]]), JavaEnumUtils.enumWrites[T])
   }
 

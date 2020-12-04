@@ -18,7 +18,11 @@ package uk.gov.hmrc.voabar.models
 
 import play.api.libs.json.Json
 
-case class LoginDetails(username:String, password:String)
+case class LoginDetails(username:String, password:String) {
+  def baCode = {
+    username.substring(2).toInt
+  }
+}
 
 object LoginDetails {
   implicit val format = Json.format[LoginDetails]

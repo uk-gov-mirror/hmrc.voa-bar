@@ -17,13 +17,11 @@
 package uk.gov.hmrc.voabar.services
 
 import javax.xml.transform.stream.StreamSource
-import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll}
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import org.scalatestplus.play.{OneAppPerSuite, PlaySpec}
-import play.api.Application
+import org.scalatestplus.play.PlaySpec
 import services.EbarsValidator
 import uk.gov.hmrc.voabar.services.NdrValidationRules.{Rt01AndRt04AndRt03AndRt04MissingProposedEntryValidation, Rt05AndRt06AndRt07AndRt08AndRt9AndRt11MissingExistingEntryValidation}
-
+import uk.gov.hmrc.voabar.models.{ReportErrorDetailCode => ErrorCode}
 /**
   * Created by rgallet on 09/12/15.
   */
@@ -37,7 +35,7 @@ class RulesValidationEngineNdrSpec extends PlaySpec with GuiceOneAppPerSuite{
 
       val result = Rt01AndRt04AndRt03AndRt04MissingProposedEntryValidation.apply(reports)
 
-      result.get.code must be("Rt01AndRt04AndRt03AndRt04MissingProposedEntryValidation")
+      result.get.errorCode mustBe(ErrorCode.Rt01AndRt04AndRt03AndRt04MissingProposedEntryValidation)
       //result.get.value must be("The proposed property address is missing from this report.") //no messages
     }
   }
@@ -49,7 +47,7 @@ class RulesValidationEngineNdrSpec extends PlaySpec with GuiceOneAppPerSuite{
 
       val result = Rt05AndRt06AndRt07AndRt08AndRt9AndRt11MissingExistingEntryValidation.apply(reports)
 
-      result.get.code must be("Rt05AndRt06AndRt07AndRt08AndRt9AndRt11MissingExistingEntryValidation")
+      result.get.errorCode must be(ErrorCode.Rt05AndRt06AndRt07AndRt08AndRt9AndRt11MissingExistingEntryValidation)
       //result.get.value must be("The existing property address is missing from this report.") no messages
     }
   }
