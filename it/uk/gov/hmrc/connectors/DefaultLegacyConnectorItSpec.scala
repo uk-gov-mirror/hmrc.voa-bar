@@ -8,19 +8,33 @@ import javax.xml.bind.JAXBContext
 import javax.xml.transform.stream.StreamSource
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.Configuration
+import play.api.test.Injecting
 import services.EbarsValidator
+import uk.gov.hmrc.WiremockHelper
+import uk.gov.hmrc.crypto.ApplicationCrypto
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.voabar.connectors.LegacyConnector
+import uk.gov.hmrc.play.bootstrap.config.{RunMode, ServicesConfig}
+import uk.gov.hmrc.play.bootstrap.http.HttpClient
+import uk.gov.hmrc.voabar.Utils
+import uk.gov.hmrc.voabar.connectors.{DefaultLegacyConnector, LegacyConnector}
 import uk.gov.hmrc.voabar.models.EbarsRequests.BAReportRequest
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext}
 
-class DefaultLegacyConnectorItSpec extends PlaySpec with GuiceOneAppPerSuite {
+class DefaultLegacyConnectorItSpec extends PlaySpec with WiremockHelper with GuiceOneAppPerSuite with Injecting {
 
-  private val wiremockPort = 8891
+  def legacyConnector(port: Int) = {
 
-  def legacyConnector = app.injector.instanceOf[LegacyConnector]
+    val config = inject[Configuration]
+
+    val servicesConfig = new ServicesConfig(config ++ Configuration("microservice.services.autobars-stubs.port" -> port),
+      inject[RunMode])
+
+    new DefaultLegacyConnector(inject[HttpClient], servicesConfig, inject[Utils], inject[ApplicationCrypto])
+
+  }
   implicit def ec = app.injector.instanceOf[ExecutionContext]
 
   val ebarsValidator = new EbarsValidator()
@@ -30,42 +44,37 @@ class DefaultLegacyConnectorItSpec extends PlaySpec with GuiceOneAppPerSuite {
   "LegacyConnector" must {
     "send all request as UTF-8 with encoding in mime type" in {
 
-      import com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
-      import com.github.tomakehurst.wiremock.client.WireMock._
+      withWiremockServer { wireMockServer: WireMockServer =>
+        import com.github.tomakehurst.wiremock.client.WireMock._
+        wireMockServer.stubFor(
+          post(urlEqualTo("/autobars-stubs/v2/submit"))
+            .willReturn(
+              aResponse().withStatus(200)
+            )
+        )
+      }{ (port: Int, wireMockServer: WireMockServer) =>
+        import com.github.tomakehurst.wiremock.client.WireMock._
+        implicit val hc = HeaderCarrier()
 
+        val jsonString = ebarsValidator.toJson(aBaReport)
 
-      val wireMockServer = new WireMockServer(options().port(wiremockPort))
-      wireMockServer.start()
-      wireMockServer.stubFor(
-        post(urlEqualTo("/autobars-stubs/v2/submit"))
-          .willReturn(
-            aResponse().withStatus(200)
-          )
-      )
+        val baReportReques = BAReportRequest(
+          UUID.randomUUID().toString,
+          jsonString,
+          "BA5090",
+          "BA5090",
+          1
+        )
 
-      implicit val hc = HeaderCarrier()
+        val result = legacyConnector(port).sendBAReport(baReportReques)
 
-      val jsonString = ebarsValidator.toJson(aBaReport)
+        val httpResult = Await.result(result, timeout)
+        httpResult mustBe 200
 
-      val baReportReques = BAReportRequest(
-        UUID.randomUUID().toString,
-        jsonString,
-        "BA5090",
-        "BA5090",
-        1
-      )
+        wireMockServer.verify(postRequestedFor(urlEqualTo("/autobars-stubs/v2/submit"))
+                .withHeader("Content-Type", equalTo("text/plain; charset=UTF-8")))
 
-      val result = legacyConnector.sendBAReport(baReportReques)
-
-      val httpResult = Await.result(result, timeout)
-      httpResult mustBe 200
-
-      wireMockServer.verify(postRequestedFor(urlEqualTo("/autobars-stubs/v2/submit"))
-        .withHeader("Content-Type", equalTo("text/plain; charset=UTF-8")))
-
-      wireMockServer.stop()
-
-      true mustBe true
+      }
 
     }
   }
