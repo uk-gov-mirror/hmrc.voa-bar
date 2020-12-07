@@ -129,7 +129,7 @@ class ReportUploadService @Inject()(statusRepository: SubmissionStatusRepository
 
   private def sendConfirmationEmail(
                                    reportStatus: ReportStatus,
-                                   login: LoginDetails,
+                                   login: LoginDetails
                                    ): Future[Either[BarEmailError, Unit.type]] = {
     emailConnector.sendEmail(
       reportStatus.baCode.getOrElse("Unknown BA"),

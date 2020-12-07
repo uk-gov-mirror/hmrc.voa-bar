@@ -30,11 +30,15 @@ lazy val microservice = Project(appName, file("."))
     retrieveManaged := true,
     evictionWarningOptions in update := EvictionWarningOptions.default.withWarnScalaVersionEviction(false),
     PlayKeys.playDefaultPort := 8447,
-    scalaVersion := "2.12.12"
+    scalaVersion := "2.12.12",
+    fork in Test := true
   )
   .configs(IntegrationTest)
   .settings(inConfig(IntegrationTest)(Defaults.itSettings): _*)
   .settings(integrationTestSettings(): _*)
+  .settings(
+    fork in IntegrationTest := true
+  )
   .settings(resolvers ++= Seq(
     Resolver.bintrayRepo("hmrc", "releases"),
     Resolver.jcenterRepo,

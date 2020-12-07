@@ -280,10 +280,9 @@ class ReportUploadServiceSpec extends AsyncWordSpec with MockitoSugar with  Must
     new XmlParser()
   }
 
-  def aSubmissionProcessingService(): SubmissionProcessingService = {
-    val processingEngine = mock[SubmissionProcessingService]
-    when(processingEngine.processAsV1(anyObject(), anyString(), anyString())).thenReturn(true)
-    when(processingEngine.processAsV1(anyString(), anyString(), anyString(), anyObject())).thenReturn(true)
+  def aSubmissionProcessingService(): V1ValidationService = {
+    val processingEngine = mock[V1ValidationService]
+    when(processingEngine.fixAndValidateAsV2(anyObject(), anyString(), anyString(), anyString())).thenReturn(true)
     processingEngine
   }
 

@@ -21,7 +21,7 @@ import org.apache.commons.io.IOUtils
 import org.scalatest.EitherValues
 import org.scalatestplus.play.PlaySpec
 import services.EbarsValidator
-import uk.gov.hmrc.voabar.models.{BarValidationError, Error, LoginDetails}
+import uk.gov.hmrc.voabar.models.{BarSubmissionValidationError, BarValidationError, Error, LoginDetails, ReportError, ReportErrorDetail, ReportErrorDetailCode}
 import uk.gov.hmrc.voabar.util._
 
 import scala.xml.{Node, XML}
@@ -33,6 +33,7 @@ class ValidationServiceSpec extends PlaySpec with EitherValues {
   def batchWith32Reports =  aXml("/xml/res100.xml")
   def batchWith32ReportsWithErrors =  aXml("/xml/res101.xml")
   def batchWithWrongBaCodeInSubreport =  aXml("/xml/CTInvalidBAidentityNumber.xml")
+  def reportWithMultipleErrors =  aXml("/xml/InvalidMultipleErrors.xml")
 
   val BA_LOGIN = LoginDetails("BA5090", "BA5090")
 
@@ -86,6 +87,50 @@ class ValidationServiceSpec extends PlaySpec with EitherValues {
       validationResult.left.value.asInstanceOf[BarValidationError].errors must contain (Error(BA_CODE_MATCH,List("5090"),None))
       //validationResult.left.value.asInstanceOf[BarValidationError].errors must contain (Error(BA_CODE_MATCH,List("5090"),None))
 
+    }
+
+    "return reports errors with description" in {
+      val validationResult = validationService.validate(reportWithMultipleErrors, BA_LOGIN)
+      validationResult mustBe 'left
+      validationResult.left.value mustBe a[BarSubmissionValidationError]
+
+      val validationError = validationResult.left.value.asInstanceOf[BarSubmissionValidationError]
+
+      validationError.errors must have size(3)
+
+      validationError.errors must contain (ReportError(Some("200000"), Some("1111111111111"), Seq(1L, 2L), Seq(
+        ReportErrorDetail(ReportErrorDetailCode.TextAddressPostcodeValidation ,List("EE00"))
+      )))
+
+      validationError.errors must contain (ReportError(None, Some("6831841467181"), Seq(3L, 4L), Seq(
+        ReportErrorDetail(ReportErrorDetailCode.Cr08InvalidCodeValidation,List()),
+        ReportErrorDetail(ReportErrorDetailCode.TextAddressPostcodeValidation,List("5554 1AA"))
+      )))
+
+    }
+
+    val ndrReport = aXml("/xml/NDRValid1.xml")
+
+    "validate correct NDR report" in {
+      val validationResult = validationService.validate(ndrReport, LoginDetails("BA0835", "BA0835"))
+      validationResult mustBe 'right
+
+    }
+
+    "reject NDR report with CR code in NDR xml element" in {
+      val validationResult = validationService.validate(aXml("/xml/RulesCorrectionEngine/EASTRIDING_EDITED_NPE.xml"),
+        LoginDetails("BA6950", "BA6950"))
+
+      validationResult mustBe 'left
+      validationResult.left.value mustBe a[BarSubmissionValidationError]
+      val validationError = validationResult.left.value.asInstanceOf[BarSubmissionValidationError]
+
+      validationError.errors must have size(1)
+      validationError.errors must contain only(
+        ReportError(Some("41348"),Some("WET012006000N"),Seq.empty,List(
+          ReportErrorDetail(ReportErrorDetailCode.InvalidNdrCode,List("CR06")))
+        )
+      )
     }
 
   }

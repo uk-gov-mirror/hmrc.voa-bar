@@ -1,0 +1,453 @@
+<BAreports SchemaId="BAtoVOA" SchemaVersion="4-0"
+           xmlns="http://www.govtalk.gov.uk/LG/Valuebill"
+           xmlns:apd="http://www.govtalk.gov.uk/people/AddressAndPersonalDetails"
+           xmlns:pdt="http://www.govtalk.gov.uk/people/PersonDescriptives"
+           xmlns:bs7666="http://www.govtalk.gov.uk/people/bs7666"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <BAreportHeader>
+        <BillingAuthority>SOME VALID COUNCIL</BillingAuthority>
+        <BillingAuthorityIdentityCode>5090</BillingAuthorityIdentityCode>
+        <ProcessDate>2017-12-05</ProcessDate>
+        <EntryDateTime>2017-12-05T16:14:33</EntryDateTime>
+    </BAreportHeader>
+
+    <BApropertyReport>
+        <DateSent>2017-12-05</DateSent>
+        <TransactionIdentityBA>1111111111111</TransactionIdentityBA>
+        <BAidentityNumber>5090</BAidentityNumber>
+        <BAreportNumber>200000</BAreportNumber>
+        <TypeOfTax>
+            <CtaxReasonForReport>
+                <ReasonForReportCode>CR12</ReasonForReportCode>
+                <ReasonForReportDescription>CHANGE OF ADDRESS</ReasonForReportDescription>
+            </CtaxReasonForReport>
+        </TypeOfTax>
+        <ExistingEntries>
+            <AssessmentProperties>
+                <PropertyIdentity>
+                    <bs7666:UniquePropertyReferenceNumber>1</bs7666:UniquePropertyReferenceNumber>
+                    <bs7666:BS7666Address>
+                        <bs7666:PAON>
+                            <bs7666:StartRange>
+                                <bs7666:Number>100</bs7666:Number>
+                            </bs7666:StartRange>
+                            <bs7666:Description>SOME ADDRESS</bs7666:Description>
+                        </bs7666:PAON>
+                        <bs7666:StreetDescription>SOME STREET</bs7666:StreetDescription>
+                        <bs7666:UniqueStreetReferenceNumber>15435</bs7666:UniqueStreetReferenceNumber>
+                        <bs7666:Town>SOME TOWN</bs7666:Town>
+                        <bs7666:AdministrativeArea>SOME AREA</bs7666:AdministrativeArea>
+                        <bs7666:PostTown>SOME POST TOWN</bs7666:PostTown>
+                        <bs7666:PostCode>EE00 0EE</bs7666:PostCode>
+                    </bs7666:BS7666Address>
+                    <TextAddress>
+                        <AddressLine>100 SOME ADDRESS</AddressLine>
+                        <AddressLine>SOME STREET</AddressLine>
+                        <AddressLine>SOME TOWN</AddressLine>
+                        <AddressLine>SOME AREA</AddressLine>
+                        <Postcode>EE00</Postcode>
+                    </TextAddress>
+                    <BAreference>6135101456304</BAreference>
+                </PropertyIdentity>
+
+                <PropertyDescription>
+                    <PropertyDescriptionText>UNKNOWN</PropertyDescriptionText>
+                </PropertyDescription>
+
+                <CurrentTax>
+                    <CouncilTaxBand>A</CouncilTaxBand>
+                </CurrentTax>
+
+                <OccupierContact>
+                    <OrganisationName>SOME COUNCIL</OrganisationName>
+                    <ContactAddress>
+                        <apd:Line>FIRST LAST</apd:Line>
+                        <apd:Line>SOME1</apd:Line>
+                        <apd:Line>SOME2</apd:Line>
+                        <apd:Line>SOME3</apd:Line>
+                        <apd:Line>SOME4</apd:Line>
+                        <apd:PostCode>EE11 1EE</apd:PostCode>
+                    </ContactAddress>
+                </OccupierContact>
+
+            </AssessmentProperties>
+        </ExistingEntries>
+
+        <ProposedEntries>
+            <AssessmentProperties>
+                <PropertyIdentity>
+                    <bs7666:UniquePropertyReferenceNumber>2</bs7666:UniquePropertyReferenceNumber>
+                    <bs7666:BS7666Address>
+                        <bs7666:PAON>
+                            <bs7666:StartRange>
+                                <bs7666:Number>100</bs7666:Number>
+                            </bs7666:StartRange>
+                            <bs7666:Description>SOME ADDRESS</bs7666:Description>
+                        </bs7666:PAON>
+                        <bs7666:StreetDescription>SOME STREET</bs7666:StreetDescription>
+                        <bs7666:UniqueStreetReferenceNumber>15435</bs7666:UniqueStreetReferenceNumber>
+                        <bs7666:Town>SOME TOWN</bs7666:Town>
+                        <bs7666:AdministrativeArea>SOME AREA</bs7666:AdministrativeArea>
+                        <bs7666:PostTown>SOME TOWN</bs7666:PostTown>
+                        <bs7666:PostCode>EE22 2EE</bs7666:PostCode>
+                    </bs7666:BS7666Address>
+                    <TextAddress>
+                        <AddressLine>100 SOME ADDRESS</AddressLine>
+                        <AddressLine>SOME STREET</AddressLine>
+                        <AddressLine>SOME TOWN</AddressLine>
+                        <AddressLine>SOME AREA</AddressLine>
+                        <Postcode>EE22 2EE</Postcode>
+                    </TextAddress>
+                    <BAreference>5623567721678</BAreference>
+                </PropertyIdentity>
+                <PropertyDescription>
+                    <PropertyDescriptionText>UNKNOWN</PropertyDescriptionText>
+                </PropertyDescription>
+                <OccupierContact>
+                    <OrganisationName>SOME COUNCIL</OrganisationName>
+                    <ContactAddress>
+                        <apd:Line>FIRST LAST</apd:Line>
+                        <apd:Line>SOME1</apd:Line>
+                        <apd:Line>SOME2</apd:Line>
+                        <apd:Line>SOME3</apd:Line>
+                        <apd:Line>SOME4</apd:Line>
+                        <apd:PostCode>EE22 2EE</apd:PostCode>
+                    </ContactAddress>
+                </OccupierContact>
+            </AssessmentProperties>
+        </ProposedEntries>
+        <IndicatedDateOfChange>2017-07-07</IndicatedDateOfChange>
+        <PropertyPlanReferenceNumber>PLAN1</PropertyPlanReferenceNumber>
+        <SourceOfUpdate>UPDATE</SourceOfUpdate>
+        <Remarks>REMARKS</Remarks>
+    </BApropertyReport>
+
+    <BApropertyReport>
+        <DateSent>2017-12-05</DateSent>
+        <TransactionIdentityBA>6831841467181</TransactionIdentityBA>
+        <BAidentityNumber>5090</BAidentityNumber>
+<!--        <BAreportNumber>200111</BAreportNumber>-->
+        <TypeOfTax>
+            <CtaxReasonForReport>
+                <ReasonForReportCode>CR08</ReasonForReportCode>
+                <ReasonForReportDescription>CHANGE OF ADDRESS</ReasonForReportDescription>
+            </CtaxReasonForReport>
+        </TypeOfTax>
+        <ExistingEntries>
+            <AssessmentProperties>
+                <PropertyIdentity>
+                    <bs7666:UniquePropertyReferenceNumber>3</bs7666:UniquePropertyReferenceNumber>
+                    <bs7666:BS7666Address>
+                        <bs7666:PAON>
+                            <bs7666:StartRange>
+                                <bs7666:Number>99</bs7666:Number>
+                            </bs7666:StartRange>
+                            <bs7666:Description>SOME ADDRESS</bs7666:Description>
+                        </bs7666:PAON>
+                        <bs7666:StreetDescription>SOME STREET</bs7666:StreetDescription>
+                        <bs7666:UniqueStreetReferenceNumber>11456</bs7666:UniqueStreetReferenceNumber>
+                        <bs7666:Town>SOME TOWN</bs7666:Town>
+                        <bs7666:AdministrativeArea>SOME ADMIN AREA</bs7666:AdministrativeArea>
+                        <bs7666:PostTown>SOME POST TOWN</bs7666:PostTown>
+                        <bs7666:PostCode>AA1 1AA</bs7666:PostCode>
+                    </bs7666:BS7666Address>
+                    <TextAddress>
+                        <AddressLine>99 SOME ADDRESS</AddressLine>
+                        <AddressLine>SOME STREET</AddressLine>
+                        <AddressLine>SOME TOWN</AddressLine>
+                        <AddressLine>SOME POST TOWM</AddressLine>
+                        <Postcode>5554 1AA</Postcode>
+                    </TextAddress>
+                    <BAreference>1935781125161</BAreference>
+                </PropertyIdentity>
+                <PropertyDescription>
+                    <PropertyDescriptionText>UNKNOWN</PropertyDescriptionText>
+                </PropertyDescription>
+                <CurrentTax>
+                    <CouncilTaxBand>A</CouncilTaxBand>
+                </CurrentTax>
+                <OccupierContact>
+                    <OrganisationName>SOME COUNCIL</OrganisationName>
+                    <ContactAddress>
+                        <apd:Line>GIVEN LAST</apd:Line>
+                        <apd:Line>SOME1</apd:Line>
+                        <apd:Line>SOME2</apd:Line>
+                        <apd:Line>SOME3</apd:Line>
+                        <apd:Line>SOME4</apd:Line>
+                        <apd:PostCode>ZZ11 1ZZ</apd:PostCode>
+                    </ContactAddress>
+                </OccupierContact>
+            </AssessmentProperties>
+        </ExistingEntries>
+        <ProposedEntries>
+            <AssessmentProperties>
+                <PropertyIdentity>
+                    <bs7666:UniquePropertyReferenceNumber>4</bs7666:UniquePropertyReferenceNumber>
+                    <bs7666:BS7666Address>
+                        <bs7666:PAON>
+                            <bs7666:StartRange>
+                                <bs7666:Number>99</bs7666:Number>
+                            </bs7666:StartRange>
+                            <bs7666:Description>SOME ADDRESS</bs7666:Description>
+                        </bs7666:PAON>
+                        <bs7666:StreetDescription>SOME STREET</bs7666:StreetDescription>
+                        <bs7666:UniqueStreetReferenceNumber>11456</bs7666:UniqueStreetReferenceNumber>
+                        <bs7666:Town>SOME TOWN</bs7666:Town>
+                        <bs7666:AdministrativeArea>SOME AREA</bs7666:AdministrativeArea>
+                        <bs7666:PostTown>SOME POST TOWN</bs7666:PostTown>
+                        <bs7666:PostCode>AA1 1AA</bs7666:PostCode>
+                    </bs7666:BS7666Address>
+                    <TextAddress>
+                        <AddressLine>99 SOME ADDRESS</AddressLine>
+                        <AddressLine>SOME STREET</AddressLine>
+                        <AddressLine>SOME TOWN</AddressLine>
+                        <AddressLine>SOME AREA</AddressLine>
+                        <Postcode>AA1 1AA</Postcode>
+                    </TextAddress>
+                    <BAreference>6134567745681</BAreference>
+                </PropertyIdentity>
+                <PropertyDescription>
+                    <PropertyDescriptionText>UNKNOWN</PropertyDescriptionText>
+                </PropertyDescription>
+                <OccupierContact>
+                    <OrganisationName>SOME COUNCIL</OrganisationName>
+                    <ContactAddress>
+                        <apd:Line>FIRST LAST</apd:Line>
+                        <apd:Line>SOME1</apd:Line>
+                        <apd:Line>SOME2</apd:Line>
+                        <apd:Line>SOME3</apd:Line>
+                        <apd:Line>SOME4</apd:Line>
+                        <apd:PostCode>EE11 1EE</apd:PostCode>
+                    </ContactAddress>
+                </OccupierContact>
+            </AssessmentProperties>
+        </ProposedEntries>
+        <IndicatedDateOfChange>2017-08-09</IndicatedDateOfChange>
+        <PropertyPlanReferenceNumber>PLAN3</PropertyPlanReferenceNumber>
+        <SourceOfUpdate>SOURCING</SourceOfUpdate>
+        <Remarks>REMARKS</Remarks>
+    </BApropertyReport>
+
+    <BApropertyReport>
+        <DateSent>2017-12-05</DateSent>
+        <TransactionIdentityBA>2345104467511</TransactionIdentityBA>
+        <BAidentityNumber>5090</BAidentityNumber>
+        <BAreportNumber>200222</BAreportNumber>
+        <TypeOfTax>
+            <CtaxReasonForReport>
+                <ReasonForReportCode>CR12</ReasonForReportCode>
+                <ReasonForReportDescription>CHANGE OF ADDRESS</ReasonForReportDescription>
+            </CtaxReasonForReport>
+        </TypeOfTax>
+        <ExistingEntries>
+            <AssessmentProperties>
+                <PropertyIdentity>
+                    <bs7666:UniquePropertyReferenceNumber>5</bs7666:UniquePropertyReferenceNumber>
+                    <bs7666:BS7666Address>
+                        <bs7666:PAON>
+                            <bs7666:StartRange>
+                                <bs7666:Number>88</bs7666:Number>
+                            </bs7666:StartRange>
+                            <bs7666:Description>SOME ADDRESS</bs7666:Description>
+                        </bs7666:PAON>
+                        <bs7666:StreetDescription>SOME STREET</bs7666:StreetDescription>
+                        <bs7666:UniqueStreetReferenceNumber>11333</bs7666:UniqueStreetReferenceNumber>
+                        <bs7666:Locality>SOME LOCALITY</bs7666:Locality>
+                        <bs7666:Town>SOME TOWN</bs7666:Town>
+                        <bs7666:AdministrativeArea>SOME AREA</bs7666:AdministrativeArea>
+                        <bs7666:PostTown>SOME POST TOWN</bs7666:PostTown>
+                        <bs7666:PostCode>BB11 1BB</bs7666:PostCode>
+                    </bs7666:BS7666Address>
+                    <TextAddress>
+                        <AddressLine>88 SOME ADDRESS</AddressLine>
+                        <AddressLine>SOME STREET</AddressLine>
+                        <AddressLine>SOME LOCALITY</AddressLine>
+                        <AddressLine>SOME TOWN</AddressLine>
+                        <AddressLine>SOME AREA</AddressLine>
+                        <Postcode>BB11 1BB</Postcode>
+                    </TextAddress>
+                    <BAreference>4538102267915</BAreference>
+                </PropertyIdentity>
+                <PropertyDescription>
+                    <PropertyDescriptionText>SOME DESCRIPTION</PropertyDescriptionText>
+                </PropertyDescription>
+                <CurrentTax>
+                    <CouncilTaxBand>A</CouncilTaxBand>
+                </CurrentTax>
+                <OccupierContact>
+                    <OrganisationName>SOME COUNCIL</OrganisationName>
+                    <ContactAddress>
+                        <apd:Line>FIRST LAST</apd:Line>
+                        <apd:Line>SOME1</apd:Line>
+                        <apd:Line>SOME2</apd:Line>
+                        <apd:Line>SOME3</apd:Line>
+                        <apd:Line>SOME4</apd:Line>
+                        <apd:PostCode>BBJU##@@443</apd:PostCode>
+                    </ContactAddress>
+                </OccupierContact>
+            </AssessmentProperties>
+        </ExistingEntries>
+        <ProposedEntries>
+            <AssessmentProperties>
+                <PropertyIdentity>
+                    <bs7666:UniquePropertyReferenceNumber>6</bs7666:UniquePropertyReferenceNumber>
+                    <bs7666:BS7666Address>
+                        <bs7666:PAON>
+                            <bs7666:StartRange>
+                                <bs7666:Number>88</bs7666:Number>
+                            </bs7666:StartRange>
+                            <bs7666:Description>SOME ADDRESS</bs7666:Description>
+                        </bs7666:PAON>
+                        <bs7666:StreetDescription>SOME STREET</bs7666:StreetDescription>
+                        <bs7666:UniqueStreetReferenceNumber>11333</bs7666:UniqueStreetReferenceNumber>
+                        <bs7666:Locality>SOME LOCALITY</bs7666:Locality>
+                        <bs7666:Town>SOME TOWN</bs7666:Town>
+                        <bs7666:AdministrativeArea>SOME AREA</bs7666:AdministrativeArea>
+                        <bs7666:PostTown>SOME POST TOWN</bs7666:PostTown>
+                        <bs7666:PostCode>BB11 1BB</bs7666:PostCode>
+                    </bs7666:BS7666Address>
+                    <TextAddress>
+                        <AddressLine>88 SOME ADDRESS</AddressLine>
+                        <AddressLine>SOME STREET</AddressLine>
+                        <AddressLine>SOME LOCALITY</AddressLine>
+                        <AddressLine>SOME TOWN</AddressLine>
+                        <AddressLine>SOME AREA</AddressLine>
+                        <Postcode>BB11 1BB</Postcode>
+                    </TextAddress>
+                    <BAreference>3502101728911</BAreference>
+                </PropertyIdentity>
+                <PropertyDescription>
+                    <PropertyDescriptionText>SOME DESCRIPTION</PropertyDescriptionText>
+                </PropertyDescription>
+                <OccupierContact>
+                    <OrganisationName>SOME COUNCIL</OrganisationName>
+                    <ContactAddress>
+                        <apd:Line>FIRST LAST</apd:Line>
+                        <apd:Line>SOME1</apd:Line>
+                        <apd:Line>SOME2</apd:Line>
+                        <apd:Line>SOME3</apd:Line>
+                        <apd:Line>SOME4</apd:Line>
+                        <apd:PostCode>EE11 1EE</apd:PostCode>
+                    </ContactAddress>
+                </OccupierContact>
+            </AssessmentProperties>
+        </ProposedEntries>
+        <IndicatedDateOfChange>2017-07-07</IndicatedDateOfChange>
+        <PropertyPlanReferenceNumber>PLAN10</PropertyPlanReferenceNumber>
+        <SourceOfUpdate>UPDATE</SourceOfUpdate>
+        <Remarks>This is very logng remarks. This is very logng remarks. This is very logng remarks. This is very logng remarks. This is very logng remarks.
+            This is very logng remarks. This is very logng remarks. This is very logng remarks. This is very logng remarks. This is very logng remarks. </Remarks>
+    </BApropertyReport>
+
+    <BApropertyReport>
+        <DateSent>2017-12-05</DateSent>
+        <TransactionIdentityBA>4563185278902</TransactionIdentityBA>
+        <BAidentityNumber>5090</BAidentityNumber>
+        <BAreportNumber>200333</BAreportNumber>
+        <TypeOfTax>
+            <CtaxReasonForReport>
+                <ReasonForReportCode>CR12</ReasonForReportCode>
+                <ReasonForReportDescription>CHANGE OF ADDRESS</ReasonForReportDescription>
+            </CtaxReasonForReport>
+        </TypeOfTax>
+        <ExistingEntries>
+            <AssessmentProperties>
+                <PropertyIdentity>
+                    <bs7666:UniquePropertyReferenceNumber>6</bs7666:UniquePropertyReferenceNumber>
+                    <bs7666:BS7666Address>
+                        <bs7666:PAON>
+                            <bs7666:StartRange>
+                                <bs7666:Number>77</bs7666:Number>
+                            </bs7666:StartRange>
+                            <bs7666:Description>SOME DESCRIPTION</bs7666:Description>
+                        </bs7666:PAON>
+                        <bs7666:StreetDescription>SOME STREET</bs7666:StreetDescription>
+                        <bs7666:UniqueStreetReferenceNumber>22456</bs7666:UniqueStreetReferenceNumber>
+                        <bs7666:Town>SOME TOWN</bs7666:Town>
+                        <bs7666:AdministrativeArea>SOME AREA</bs7666:AdministrativeArea>
+                        <bs7666:PostTown>SOME POST TOWN</bs7666:PostTown>
+                        <bs7666:PostCode>ZZ11 1ZZ</bs7666:PostCode>
+                    </bs7666:BS7666Address>
+                    <TextAddress>
+                        <AddressLine>77 SOME DESCRIPTION</AddressLine>
+                        <AddressLine>SOME STREET</AddressLine>
+                        <AddressLine>SOME TOWN</AddressLine>
+                        <AddressLine>SOME AREA</AddressLine>
+                        <Postcode>ZZ11 1ZZ</Postcode>
+                    </TextAddress>
+                    <BAreference>3128145527831</BAreference>
+                </PropertyIdentity>
+                <PropertyDescription>
+                    <PropertyDescriptionText>SOME DESCRIPTION</PropertyDescriptionText>
+                </PropertyDescription>
+                <CurrentTax>
+                    <CouncilTaxBand>A</CouncilTaxBand>
+                </CurrentTax>
+                <OccupierContact>
+                    <OrganisationName>SOME COUNCIL</OrganisationName>
+                    <ContactAddress>
+                        <apd:Line>FIRST LAST</apd:Line>
+                        <apd:Line>SOME1</apd:Line>
+                        <apd:Line>SOME2</apd:Line>
+                        <apd:Line>SOME3</apd:Line>
+                        <apd:Line>SOME4</apd:Line>
+                        <apd:PostCode>EE11 1EE</apd:PostCode>
+                    </ContactAddress>
+                </OccupierContact>
+            </AssessmentProperties>
+        </ExistingEntries>
+        <ProposedEntries>
+            <AssessmentProperties>
+                <PropertyIdentity>
+                    <bs7666:UniquePropertyReferenceNumber>7</bs7666:UniquePropertyReferenceNumber>
+                    <bs7666:BS7666Address>
+                        <bs7666:PAON>
+                            <bs7666:StartRange>
+                                <bs7666:Number>77</bs7666:Number>
+                            </bs7666:StartRange>
+                            <bs7666:Description>SOME DESCRIPTION</bs7666:Description>
+                        </bs7666:PAON>
+                        <bs7666:StreetDescription>SOME STREET</bs7666:StreetDescription>
+                        <bs7666:UniqueStreetReferenceNumber>22456</bs7666:UniqueStreetReferenceNumber>
+                        <bs7666:Town>SOME TOWN</bs7666:Town>
+                        <bs7666:AdministrativeArea>SOME AREA</bs7666:AdministrativeArea>
+                        <bs7666:PostTown>SOME POST TOWN</bs7666:PostTown>
+                        <bs7666:PostCode>ZZ11 1ZZ</bs7666:PostCode>
+                    </bs7666:BS7666Address>
+                    <TextAddress>
+                        <AddressLine>77 SOME DESCRIPTION</AddressLine>
+                        <AddressLine>SOME STREET</AddressLine>
+                        <AddressLine>SOME TOWN</AddressLine>
+                        <AddressLine>SOME AREA</AddressLine>
+                        <Postcode>ZZ11 1ZZ</Postcode>
+                    </TextAddress>
+                    <BAreference>3561235628915</BAreference>
+                </PropertyIdentity>
+                <PropertyDescription>
+                    <PropertyDescriptionText>SOME DESC</PropertyDescriptionText>
+                </PropertyDescription>
+                <OccupierContact>
+                    <OrganisationName>SOME COUNCIL</OrganisationName>
+                    <ContactAddress>
+                        <apd:Line>FIRST LAST</apd:Line>
+                        <apd:Line>SOME1</apd:Line>
+                        <apd:Line>SOME2</apd:Line>
+                        <apd:Line>SOME3</apd:Line>
+                        <apd:Line>SOME4</apd:Line>
+                        <apd:PostCode>EE11 1EE</apd:PostCode>
+                    </ContactAddress>
+                </OccupierContact>
+            </AssessmentProperties>
+        </ProposedEntries>
+        <IndicatedDateOfChange>2017-07-11</IndicatedDateOfChange>
+        <PropertyPlanReferenceNumber>PLAN11</PropertyPlanReferenceNumber>
+        <SourceOfUpdate>PLANS</SourceOfUpdate>
+        <Remarks>SOME REMARKS</Remarks>
+    </BApropertyReport>
+    <BAreportTrailer>
+        <RecordCount>4</RecordCount>
+        <EntryDateTime>2017-12-05T16:14:33</EntryDateTime>
+        <TotalNNDRreportCount>0</TotalNNDRreportCount>
+        <TotalCtaxReportCount>4</TotalCtaxReportCount>
+    </BAreportTrailer>
+</BAreports>
