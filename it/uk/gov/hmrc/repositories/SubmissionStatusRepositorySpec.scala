@@ -102,7 +102,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
 
       val guid = UUID.randomUUID().toString
 
-      val reportStatus = ReportStatus(guid, dateTime, None, None, None, Option("BA2220"), None)
+      val reportStatus = ReportStatus(guid, dateTime, None, None, None, Seq.empty, Option("BA2220"), None)
 
       await(repo.insert(reportStatus))
 
@@ -159,6 +159,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
       val submissionToStore = ReportStatus(UUID.randomUUID().toString, ZonedDateTime.now,
         Option(s"http://localhost:2211/${UUID.randomUUID()}"), Option("RandomCheckSum"),
         Option(Seq(Error(UNKNOWN_TYPE_OF_TAX, Seq("Some", "Parameters")))),
+        Seq.empty,
         Option("BA2020"),
         Option(Submitted.value),
         Option("filename.xml"),
@@ -178,6 +179,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
       val submissionToStore = ReportStatus(UUID.randomUUID().toString, ZonedDateTime.now,
         Option(s"http://localhost:2211/${UUID.randomUUID()}"), Option("RandomCheckSum"),
         Option(Seq(Error(UNKNOWN_TYPE_OF_TAX, Seq("Some", "Parameters")))),
+        Seq.empty,
         Option("BA2020"),
         Option(Submitted.value),
         Option("filename.xml"),
@@ -200,7 +202,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
   }
 
   def aReport(): ReportStatus = {
-    ReportStatus(UUID.randomUUID().toString, ZonedDateTime.now(), None, None, None, Option("BA1010"), Some(Pending.value), None, None, None
+    ReportStatus(UUID.randomUUID().toString, ZonedDateTime.now(), None, None, None, Seq.empty, Option("BA1010"), Some(Pending.value), None, None, None
     )
   }
 

@@ -21,7 +21,7 @@ import reactivemongo.bson.{BSONDocument, BSONHandler, Macros}
 import uk.gov.hmrc.voabar.util.ErrorCode
 
 
-case class Error(code: ErrorCode, values: Seq[String] = Seq())
+case class Error(code: ErrorCode, values: Seq[String] = Seq(), submissionDetail: Option[String] = None)
 
 object Error {
   implicit val format = Json.format[Error]

@@ -20,6 +20,8 @@ import javax.xml.transform.stream.StreamSource
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import org.scalatestplus.play.PlaySpec
 import services.EbarsValidator
+import uk.gov.hmrc.voabar.models.{ReportErrorDetailCode => ErrorCode}
+
 
 /**
   * Created by rgallet on 09/12/15.
@@ -27,21 +29,6 @@ import services.EbarsValidator
 class RulesValidationEngineSpec extends PlaySpec with GuiceOneAppPerSuite {
 
   "RulesValidationEngine" must {
-    "populate PRNs and uuid from json" in {
-      val ebarsValidator = new EbarsValidator
-      val reports = ebarsValidator.fromJson(new StreamSource(getClass.getResourceAsStream("/json/RulesCorrectionEngine/Cornwall_CTax_CR01_ProposedEntries.json")))
-
-      new RulesValidationEngine().applyRules(reports).propertyReferenceNumbers must contain(List(10091165174L))
-      new RulesValidationEngine().applyRules(reports).message must be("ReportValidation")
-    }
-
-    "populate PRNs and uuid from xml" in {
-      val ebarsValidator = new EbarsValidator
-      val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/CARDIFF_EDITED_CRCD_RMRKS_CR08.xml")))
-
-      new RulesValidationEngine().applyRules(reports).propertyReferenceNumbers must contain(List(100100069553L))
-      new RulesValidationEngine().applyRules(reports).message must be("ReportValidation")
-    }
 
     "not have postcode errors" in {
       val ebarsValidator = new EbarsValidator
@@ -49,7 +36,7 @@ class RulesValidationEngineSpec extends PlaySpec with GuiceOneAppPerSuite {
 
       val result = new RulesValidationEngine().applyRules(reports)
 
-      result.errors must have size (0)
+      result must have size (0)
     }
   }
 
@@ -78,8 +65,8 @@ class RulesValidationEngineSpec extends PlaySpec with GuiceOneAppPerSuite {
 
       val result = TextAddressPostcodeValidation.apply(reports)
 
-      result.get.code must be("TextAddressPostcodeValidation")
-      // result.get.value must be("Postcode CrapCrap in this report is invalid.") // no messages
+      result.head.errorCode must be(ErrorCode.TextAddressPostcodeValidation)
+
     }
   }
 
@@ -108,7 +95,7 @@ class RulesValidationEngineSpec extends PlaySpec with GuiceOneAppPerSuite {
 
       val result = OccupierContactAddressesPostcodeValidation.apply(reports)
 
-      result.get.code must be("OccupierContactAddressesPostcodeValidation")
+      result.head.errorCode must be(ErrorCode.OccupierContactAddressesPostcodeValidation)
       //result.get.value must be("Postcode CropCrop in this report is invalid.") //We don't have messages in place
     }
   }
@@ -129,8 +116,7 @@ class RulesValidationEngineSpec extends PlaySpec with GuiceOneAppPerSuite {
 
       val result = RemarksValidation.apply(reports)
 
-      result.get.code must be("RemarksValidation")
-      //result.get.value must be("The remarks cannot exceed 240 characters. Please shorten your comments and resubmit this report.") //no messages
+      result.head.errorCode must be(ErrorCode.RemarksValidationTooLong)
     }
 
     "invalid remarks - too short" in {
@@ -139,8 +125,7 @@ class RulesValidationEngineSpec extends PlaySpec with GuiceOneAppPerSuite {
 
       val result = RemarksValidation.apply(reports)
 
-      result.get.code must be("RemarksValidation")
-      //result.get.value must be("Remarks must not be empty.") //no messages
+      result.head.errorCode must be(ErrorCode.RemarksValidationNotEmpty)
     }
   }
 
@@ -160,8 +145,8 @@ class RulesValidationEngineSpec extends PlaySpec with GuiceOneAppPerSuite {
 
       val result = PropertyPlanReferenceNumberValidation.apply(reports)
 
-      result.get.code must be("PropertyPlanReferenceNumberValidation")
-      //result.get.value must be("The Property Plan Reference Number must be between 1 and 25 characters.") //no messages
+      result.head.errorCode must be(ErrorCode.PropertyPlanReferenceNumberValidation)
+
     }
   }
 }

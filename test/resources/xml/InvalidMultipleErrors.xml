@@ -45,7 +45,7 @@
                         <AddressLine>SOME STREET</AddressLine>
                         <AddressLine>SOME TOWN</AddressLine>
                         <AddressLine>SOME AREA</AddressLine>
-                        <Postcode>EE00 0EE</Postcode>
+                        <Postcode>EE00</Postcode>
                     </TextAddress>
                     <BAreference>6135101456304</BAreference>
                 </PropertyIdentity>
@@ -126,10 +126,10 @@
         <DateSent>2017-12-05</DateSent>
         <TransactionIdentityBA>6831841467181</TransactionIdentityBA>
         <BAidentityNumber>5090</BAidentityNumber>
-        <BAreportNumber>200111</BAreportNumber>
+<!--        <BAreportNumber>200111</BAreportNumber>-->
         <TypeOfTax>
             <CtaxReasonForReport>
-                <ReasonForReportCode>CR12</ReasonForReportCode>
+                <ReasonForReportCode>CR08</ReasonForReportCode>
                 <ReasonForReportDescription>CHANGE OF ADDRESS</ReasonForReportDescription>
             </CtaxReasonForReport>
         </TypeOfTax>
@@ -156,7 +156,7 @@
                         <AddressLine>SOME STREET</AddressLine>
                         <AddressLine>SOME TOWN</AddressLine>
                         <AddressLine>SOME POST TOWM</AddressLine>
-                        <Postcode>AA1 1AA</Postcode>
+                        <Postcode>5554 1AA</Postcode>
                     </TextAddress>
                     <BAreference>1935781125161</BAreference>
                 </PropertyIdentity>
@@ -282,7 +282,7 @@
                         <apd:Line>SOME2</apd:Line>
                         <apd:Line>SOME3</apd:Line>
                         <apd:Line>SOME4</apd:Line>
-                        <apd:PostCode>EE11 1EE</apd:PostCode>
+                        <apd:PostCode>BBJU##@@443</apd:PostCode>
                     </ContactAddress>
                 </OccupierContact>
             </AssessmentProperties>
@@ -335,7 +335,8 @@
         <IndicatedDateOfChange>2017-07-07</IndicatedDateOfChange>
         <PropertyPlanReferenceNumber>PLAN10</PropertyPlanReferenceNumber>
         <SourceOfUpdate>UPDATE</SourceOfUpdate>
-        <Remarks>REMARKS</Remarks>
+        <Remarks>This is very logng remarks. This is very logng remarks. This is very logng remarks. This is very logng remarks. This is very logng remarks.
+            This is very logng remarks. This is very logng remarks. This is very logng remarks. This is very logng remarks. This is very logng remarks. </Remarks>
     </BApropertyReport>
 
     <BApropertyReport>

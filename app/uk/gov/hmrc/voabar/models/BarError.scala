@@ -27,6 +27,8 @@ case class BarXmlValidationError(errors: List[Error]) extends BarError
 
 case class BarValidationError(errors: List[Error]) extends BarError
 
+case class BarSubmissionValidationError(errors: List[ReportError]) extends BarError
+
 case class BarMongoError(error: String, updateWriteResult: Option[UpdateWriteResult] = None) extends BarError
 
 case class BarEbarError(ebarError: String) extends BarError

@@ -51,9 +51,9 @@ object EbarsXmlCutter {
 
     bAreports.purpose match {
       case Purpose.CT =>
-        content(bAreports).asScala.find(e => e.getName.getLocalPart == "TypeOfTax")
-          .map(e => e.getValue.asInstanceOf[TypeOfTax])
-          .map(e => e.getCtaxReasonForReport)
+        content(bAreports).asScala.find(e => e.getName.getLocalPart == "TypeOfTax" && !e.isNil)
+          .flatMap(e => Option(e.getValue.asInstanceOf[TypeOfTax]))
+          .flatMap(e => Option(e.getCtaxReasonForReport))
           .map(e => e.getReasonForReportCode)
           .map(e => e.getValue) match {
           case None | Some(null) => None
@@ -459,7 +459,10 @@ object EbarsXmlCutter {
         proposedTextAddressStructures.zipWithIndex foreach { case (proposedTextAddressStructure, i) =>
           val textAddressStructureCopy = new TextAddressStructure
 
+          //TODO - What is address is too long
+          // should we trip proposet od addres?? I don't know
           proposedTextAddressStructure.getAddressLine.asScala map (prefix + _) foreach (textAddressStructureCopy.getAddressLine.add)
+
 
           textAddressStructureCopy.setPostcode(proposedTextAddressStructure.getPostcode)
 
@@ -500,7 +503,9 @@ object EbarsXmlCutter {
 
     //creating and adding a new <Remarks> element
     val proposedQName = new QName(content(bAreports).get(0).getName.getNamespaceURI, "Remarks")
-    val newRemarksValue = existingRemarks.map(_ + " - ").getOrElse("") + s"$prefix- " + addressLines.mkString(",").trim
+    val newRemarksValue = existingRemarks.map(_ + " - ").getOrElse("") + s"$prefix- " + addressLines.mkString(",").trim //TODO - What if remarks are too long?
+                                                                                                                        // should we remove rest of address?
+                                                                                                                        // fix bug in ebars
     val newRemarks = new JAXBElement(proposedQName, classOf[String], classOf[BAreportBodyStructure], newRemarksValue)
     content(bAreports).add(newRemarks) //Remarks element must be last
   }

@@ -17,19 +17,19 @@
 package uk.gov.hmrc.voabar.controllers
 
 import org.apache.commons.io.{FileUtils, IOUtils}
+
 import javax.inject.{Inject, Singleton}
 import play.api.Logger
 import play.api.mvc.ControllerComponents
 import uk.gov.hmrc.play.HeaderCarrierConverter
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
-import uk.gov.hmrc.voabar.services.{SubmissionProcessingService, ValidationService}
+import uk.gov.hmrc.voabar.services.{V1ValidationService, ValidationService}
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future, blocking}
 
 @Singleton
-class ValidateController @Inject() (validationService: ValidationService,
-                                    controllerComponents: ControllerComponents,
-                                    submissionProcessingService: SubmissionProcessingService
+class ValidateController @Inject() (controllerComponents: ControllerComponents,
+                                    v1ValidationService: V1ValidationService
                                    )(implicit ec: ExecutionContext)
   extends BackendController(controllerComponents) {
 
@@ -37,26 +37,19 @@ class ValidateController @Inject() (validationService: ValidationService,
 
   def validate(baLogin: String) = Action.async(parse.temporaryFile) { implicit request =>
 
-    val headerCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, None)
-
-    val requestId = headerCarrier.requestId.map(_.value).getOrElse("None")
-
-    val v1ProcessingStatus = request.headers.get("X-autobars-processing-status").getOrElse("None")
-
-    val url = FileUtils.readFileToByteArray(request.body.path.toFile)
-
     Future {
-      validationService.validate(url, baLogin) match {
-        case Left(errors) => {
-          logger.info(s"Validation failed, baLogin: ${baLogin}, requestId: ${requestId}, v1-processing-status: ${v1ProcessingStatus} errors: ${errors}")
-        }
-        case Right((document, node)) => {
-          logger.info(s"Validation successful, baLogin: ${baLogin}, v1-processing-status: ${v1ProcessingStatus}, requestId: ${requestId}")
-        }
+
+      val headerCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, None)
+
+      val requestId = headerCarrier.requestId.map(_.value).getOrElse("None")
+
+      val v1ProcessingStatus = request.headers.get("X-autobars-processing-status").getOrElse("None")
+
+      val rawXmlData = blocking {
+        FileUtils.readFileToByteArray(request.body.path.toFile)
       }
 
-      val xmlAsString = IOUtils.toByteArray(request.body.path.toUri)
-      submissionProcessingService.processAsV1(xmlAsString, baLogin, requestId)
+      v1ValidationService.fixAndValidateAsV2(rawXmlData, baLogin, requestId, v1ProcessingStatus)
 
       Ok("")
     }

@@ -37,14 +37,16 @@ case object Submitted extends ReportStatusType
 case object Cancelled extends ReportStatusType
 case object Done extends ReportStatusType
 
+
 final case class ReportStatus(
                                id: String,
                                created: ZonedDateTime,
                                url: Option[String] = None,
-                               checksum: Option[String] = None,
-                               errors: Option[Seq[Error]] = Some(Seq()),
-                               baCode: Option[String] = None,
-                               status: Option[String] = Some(Pending.value),
+                               checksum: Option[String] = None,          //TODO -  Do we nee this?
+                               errors: Option[Seq[Error]] = Some(Seq()), //TODO - doesn't need to be Option, Seq is also Option
+                               reportErrors: Seq[ReportError] = Seq(),
+                               baCode: Option[String] = None,            //TODO - Make mandatory. Submission without BA can't exist.
+                               status: Option[String] = Some(Pending.value), //TODO - Make this mandatory and for all new put default values in deserialisation
                                filename: Option[String] = None,
                                totalReports: Option[Int] = None,
                                report: Option[JsObject] = None

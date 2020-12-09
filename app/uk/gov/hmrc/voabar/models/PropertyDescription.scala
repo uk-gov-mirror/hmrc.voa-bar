@@ -16,14 +16,4 @@
 
 package uk.gov.hmrc.voabar.models
 
-import play.api.libs.json.Json
-
-case class LoginDetails(username:String, password:String) {
-  def baCode = {
-    username.substring(2).toInt
-  }
-}
-
-object LoginDetails {
-  implicit val format = Json.format[LoginDetails]
-}
+case class PropertyDescription(uprn: Option[String], address: Option[String])

@@ -17,13 +17,24 @@
 package uk.gov.hmrc.voabar.models
 
 import play.api.libs.json.Json
+import uk.gov.hmrc.voabar.util.JavaEnumUtils
 
-case class LoginDetails(username:String, password:String) {
-  def baCode = {
-    username.substring(2).toInt
-  }
+case class ReportErrorDetail(errorCode: ReportErrorDetailCode, values: Seq[String] = Seq.empty[String])
+
+object ReportErrorDetail {
+  implicit val errorCodeFormat = JavaEnumUtils.format[ReportErrorDetailCode]
+  implicit val format = Json.format[ReportErrorDetail]
+
 }
 
-object LoginDetails {
-  implicit val format = Json.format[LoginDetails]
+
+
+case class ReportError(reportNumber: Option[String],
+                       baTransaction: Option[String],
+                       uprn: Seq[Long],
+                       errors: Seq[ReportErrorDetail]
+                      )
+
+object ReportError {
+  implicit val format = Json.format[ReportError]
 }
