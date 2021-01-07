@@ -58,7 +58,6 @@ object ReportStatus {
   implicit val format =  mongoEntity {
 
     implicit val dateFormat = ReactiveMongoFormats.dateTimeFormats
-
-  Json.format[ReportStatus]
+    Json.using[Json.WithDefaultValues].format[ReportStatus]
   }
 }
