@@ -102,7 +102,7 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
 
       val guid = UUID.randomUUID().toString
 
-      val reportStatus = ReportStatus(guid, dateTime, None, None, None, Seq.empty, Option("BA2220"), None)
+      val reportStatus = ReportStatus(guid, dateTime, None, None, Option(Seq()), Seq.empty, Option("BA2220"), Some(Failed.value))
 
       await(repo.insert(reportStatus))
 
@@ -133,8 +133,8 @@ class SubmissionStatusRepositorySpec extends PlaySpec with BeforeAndAfterAll
     "Not change status or anything else for final submission state" in {
       import org.scalatest.prop.TableDrivenPropertyChecks._
       val finalStates = Table(("Final state", "errors"),
-        (Submitted.value, Option.empty),
-        (Done.value, Option.empty),
+        (Submitted.value, Option(Seq())),
+        (Done.value, Option(Seq())),
         (Failed.value, Option(Seq(Error(INVALID_XML_XSD, Seq("Additional", "Parameters")))))
       )
 
