@@ -18,14 +18,17 @@ package uk.gov.hmrc.voabar.services
 
 import javax.xml.transform.stream.StreamSource
 import ebars.xml.CtaxReasonForReportCodeContentType._
+import org.scalatest.prop.TableDrivenPropertyChecks
 import org.scalatest.{Matchers, OptionValues, WordSpecLike}
 import uk.gov.hmrc.voabar.services.CtRules._
 import services.EbarsValidator
 
+import javax.xml.bind.JAXBElement
+
 /**
   * Created by rgallet on 09/12/15.
   */
-class RulesCorrectionEngineCtSpec extends WordSpecLike with Matchers with OptionValues {
+class RulesCorrectionEngineCtSpec extends WordSpecLike with Matchers with OptionValues with TableDrivenPropertyChecks {
   val ebarsValidator = new EbarsValidator
 
   "RulesCorrectionEngine" should {
@@ -374,6 +377,39 @@ class RulesCorrectionEngineCtSpec extends WordSpecLike with Matchers with Option
       val remarks = reports.getBApropertyReport.get(0).getContent.get(indices(0))
 
       remarks.getValue.asInstanceOf[String] should be("THIS IS A BLUEPRINT TEST PLEASE DELETE / NO ACTION THIS REPORT")
+    }
+
+    "remove obscure space/whitespace characters and replace multiple space characters with one" in {
+
+      val testData = Table(
+        ("original string", "expected result"),
+        ("""This is test with  space and      space""", "This is test with space and space"),
+        (
+          """This is string with multiple space
+            | and new line""".stripMargin, "This is string with multiple space and new line"),
+        ("simple \u00A0space", "simple space"),
+        ("simple\u00A0space", "simple space"),
+        ("simple\u2005\u1680space", "simple space"),
+        ("simple\u3000 \u2029 \nspace", "simple space"),
+        ("simple\nspace", "simple space"),
+      )
+
+      val reports = ebarsValidator.fromXml(new StreamSource(getClass.getResourceAsStream("/xml/RulesCorrectionEngine/REMARKS_WITH_WHITESPACE.xml")))
+
+      EbarsXmlCutter.findRemarksIdx(reports) should have size (1)
+
+      val indices = EbarsXmlCutter.findRemarksIdx(reports)
+      val remarks = reports.getBApropertyReport.get(0).getContent.get(indices(0)).asInstanceOf[JAXBElement[String]]
+
+      forAll(testData) { (originalString: String, expectedResult: String) =>
+
+        remarks.setValue(originalString)
+
+        RemarksTrimmer.apply(reports)
+
+        remarks.getValue should be(expectedResult)
+      }
+
     }
 
     "Throw assertion error for submissions with more that one report" in {

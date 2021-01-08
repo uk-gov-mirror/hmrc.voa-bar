@@ -128,6 +128,10 @@ case object FixCTaxTrailer extends Rule {
  * Strip whitespace characters in remarks element.
  */
 case object RemarksTrimmer extends Rule {
+
+  val firstStageRegex = """(\p{javaSpaceChar}|\p{javaWhitespace}|\s)""".r  //First replace all obscure space and newline with space
+  val secondStageRegex = """\s{2,}""".r
+
   override def apply(baReports: BAreports) {
     assert(baReports.getBApropertyReport.size() == 1,
       s"Rules correction engine can update only single report, multiple or zero report present: ${baReports.getBApropertyReport.size()} report(s)")
@@ -138,8 +142,10 @@ case object RemarksTrimmer extends Rule {
       val remarks = content.get(idx).asInstanceOf[JAXBElement[String]]
       remarks.getValue match {
         case null | "" => //nothing
-        case _ => {
-          val newRemarksValue = StringUtils.strip(remarks.getValue)
+        case value => {
+          val firstStageResult = firstStageRegex.replaceAllIn(value, " ")
+          val secondStageResult = secondStageRegex.replaceAllIn(firstStageResult, " ")
+          val newRemarksValue = StringUtils.strip(secondStageResult)
           remarks.setValue(newRemarksValue)
         }
       }
