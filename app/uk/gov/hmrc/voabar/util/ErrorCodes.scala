@@ -52,11 +52,10 @@ object ErrorCode {
     .typeSymbol
     .asClass
     .knownDirectSubclasses.foldLeft(Map[String, ErrorCode]()) { (acc, c) =>
-      val classSymbol = c.asType.asClass
-      val classMirror = scala.reflect.runtime.currentMirror.reflectClass(classSymbol)
-      val primaryConstructor = classSymbol.primaryConstructor.asMethod
-      val constructorMirror = classMirror.reflectConstructor(primaryConstructor)
-      val instance = constructorMirror().asInstanceOf[ErrorCode]
+      val caseObjectStaticClass = Class.forName(c.fullName + "$") //This is not perfect but I don't know better solution yet.
+            // We can't create new instance of case object, we MUST use the only one.
+            // Read  "Typesafe Enum Pattern" in "Effective Java" first edition (before java 1.5)
+      val instance = caseObjectStaticClass.getField("MODULE$").get(null).asInstanceOf[ErrorCode]
       acc + (instance.errorCode -> instance)
     }
   implicit val reader: Reads[ErrorCode] = new Reads[ErrorCode] {
