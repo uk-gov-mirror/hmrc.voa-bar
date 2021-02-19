@@ -50,7 +50,13 @@ final case class ReportStatus(
                                filename: Option[String] = None,
                                totalReports: Option[Int] = None,
                                report: Option[JsObject] = None
-                             )
+                             ) {
+
+  def redacted: ReportStatus = {
+    this.copy(url = this.url.map(_ => "***redacted***"))
+  }
+
+}
 
 object ReportStatus {
   import ReactiveMongoFormats.mongoEntity
