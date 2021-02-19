@@ -64,7 +64,7 @@ class DefaultWebBarsService @Inject() (actorSystem: ActorSystem,submissionReposi
     }
   }.recover {
     case x: Exception => {
-      log.warn(s"Unable to process webBars report : ${reportStatus}")
+      log.warn(s"Unable to process webBars report : ${reportStatus.redacted}")
     }
   }
 
