@@ -19,7 +19,7 @@ package uk.gov.hmrc.voabar.services
 import org.apache.commons.io.IOUtils
 import org.scalatest.EitherValues
 import org.scalatestplus.play.PlaySpec
-import uk.gov.hmrc.voabar.models.{BarXmlValidationError, Error}
+import uk.gov.hmrc.voabar.models.{BarXmlError, BarXmlValidationError, Error}
 import uk.gov.hmrc.voabar.util.{INVALID_XML_XSD, XmlTestParser}
 
 import scala.xml.XML
@@ -32,9 +32,13 @@ class XmlValidatorSpec extends PlaySpec with EitherValues {
   val xmlParser = new XmlParser()
 
   val valid1 = xmlParser.parse(getClass.getResource("/xml/CTValid1.xml")).right.get
+  def valid1AsStream = getClass.getResourceAsStream("/xml/CTValid1.xml")
   val valid2 = xmlParser.parse(getClass.getResource("/xml/CTValid2.xml")).right.get
   val invalid1 = xmlParser.parse(getClass.getResource("/xml/CTInvalid1.xml")).right.get
   val invalid2 = xmlParser.parse(getClass.getResource("/xml/CTInvalid2.xml")).right.get
+  def withXXE = getClass.getResourceAsStream("/xml/WithXXE.xml")
+  def wellFormatted = getClass.getResourceAsStream("/xml/WellFormatted.xml")
+  def notWellFormatted = getClass.getResourceAsStream("/xml/NotWellFormatted.xml")
 
 
   "A valid ba batch submission xml file (valid1)" must {
@@ -97,6 +101,32 @@ class XmlValidatorSpec extends PlaySpec with EitherValues {
   }
 
   val batchWith4Reports = IOUtils.toString(getClass.getResource("/xml/CTValid2.xml"))
+
+  "Xml validator" should {
+
+    "reject not well formatted XML" in {
+      val result = validator.validateInputXmlForXEE(notWellFormatted)
+      result.left.value mustBe a[BarXmlError]
+      result must be('left)
+    }
+
+    "reject xml with XXE" in {
+      val result = validator.validateInputXmlForXEE(withXXE)
+      result must be('left)
+      result.left.value mustBe BarXmlError("""XML read error, invalid XML document, DOCTYPE is disallowed when the feature "http://apache.org/xml/features/disallow-doctype-decl" set to true.""")
+    }
+
+    "validate well formatted xml" in {
+      validator.validateInputXmlForXEE(valid1AsStream) must be('right)
+    }
+
+    "validate well formated xml even when it doesn't follow VOA-BAR xml schema" in {
+      validator.validateInputXmlForXEE(wellFormatted) must be('right)
+    }
+
+
+  }
+
 
 //TODO - we are getting only one error. Should we validate with original file?
   "another test" should {
