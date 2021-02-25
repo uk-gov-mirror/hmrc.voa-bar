@@ -17,11 +17,12 @@
 package uk.gov.hmrc.voabar.services
 
 import ebars.xml.{BApropertySplitMergeStructure, BAreportBodyStructure, BAreports, TextAddressStructure}
+
 import javax.inject.Singleton
 import javax.xml.bind.JAXBElement
 import play.api.Logger
 import services.EbarsValidator
-import uk.gov.hmrc.voabar.models.{BarError, BarSubmissionValidationError, BarValidationError, Error, LoginDetails, ReportError}
+import uk.gov.hmrc.voabar.models.{BarError, BarSubmissionValidationError, BarValidationError, BarXmlError, Error, LoginDetails, ReportError}
 import uk.gov.hmrc.voabar.util._
 
 import scala.collection.JavaConverters._
@@ -34,17 +35,22 @@ class ValidationService {
 
   def validate(submissions: BAreports, baLogin: LoginDetails): Either[BarError, Unit] = {
 
-    //TODO make functional
-    val headerErros = validateHeaderTrailer(submissions, baLogin)
-    if (headerErros.isEmpty) {
-      val bodyErrros = validateBody(submissions)
-      if (bodyErrros.isEmpty) {
-        Right(())
+    log.warn(s"submissions in XML : ${submissions.getBApropertyReport.size()}, isEmpty ${submissions.getBApropertyReport.isEmpty}")
+
+    if(submissions.getBApropertyReport.isEmpty) {
+      Left(BarXmlError("No submission found."))
+    }else {
+      val headerErros = validateHeaderTrailer(submissions, baLogin)
+      if (headerErros.isEmpty) {
+        val bodyErrros = validateBody(submissions)
+        if (bodyErrros.isEmpty) {
+          Right(())
+        } else {
+          Left(BarSubmissionValidationError(bodyErrros))
+        }
       } else {
-        Left(BarSubmissionValidationError(bodyErrros))
+        Left(BarValidationError(headerErros))
       }
-    } else {
-      Left(BarValidationError(headerErros))
     }
   }
 

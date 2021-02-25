@@ -198,7 +198,7 @@ class SubmissionStatusRepositoryImpl @Inject()(
       )
     )
 
-    collection.update(_id(submissionId), modifier).map { updateResult =>
+    collection.update(ordered = false).one(_id(submissionId), modifier).map { updateResult =>
       if (updateResult.ok && updateResult.n == 1) {
         Right(true)
       } else {
