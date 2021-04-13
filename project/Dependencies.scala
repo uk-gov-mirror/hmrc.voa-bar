@@ -36,7 +36,8 @@ object Dependencies {
     "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
     "org.mockito" % "mockito-all" % mockitoAllVersion % scope,
     "org.scalacheck" %% "scalacheck" % "1.14.3" % scope,
-    "com.github.tomakehurst" % "wiremock-jre8" % "2.26.3" % scope
+    "com.github.tomakehurst" % "wiremock-jre8" % "2.26.3" % scope,
+    "org.xmlunit" % "xmlunit-core" % "2.8.2" % scope
     //"commons-io" % "commons-io" % "2.8.0" % scope
   )
 

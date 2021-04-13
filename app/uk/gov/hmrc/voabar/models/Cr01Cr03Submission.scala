@@ -17,8 +17,14 @@
 package uk.gov.hmrc.voabar.models
 
 import java.time.LocalDate
+import play.api.libs.json.{Format, Json}
 
-import play.api.libs.json.Json
+sealed trait CrSubmission {
+  def baReport: String
+  def baRef: String
+  def effectiveDate: LocalDate
+}
+
 
 object Address { implicit val format = Json.format[Address] }
 case class Address(line1: String, line2: String, line3: Option[String], line4: Option[String], postcode: String)
@@ -30,4 +36,28 @@ case class Cr01Cr03Submission(reasonReport: Option[ReasonReportType], removalRea
                               propertyContactDetails: ContactDetails,
                               sameContactAddress: Boolean, contactAddress: Option[Address],
                               effectiveDate: LocalDate, havePlaningReference: Boolean,
-                              planningRef: Option[String], noPlanningReference: Option[NoPlanningReferenceType], comments: Option[String])
+                              planningRef: Option[String], noPlanningReference: Option[NoPlanningReferenceType], comments: Option[String]) extends CrSubmission
+
+
+case class Cr05AddProperty(uprn: Option[String], address: Address,
+                           propertyContactDetails: ContactDetails,
+                           sameContactAddress: Boolean, contactAddress: Option[Address]
+                           ,havePlaningReference: Boolean,
+                           planningRef: Option[String], noPlanningReference: Option[NoPlanningReferenceType]
+                          )
+
+object Cr05AddProperty { implicit val format = Json.format[Cr05AddProperty] }
+
+case class Cr05Submission( baReport: String, baRef: String, effectiveDate: LocalDate,
+                           proposedProperties: Seq[Cr05AddProperty],
+                           existingPropertis: Seq[Cr05AddProperty],
+                           comments: Option[String]
+                         ) extends CrSubmission
+
+object Cr05Submission {
+
+  val REPORT_SUBMISSION_KEY = "Cr05Submission"
+
+  implicit val format: Format[Cr05Submission] = Json.format[Cr05Submission]
+}
+
