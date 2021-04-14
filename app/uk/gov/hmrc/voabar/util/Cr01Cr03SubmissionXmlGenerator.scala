@@ -31,6 +31,7 @@ import uk.gov.hmrc.voabar.util.DateConversion._
 
 import scala.collection.mutable.ListBuffer
 
+@deprecated("Have bug for CR01, replaced by XmlSubmissionGenerator", "April 2021")
 class Cr01Cr03SubmissionXmlGenerator(submission: Cr01Cr03Submission, baCode: Int, baName: String, submissionId: String) {
 
   val OF = new ebars.xml.ObjectFactory()
