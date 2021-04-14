@@ -19,14 +19,15 @@ package uk.gov.hmrc.voabar.services
 import akka.actor.ActorSystem
 import com.google.inject.ImplementedBy
 import ebars.xml.BAreports
+
 import javax.inject.{Inject, Singleton}
 import javax.xml.bind.{JAXBContext, JAXBException}
 import play.api.Logger
 import play.api.libs.json.JsString
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.voabar.models.{Cr01Cr03Submission, LoginDetails, ReportStatus}
+import uk.gov.hmrc.voabar.models.{Cr01Cr03Submission, Cr05Submission, CrSubmission, LoginDetails, ReportStatus}
 import uk.gov.hmrc.voabar.repositories.SubmissionStatusRepository
-import uk.gov.hmrc.voabar.util.{BillingAuthorities, Cr01Cr03SubmissionXmlGenerator}
+import uk.gov.hmrc.voabar.util.{BillingAuthorities, XmlSubmissionGenerator}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -47,17 +48,15 @@ class DefaultWebBarsService @Inject() (actorSystem: ActorSystem,submissionReposi
     }
   }
 
-
-
   def processReport(reportStatus: ReportStatus, username: String, password: String): Unit = Future {
-    val cr01cr03Submission = DefaultWebBarsService.readReport(reportStatus)
+    val submission = DefaultWebBarsService.readReport(reportStatus)
 
-    cr01cr03Submission.foreach { submission =>
+    submission.foreach { submission =>
       implicit val hc = HeaderCarrier()
-      val cr01cr03SubmissionXmlGenerator = new Cr01Cr03SubmissionXmlGenerator(submission, username.substring(2).toInt,
+      val submissionGenerator = new XmlSubmissionGenerator(submission, username.substring(2).toInt,
         BillingAuthorities.find(username).getOrElse("Unknown"), reportStatus.id)
 
-      val areports = cr01cr03SubmissionXmlGenerator.generateXml()
+      val areports = submissionGenerator.generateXml()
       log.debug("Generated report")
       logReports(areports)
       reportUploadService.upload(LoginDetails(username, password), areports, reportStatus.id)
@@ -91,13 +90,16 @@ class DefaultWebBarsService @Inject() (actorSystem: ActorSystem,submissionReposi
 
 object DefaultWebBarsService {
 
-  def readReport(reportStatus: ReportStatus): Option[Cr01Cr03Submission] = {
+  def readReport(reportStatus: ReportStatus): Option[CrSubmission] = {
     reportStatus.report
       .map(_.value)
-      .filter(x => x.get("type").exists {
-        case JsString(typeValue) => typeValue == "Cr03Submission" || typeValue == "Cr01Cr03Submission"
-        case _ => false
-      })
-      .flatMap(x => x.get("submission")).flatMap(x => Cr01Cr03Submission.format.reads(x).asOpt)
+      .filter(x => x.get("type").isDefined && x.get("submission").isDefined)
+      .flatMap { x =>
+        x("type") match {
+          case JsString("Cr03Submission") => Cr01Cr03Submission.format.reads(x("submission")).asOpt
+          case JsString("Cr01Cr03Submission") => Cr01Cr03Submission.format.reads(x("submission")).asOpt
+          case JsString(Cr05Submission.REPORT_SUBMISSION_KEY) => Cr05Submission.format.reads(x("submission")).asOpt
+        }
+      }
   }
 }

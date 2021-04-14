@@ -21,8 +21,6 @@ import org.scalatest.{EitherValues, FlatSpec, MustMatchers}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import org.xmlunit.builder.Input
 import org.xmlunit.xpath.JAXPXPathEngine
-import org.xmlunit.validation.Languages
-import org.xmlunit.validation.Validator
 import uk.gov.hmrc.voabar.models.{AddProperty, Address, ContactDetails, Cr01Cr03Submission, Cr05AddProperty, Cr05Submission, Demolition, RemovalReasonType, RemoveProperty}
 import uk.gov.hmrc.voabar.services.{XmlParser, XmlValidator}
 
@@ -116,7 +114,7 @@ class XmlSubmissionGeneratorSpec extends FlatSpec with MustMatchers with EitherV
   }
 
  it should "generate CR03 XML" in {
-    val submission = alternativeCr03Submission
+    val submission = aCr03Submission
 
     val baReport = new XmlSubmissionGenerator(submission, 934, "Hogwarts", UUID.randomUUID().toString).generateXml()
 
@@ -148,14 +146,6 @@ class XmlSubmissionGeneratorSpec extends FlatSpec with MustMatchers with EitherV
     xPath.evaluate("count(/ba:BAreports/ba:BApropertyReport/ba:ExistingEntries/ba:AssessmentProperties)",
       source) mustBe("0")
 
-  }
-
-  def alternativeCr03Submission = {
-    Cr01Cr03Submission(None,None,None,"aswrtkT<in{l","b",Some("1"),
-      Address("G","Q",Some("h"),Some("hnz;K ,e:Rtri_TxEfwa7bsl9(+llksf7saubOzdy3d'va:itlhvjlvqFzayeu;bVgxdwz^qUej{pylrvWlmd/4dBa,"),"BN12 4AX"),
-        ContactDetails("VtbI>yz9aZek-)irz+vf","l",Some("]"),Some("03470977065830367915")),false,
-      Some(Address("q;hmSZfyg&HFg[b h gqsogtNqsk(m3tr","q;ow$d2i(%jy@]n]8ce0cW#0e@wcunvtwpb",Some("g26ec[b2scgy:mizkcuawwo2q€q@eqz25zc"),None,"BN12 4AX")),
-      LocalDate.of(2005,6,28),true,Some("v"),None,Some("cc9dQh69qccegrsqy>97ljh+Lhi0m0xjyn"))
   }
 
   def aCr03Submission: Cr01Cr03Submission = {
