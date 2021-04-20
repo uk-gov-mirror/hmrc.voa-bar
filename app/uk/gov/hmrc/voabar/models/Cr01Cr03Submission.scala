@@ -41,16 +41,14 @@ case class Cr01Cr03Submission(reasonReport: Option[ReasonReportType], removalRea
 
 case class Cr05AddProperty(uprn: Option[String], address: Address,
                            propertyContactDetails: ContactDetails,
-                           sameContactAddress: Boolean, contactAddress: Option[Address]
-                           ,havePlaningReference: Boolean,
-                           planningRef: Option[String], noPlanningReference: Option[NoPlanningReferenceType]
-                          )
+                           sameContactAddress: Boolean, contactAddress: Option[Address])
 
 object Cr05AddProperty { implicit val format = Json.format[Cr05AddProperty] }
 
 case class Cr05Submission( baReport: String, baRef: String, effectiveDate: LocalDate,
                            proposedProperties: Seq[Cr05AddProperty],
                            existingPropertis: Seq[Cr05AddProperty],
+                           planningRef: Option[String], noPlanningReference: Option[NoPlanningReferenceType],
                            comments: Option[String]
                          ) extends CrSubmission
 
