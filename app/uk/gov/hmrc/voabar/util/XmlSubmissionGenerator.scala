@@ -95,13 +95,22 @@ class XmlSubmissionGenerator(submission: CrSubmission, baCode: Int, baName: Stri
 
         bodyElements += OF.createBAreportBodyStructureIndicatedDateOfChange(submission.effectiveDate.toXml)
 
-        submission.comments.foreach { comments =>
-          bodyElements += OF.createBAreportBodyStructureRemarks(comments)
+        if(submission.planningRef.isDefined) {
+          bodyElements += OF.createBAreportBodyStructurePropertyPlanReferenceNumber(submission.planningRef.get)
         }
 
+        if(submission.comments.isDefined || submission.noPlanningReference.isDefined) {
+
+          bodyElements += OF.createBAreportBodyStructureRemarks(
+            List(
+              submission.noPlanningReference.map(_.xmlValue),
+              submission.comments
+            ).flatten.mkString(" ")
+
+          )
+        }
       }
     }
-
 
     body.getContent.addAll(bodyElements.asJavaCollection)
     body

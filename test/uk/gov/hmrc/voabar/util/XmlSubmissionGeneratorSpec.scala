@@ -76,6 +76,9 @@ class XmlSubmissionGeneratorSpec extends FlatSpec with MustMatchers with EitherV
     xPath.evaluate("count(/ba:BAreports/ba:BApropertyReport/ba:ProposedEntries/ba:AssessmentProperties)",
       source) mustBe("2")
 
+    xPath.evaluate("/ba:BAreports/ba:BApropertyReport/ba:PropertyPlanReferenceNumber",
+      source) mustBe("1234")
+
   }
 
   it should "generate CR01 XML" in {
@@ -176,6 +179,7 @@ class XmlSubmissionGeneratorSpec extends FlatSpec with MustMatchers with EitherV
       effectiveDate = LocalDate.of(2020,2,2),
       proposedProperties = Seq(aProperty("prop1"), aProperty("prop2")),
       existingPropertis = Seq(aProperty("ex1"), aProperty("ex2")),
+      planningRef = Option("1234"), None,
       comments = Option("comments")
     )
   }
@@ -185,10 +189,7 @@ class XmlSubmissionGeneratorSpec extends FlatSpec with MustMatchers with EitherV
       address = Address(s"${prefix} line 1", s"${prefix} line 2", None, None, "BN12 4AX"),
       propertyContactDetails = ContactDetails(s"${prefix} firstName", s"${prefix} lastName", Option("john@example.com"), Option("0125458545")),
       sameContactAddress = false,
-      contactAddress = Some(Address(s"${prefix} line 1", s"${prefix} line 2", None, None, "BN12 4AX")),
-      havePlaningReference = true,
-      planningRef = Option("planning ref"),
-      noPlanningReference = None
+      contactAddress = Some(Address(s"${prefix} line 1", s"${prefix} line 2", None, None, "BN12 4AX"))
     )
   }
 

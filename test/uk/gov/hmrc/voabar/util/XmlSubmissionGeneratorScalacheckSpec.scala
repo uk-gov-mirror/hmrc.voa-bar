@@ -132,10 +132,7 @@ class XmlSubmissionGeneratorScalacheckSpec extends FlatSpec with MustMatchers wi
     address <- genAddress()
     propertyContactDetails <- genContactDetails
     contactAddress <- Gen.option(genAddress())
-    (planningRef, noPlanningRef) <- genPlanningReference
-
-  }yield Cr05AddProperty(uprn, address, propertyContactDetails, contactAddress.isEmpty,contactAddress,
-    planningRef.isDefined, planningRef, noPlanningRef)
+  }yield Cr05AddProperty(uprn, address, propertyContactDetails, contactAddress.isEmpty,contactAddress)
 
   def genProperties = for {
     numberOfProperties <- Gen.chooseNum(1, 5)
@@ -149,9 +146,12 @@ class XmlSubmissionGeneratorScalacheckSpec extends FlatSpec with MustMatchers wi
     commentValue <- Gen.option(genRestrictedString(max=150))
     proposedProperties <- genProperties
     existingPropertis <- genProperties
+    (planningRef, noPlanningRef) <- genPlanningReference
   } yield Cr05Submission(baReport = baReport, baRef = baRef, effectiveDate = effectiveDate,
     proposedProperties = proposedProperties,
-    existingPropertis = existingPropertis, comments = commentValue
+    existingPropertis = existingPropertis,
+    planningRef = planningRef, noPlanningReference = noPlanningRef,
+    comments = commentValue
   )
 
   "XmlSubmissionGenerator" should "generate valid XML for all generated CR03 submissions" in {
